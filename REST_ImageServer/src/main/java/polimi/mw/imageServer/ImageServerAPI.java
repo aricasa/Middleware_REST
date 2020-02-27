@@ -1,5 +1,6 @@
 package polimi.mw.imageServer;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,8 @@ public class ImageServerAPI {
     }
 
     public static User add(String uuid, User user) {
+        File userStorage = new File("storage/"+uuid);
+        if (!userStorage.isDirectory()) userStorage.mkdir();
         user.setId(uuid);
         return users.put(uuid, user);
     }

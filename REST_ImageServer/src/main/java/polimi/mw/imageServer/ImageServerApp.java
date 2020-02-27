@@ -124,7 +124,8 @@ public class ImageServerApp {
                                 //Example of curl command: curl -u admin:admin -X GET http://localhost:4567/api/storageSpace/123/download/immagine.jpg --output mypic.jpg
                                 get("/:file", (request, response) -> {
                                     String fileName = request.params(":file");
-                                    Path filePath = Paths.get("storage").resolve(fileName);
+                                    String id = request.params(":id");
+                                    Path filePath = Paths.get("storage/"+id).resolve(fileName);
                                     File file = filePath.toFile();
                                     if (file.exists()) {
                                         byte[] data = null;
@@ -169,9 +170,9 @@ public class ImageServerApp {
                             InputStream stream = filePart.getInputStream();
 
                             // Write stream to file under storage folder
-                            Files.copy(stream, Paths.get("storage").resolve(uploadedFileName), StandardCopyOption.REPLACE_EXISTING);
-
                             String id = request.params(":id");
+                            Files.copy(stream, Paths.get("storage/"+id).resolve(uploadedFileName), StandardCopyOption.REPLACE_EXISTING);
+
                             Image image=new Image(uploadedFileName);
                             ImageServerAPI.addImage(id,image);
 
