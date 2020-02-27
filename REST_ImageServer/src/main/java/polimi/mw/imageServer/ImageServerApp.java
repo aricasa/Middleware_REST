@@ -28,9 +28,6 @@ public class ImageServerApp {
     public static void main(String[] args) {
         Gson gson = new Gson();
 
-        File storageDir = new File("storage");
-        if (!storageDir.isDirectory()) storageDir.mkdir();
-
         path("/api", () -> {
             before("/*", (request, response) -> {
                 Boolean authenticated = false; // Authenticate with http basic access authentication
