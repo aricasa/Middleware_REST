@@ -4,7 +4,9 @@ public class Image {
 
     private String id;
     private String title;
-    //private String path;
+
+    public Image(String title)
+    {this.title=title;}
 
     public String getTitle() {return title;}
     public void setTitle(String title) {this.title=title;}

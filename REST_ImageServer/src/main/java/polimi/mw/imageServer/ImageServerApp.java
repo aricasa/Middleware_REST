@@ -32,9 +32,8 @@ public class ImageServerApp {
         if (!storageDir.isDirectory()) storageDir.mkdir();
 
         path("/api", () -> {
-            // Authenticate with http basic access authentication
             before("/*", (request, response) -> {
-                Boolean authenticated = false;
+                Boolean authenticated = false; // Authenticate with http basic access authentication
                 String auth = request.headers("Authorization");
                 if(auth != null && auth.startsWith("Basic")) {
                     String b64Credentials = auth.substring("Basic".length()).trim();
@@ -49,8 +48,14 @@ public class ImageServerApp {
             });
             path("/users", () ->
             {
-                get("", (request, response) -> gson.toJson(ImageServerAPI.users()));     //permette di ottenere tutti gli user
-                get("/:id", (request, response) -> {                                        //permette di ottenere le info di un certo user
+
+                //This allows to obtain information about all the users
+                //Example of curl command: curl -u admin:admin -X GET http://localhost:4567/api/users
+                get("", (request, response) -> gson.toJson(ImageServerAPI.users()));
+
+                //This allows to obtain information about a certain user
+                //Example of curl command: curl -u admin:admin -X GET http://localhost:4567/api/users/123
+                get("/:id", (request, response) -> {
                     String id = request.params(":id");
                     User s = ImageServerAPI.user(id);
                     if (s != null) {
@@ -60,7 +65,10 @@ public class ImageServerApp {
                         return gson.toJson(new Response(404, "Not Exists " + id+"\n"));
                     }
                 });
-                post("", (request, response) -> {                                       //permette di aggiungere uno user (l'id lo crea il sistema)
+
+                //This allows to add a user, whose id is created by the system
+                //Example of curl command: curl -u admin:admin -X POST http://localhost:4567/api/users -H 'Cache-Control: no-cache' -d '{"name":"Pippo"}'
+                post("", (request, response) -> {
                     logger.warn("POST");
                     response.type("application/json");
                     response.status(201);
@@ -69,7 +77,10 @@ public class ImageServerApp {
                     return gson.toJson(new Response(201, "User Created with id [" + user.getId() + "]\n"));
                 }
                 );
-                put("/:id", (request, response) -> {                                    //permette di aggiungere uno user e specificarne un id
+
+                //This allows to add a user, whose id is specified in the command
+                //Example of curl command: curl -u admin:admin -X PUT http://localhost:4567/api/users/123 -H 'Cache-Control: no-cache' -d '{"name":"Pippo"}'
+                put("/:id", (request, response) -> {
                     logger.warn("PUT");
                     String id = request.params(":id");
                     if (ImageServerAPI.user(id) == null) {
@@ -83,7 +94,10 @@ public class ImageServerApp {
                         return gson.toJson(new Response(409, id + " already exists\n"));
                     }
                 });
-                delete("/:id", (request, response) -> {                                 //permette di eliminare uno user con un certo id
+
+                //This allows to delete a user with id specified
+                //Example of curl command:  curl -u admin:admin -X DELETE http://localhost:4567/api/users/123
+                delete("/:id", (request, response) -> {
                     String id = request.params(":id");
                     if (ImageServerAPI.remove(id) != null) {
                         response.status(200);
@@ -94,7 +108,10 @@ public class ImageServerApp {
                 });
             });
             path("/storageSpace" , () -> {
-                path("/:id", () -> {                                                    //per ritornare le immagini di un certo user
+                path("/:id", () -> {
+
+                    //This allows to return information about all the images of a certain user
+                    //Example of curl command: curl -u admin:admin -X GET http://localhost:4567/api/storageSpace/123
                     get("", (request, response) -> {
                         String id = request.params(":id");
                         return gson.toJson(ImageServerAPI.imagesOfUser(id))+"\n";
@@ -102,15 +119,14 @@ public class ImageServerApp {
 
                     path("/download" , () ->
                             {
-                                get("/:file", (request, response) -> {//per ritornare una certa immagine di un certo user
-                                    //return "eccoci";
-                                    //return downloadFile(request.params(":file"));
-                                    logger.warn("qua\n");
+
+                                //This allows to download the image with a certain title of a certain user
+                                //Example of curl command: curl -u admin:admin -X GET http://localhost:4567/api/storageSpace/123/download/immagine.jpg --output mypic.jpg
+                                get("/:file", (request, response) -> {
                                     String fileName = request.params(":file");
                                     Path filePath = Paths.get("storage").resolve(fileName);
                                     File file = filePath.toFile();
                                     if (file.exists()) {
-                                        logger.warn("il file esiste\n");
                                         byte[] data = null;
                                         try {
                                             data = Files.readAllBytes(filePath);
@@ -130,15 +146,18 @@ public class ImageServerApp {
 
                                           e.printStackTrace();
                                         }
-                                        return "Downloaded.\n";
+
+                                        response.status(200);
+                                        return gson.toJson(new Response(200, "File downloaded."));
                                     }
-                                    return "File doesn't exist.\n";
+                                    return gson.toJson(new Response(404, "File doesn't exist."));
                                 });
                             }
                             );
 
-
-                    post("/upload",  (request, response) -> {                           //per aggiungere una immagine nello storage di un certo user
+                    //This allows to upload an image in the online storage on a user
+                    //Example of curl command: curl -u admin:admin -X POST http://localhost:4567/api/storageSpace/123/upload -F 'file=@/Users/Arianna/Desktop/immagine.jpg'
+                    post("/upload",  (request, response) -> {
                         // TO allow for multipart file uploads
                         request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(""));
                         try {
@@ -152,16 +171,22 @@ public class ImageServerApp {
                             // Write stream to file under storage folder
                             Files.copy(stream, Paths.get("storage").resolve(uploadedFileName), StandardCopyOption.REPLACE_EXISTING);
 
+                            String id = request.params(":id");
+                            Image image=new Image(uploadedFileName);
+                            ImageServerAPI.addImage(id,image);
+
                         } catch (IOException | ServletException e) {
-                            return "Exception occurred while uploading file" + e.getMessage();
+                            return gson.toJson(new Response(404, "Exception occurred while uploading file" + e.getMessage()));
                         }
-                        return "File successfully uploaded";
+
+                        response.status(200);
+                        return gson.toJson(new Response(200, "File uploaded."));
                     });
                 });
             });
         });
     }
-    
+
 
 }
 
