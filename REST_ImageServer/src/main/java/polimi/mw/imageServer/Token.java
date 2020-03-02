@@ -20,6 +20,8 @@ public class Token {
         return time.compareTo(expirationDate) > 0;
     }
 
+    public LocalDateTime getExpirationDate() { return expirationDate; }
+
 
 
 }

@@ -17,22 +17,36 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static java.util.UUID.randomUUID;
 import static spark.Spark.*;
 
 public class ImageServerApp {
 
+
     static Logger logger = LoggerFactory.getLogger(ImageServerApp.class);
     static String credentials;
+    static ImageServerAPI imageServerAPI;
+    static OauthServer oauthServer= new OauthServer(imageServerAPI);
 
-    public static void main(String[] args) {
+    public ImageServerApp(ImageServerAPI imageServerAPI)
+    {
+        this.imageServerAPI=imageServerAPI;
+        Init();
+    }
 
-        //OauthServer authenticationServer = null;
-        //authenticationServer.main(null);
-        //authenticationServer.setImageServerAPI(ImageServerAPI);
+    //public static void main(String[] args) throws IOException {
+     public static void Init() {
 
         Gson gson = new Gson();
 
@@ -61,7 +75,7 @@ public class ImageServerApp {
                 //Example of curl command: curl -X GET http://localhost:4567/imageServer/login -H 'Cache-Control: no-cache' -d '{ "username" : "piPPone" , "password" : "myPassword"}'
                 get("", (request, response) -> {
                     User user = gson.fromJson(request.body(), User.class);
-                    return "The token is: "+ ImageServerAPI.login(user);
+                    return "The token is: "+ imageServerAPI.login(user);
                 });
 
                     });
@@ -72,7 +86,7 @@ public class ImageServerApp {
                 //Example of curl command: curl -H "Authorization: Bearer 53366dd3" -X GET http://localhost:4567/imageServer/0e6a4c00/info
                 get("/info", (request, response) -> {
                     String id = request.params(":id");
-                    User s = ImageServerAPI.user(id, credentials);
+                    User s = imageServerAPI.user(id, credentials);
                     if (s != null) {
                         response.status(200);
                         return gson.toJson(s);
@@ -87,7 +101,7 @@ public class ImageServerApp {
                     //Example of curl command: curl -H "Authorization: Bearer 9e218e81" -X GET http://localhost:4567/imageServer/123/storageSpace
                     get("", (request, response) -> {
                         String id = request.params(":id");
-                        return gson.toJson(ImageServerAPI.imagesOfUser(id, credentials))+"\n";
+                        return gson.toJson(imageServerAPI.imagesOfUser(id, credentials))+"\n";
                     });
 
                     //This allows to download the image with a certain title of a certain user
@@ -96,7 +110,7 @@ public class ImageServerApp {
 
                                 String fileName = request.params(":file");
                                 String id = request.params(":id");
-                                if(ImageServerAPI.checkThirdPartyCredentials(id,credentials))
+                                if(imageServerAPI.checkThirdPartyCredentials(id,credentials))
                                 {
                                     Path filePath = Paths.get("storage/"+id).resolve(fileName);
                                     File file = filePath.toFile();
@@ -148,7 +162,7 @@ public class ImageServerApp {
 
                             Image image=new Image(uploadedFileName);
 
-                            if(!ImageServerAPI.addImage(id,image, credentials))
+                            if(!imageServerAPI.addImage(id,image, credentials))
                                 return gson.toJson(new Response(404, "Wrong token."));
 
                         } catch (IOException | ServletException e) {
@@ -168,10 +182,10 @@ public class ImageServerApp {
                 //Example of curl command: curl -X POST http://localhost:4567/imageServer/signUp -H 'Cache-Control: no-cache' -d '{ "name" : "Pippina" , "username" : "piPPone" , "password" : "myPassword"}'
                 post("", (request, response) -> {
                     User user = gson.fromJson(request.body(), User.class);
-                    if (!ImageServerAPI.existsUser(user)) {
+                    if (!imageServerAPI.existsUser(user)) {
                         response.type("application/json");
                         response.status(201);
-                        ImageServerAPI.add(user);
+                        imageServerAPI.add(user);
                         return gson.toJson(new Response(201, "User Created with id [" + user.getId() + "]\n"));
                     }
                     else {
@@ -186,10 +200,10 @@ public class ImageServerApp {
                     String id = request.params(":id");
                     User user = gson.fromJson(request.body(), User.class);
                     user.setId(id);
-                    if (!ImageServerAPI.existsUser(user)) {
+                    if (!imageServerAPI.existsUser(user)) {
                         response.type("application/json");
                         response.status(201);
-                        ImageServerAPI.add(id, user);
+                        imageServerAPI.add(id, user);
                         return gson.toJson(new Response(201, "User Created with id [" + user.getId() + "]\n"));
                     } else {
                         response.status(409);//conflict
@@ -203,14 +217,14 @@ public class ImageServerApp {
 
                 //This allows to obtain information about all the users
                 //Example of curl command: curl -X GET http://localhost:4567/imageServer/users
-                get("", (request, response) -> gson.toJson(ImageServerAPI.users()));
+                get("", (request, response) -> gson.toJson(imageServerAPI.users()));
 
 
                 //This allows to delete a user with id specified
                 //Example of curl command: curl -H "Authorization: Bearer 45ffd34" -X DELETE http://localhost:4567/imageServer/users/123
                 delete("/:id", (request, response) -> {
                     String id = request.params(":id");
-                    if (ImageServerAPI.remove(id,credentials) != null) {
+                    if (imageServerAPI.remove(id,credentials) != null) {
                         response.status(200);
                         return gson.toJson(new Response(200, "Removed User " + id+ "\n"));
                     } else {

@@ -4,7 +4,8 @@ public class OauthSuccessfulResponse implements OauthResponseToken {
 
     private String access_token;
     private String refresh_token;
-    private String expires_in = "1000";
+    private int expires_in = 1000;
+    private String token_type= "bearer";
 
     public void setAccess_token(String access_token) { this.access_token = access_token; }
 
@@ -12,7 +13,8 @@ public class OauthSuccessfulResponse implements OauthResponseToken {
 
     public String getAccess_token() { return access_token; }
 
-    public String getExpires_in() { return expires_in; }
+    public int getExpires_in() { return expires_in; }
 
     public String getRefresh_token() { return refresh_token; }
+
 }

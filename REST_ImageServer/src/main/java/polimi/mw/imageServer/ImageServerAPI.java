@@ -6,11 +6,9 @@ import polimi.mw.imageServer.Oauth.OauthResponseToken;
 import polimi.mw.imageServer.Oauth.OauthSuccessfulResponse;
 
 import java.io.File;
+import java.rmi.server.UnicastRemoteObject;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static java.util.UUID.randomUUID;
 
@@ -24,9 +22,10 @@ public class ImageServerAPI {
 
     public static boolean existsUser(User user)
     {
-        for(int i=0;i<users.size();i++)
+        Iterator<User> iterator=users.values().iterator();
+        while(iterator.hasNext())
         {
-            if(users.values().iterator().next().getUsername().compareTo(user.getUsername())==0)
+            if(iterator.next().getUsername().compareTo(user.getUsername())==0)
                 return true;
         }
         return user.getId()==null || users.get(user.getId()) == null ? false : true;
@@ -97,9 +96,10 @@ public class ImageServerAPI {
 
     public static String login(User usr)
     {
-        for(int i=0;i<users.values().size();i++)
+        Iterator<User> iterator=users.values().iterator();
+        while(iterator.hasNext())
         {
-            User user=users.values().iterator().next();
+            User user=iterator.next();
             if(user.getUsername().compareTo(usr.getUsername())==0 &&
             user.getPassword().compareTo(usr.getPassword())==0)
             {
@@ -118,22 +118,19 @@ public class ImageServerAPI {
     public static OauthResponseToken authenticate(OauthRequestToken requestToken)
     {
         OauthResponseToken responseToken;
-
-        if(users.size()==0)
-            return new OauthFailedResponse("zero");
-
-        for(int i=0;i<users.size();i++)
+        String no="";
+        Iterator<User> iterator = users.values().iterator();
+        while(iterator.hasNext())
         {
-            User user=users.values().iterator().next();
+            User user=iterator.next();
             if(requestToken.getClient_id().compareTo(user.getUsername())==0 && requestToken.getClient_secret().compareTo(user.getPassword())==0)
             {
                 responseToken=new OauthSuccessfulResponse();
                 ((OauthSuccessfulResponse) responseToken).setAccess_token(user.addThirdPartyToken(tokenExpirationTime));
                 return responseToken;
             }
-            return new OauthFailedResponse(requestToken.getClient_id() + " " + user.getUsername() + " " + requestToken.getClient_secret() + " " + user.getPassword());
-        }
 
+        }
         responseToken= new OauthFailedResponse("Authentication failed.");
         return responseToken;
     }
