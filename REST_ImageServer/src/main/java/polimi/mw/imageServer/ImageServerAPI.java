@@ -118,7 +118,13 @@ public class ImageServerAPI {
     public static OauthResponseToken authenticate(OauthRequestToken requestToken)
     {
         OauthResponseToken responseToken;
-        String no="";
+        if(requestToken.getClient_secret()==null || requestToken.getClient_id()== null || requestToken.getGrant_type()== null )
+            return new OauthFailedResponse("invalid_request","Missing parameter in the request.");
+
+        if(requestToken.getGrant_type().compareTo("client_credentials")!=0)
+            return new OauthFailedResponse("unsupported_grant_type","The only supported grant type is client_credentials.");
+
+
         Iterator<User> iterator = users.values().iterator();
         while(iterator.hasNext())
         {
@@ -131,14 +137,15 @@ public class ImageServerAPI {
             }
 
         }
-        responseToken= new OauthFailedResponse("Authentication failed.");
+
+        responseToken= new OauthFailedResponse("invalid_client","Username and password don't correspond to any user.");
         return responseToken;
     }
 
     public static boolean checkThirdPartyCredentials(String uuid, String token)
     {
         User user=users.get(uuid);
-        return user!=null && user.hasThirdPartyToken(token);
+        return user!=null && (user.hasThirdPartyToken(token) || user.hasToken(token));
     }
 
 }

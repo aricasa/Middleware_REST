@@ -64,10 +64,13 @@ public class User {
         for(int i=0;i<thirdPartyTokens.size();i++)
         {
             if(thirdPartyTokens.get(i).getToken().compareTo(token)==0 && !thirdPartyTokens.get(i).isExpired())
+            {
+                System.out.println(thirdPartyTokens.get(i).getToken() + " uguale a " + token);
                 return true;
+            }
+
         }
         return false;
-
     }
 
     public boolean hasToken(String token)

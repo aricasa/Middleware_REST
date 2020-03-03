@@ -48,6 +48,7 @@ public class ImageServerApp {
     //public static void main(String[] args) throws IOException {
      public static void Init() {
 
+
         Gson gson = new Gson();
 
         path("/imageServer", () -> {
@@ -104,13 +105,22 @@ public class ImageServerApp {
                         return gson.toJson(imageServerAPI.imagesOfUser(id, credentials))+"\n";
                     });
 
+                    before("/*",(request, response) -> {
+
+                        String id = request.params(":id");
+
+                        if(!imageServerAPI.checkThirdPartyCredentials(id,credentials))
+                            halt();
+
+                    });
+
                     //This allows to download the image with a certain title of a certain user
-                    //Example of curl command: curl -H "Authorization: Bearer 9e218e81" -X GET http://localhost:4567/imageServer/123/storageSpace/immagine.jpg --output mypic.jpg
+                    //Example of curl command: curl -H "Authorization: Bearer 9e218e81" -X GET http://localhost:4567/imageServer/123/storageSpace/immagine.jpg 'Cache-Control: no-cache' --output mypic.jpg
                             get("/:file", (request, response) -> {
 
                                 String fileName = request.params(":file");
                                 String id = request.params(":id");
-                                if(imageServerAPI.checkThirdPartyCredentials(id,credentials))
+                                if( imageServerAPI.checkThirdPartyCredentials(id,credentials))
                                 {
                                     Path filePath = Paths.get("storage/"+id).resolve(fileName);
                                     File file = filePath.toFile();
@@ -137,15 +147,17 @@ public class ImageServerApp {
 
                                         response.status(200);
                                         return gson.toJson(new Response(200, "File downloaded."));
+                                    }
+                                    return gson.toJson(new Response(404, "File doesn't exist."));
                                 }
-
-                                }
-                                return gson.toJson(new Response(404, "File doesn't exist."));
+                                return gson.toJson(new Response(404, "Wrong token.."));
                             });
+
 
                     //This allows to upload an image in the online storage on a user
                     //Example of curl command: curl -H "Authorization: Bearer 55f6a295" -X POST http://localhost:4567/imageServer/123/storageSpace -F 'file=@/Users/Arianna/Desktop/immagine.jpg'
                     post("",  (request, response) -> {
+
                         // TO allow for multipart file uploads
                         request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement(""));
                         try {
@@ -155,15 +167,15 @@ public class ImageServerApp {
                             // The name of the file user uploaded
                             String uploadedFileName = filePart.getSubmittedFileName();
                             InputStream stream = filePart.getInputStream();
-
-                            // Write stream to file under storage folder
-                            String id = request.params(":id");
-                            Files.copy(stream, Paths.get("storage/"+id).resolve(uploadedFileName), StandardCopyOption.REPLACE_EXISTING);
-
                             Image image=new Image(uploadedFileName);
+                            String id = request.params(":id");
 
                             if(!imageServerAPI.addImage(id,image, credentials))
                                 return gson.toJson(new Response(404, "Wrong token."));
+
+                            // Write stream to file under storage folder
+                            Files.copy(stream, Paths.get("storage/"+id).resolve(uploadedFileName), StandardCopyOption.REPLACE_EXISTING);
+
 
                         } catch (IOException | ServletException e) {
                             return gson.toJson(new Response(404, "Exception occurred while uploading file" + e.getMessage()));
