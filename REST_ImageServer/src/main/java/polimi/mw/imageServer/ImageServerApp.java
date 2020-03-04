@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import polimi.mw.imageServer.Oauth.OauthServer;
-import spark.Request;
-
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -17,18 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-
-import static java.util.UUID.randomUUID;
 import static spark.Spark.*;
 
 public class ImageServerApp {
@@ -45,24 +31,18 @@ public class ImageServerApp {
         Init();
     }
 
-    //public static void main(String[] args) throws IOException {
      public static void Init() {
-
 
         Gson gson = new Gson();
 
         path("/imageServer", () -> {
             before("/*", (request, response) -> {
-                //Boolean authenticated = false; // Authenticate with http basic access authentication
                 String auth = request.headers("Authorization");
                 if(auth != null && auth.startsWith("Bearer")) {
                     logger.warn(auth);
                       credentials = auth.substring("Bearer".length()).trim();
                       logger.warn(credentials);
-                      //credentials = new String(Base64.getDecoder().decode(b64Credentials));
                       logger.info("Credentials: "+credentials);
-                      //if(credentials.equals("esempio"))
-                          //authenticated = true;
                 }
                 //if(!authenticated) {
                   //  response.header("WWW-Authenticate", "Basic realm=\"Restricted\"");

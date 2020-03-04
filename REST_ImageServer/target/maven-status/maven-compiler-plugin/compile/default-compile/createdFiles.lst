@@ -1,2 +1,14 @@
-polimi/mw/imageServer/ImageServerApp.class
+polimi/mw/imageServer/Oauth/OauthSuccessfulResponse.class
+polimi/mw/imageServer/Oauth/OauthResponseToken.class
+polimi/mw/imageServer/Oauth/OauthServer.class
+polimi/mw/imageServer/User.class
+polimi/mw/imageServer/Oauth/OauthRequestToken.class
 polimi/mw/imageServer/ImageServerAPI.class
+polimi/mw/imageServer/UserStorage.class
+polimi/mw/imageServer/Image.class
+polimi/mw/imageServer/Response.class
+polimi/mw/imageServer/Token.class
+polimi/mw/imageServer/Oauth/OauthFailedResponse.class
+polimi/mw/imageServer/ImageServerApp.class
+polimi/mw/imageServer/Init.class
+polimi/mw/imageServer/Oauth/OauthClient.class

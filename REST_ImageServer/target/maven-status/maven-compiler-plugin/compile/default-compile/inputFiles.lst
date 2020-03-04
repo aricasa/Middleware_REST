@@ -1,2 +1,14 @@
-/Users/arianna/Desktop/REST_ImageServer/src/main/java/polimi/mw/imageServer/ImageServerAPI.java
-/Users/arianna/Desktop/REST_ImageServer/src/main/java/polimi/mw/imageServer/ImageServerApp.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/ImageServerApp.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/Image.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/UserStorage.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/Oauth/OauthRequestToken.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/Token.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/Oauth/OauthFailedResponse.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/Oauth/OauthResponseToken.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/User.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/Oauth/OauthSuccessfulResponse.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/ImageServerAPI.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/Oauth/OauthServer.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/Init.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/Response.java
+/Users/arianna/Desktop/Middleware_REST/REST_ImageServer/src/main/java/polimi/mw/imageServer/Oauth/OauthClient.java
