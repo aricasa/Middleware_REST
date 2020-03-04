@@ -1,65 +1,80 @@
 package polimi.mw.imageServer;
 
-import polimi.mw.imageServer.Oauth.OauthFailedResponse;
-import polimi.mw.imageServer.Oauth.OauthRequestToken;
-import polimi.mw.imageServer.Oauth.OauthResponseToken;
-import polimi.mw.imageServer.Oauth.OauthSuccessfulResponse;
-
 import java.io.File;
-import java.rmi.server.UnicastRemoteObject;
-import java.time.LocalDateTime;
 import java.util.*;
-
 import static java.util.UUID.randomUUID;
 
 public class ImageServerAPI {
 
     private static Map<String, User> users = new HashMap<>();
     private static Map<String, UserStorage> images = new HashMap<>();
-    private static int tokenExpirationTime=1000;
+    private static int tokenExpirationTimeUsers=1000;
+    private static int tokenExpirationTimeThirdParty=1000;
+    private static String storagePath;
 
     //User methods
 
-    public static boolean existsUser(User user)
+    public ImageServerAPI(String storagePath)
+    {
+        this.storagePath=storagePath;
+        File userStorage = new File(storagePath);
+        if (!userStorage.isDirectory()) userStorage.mkdir();
+    }
+
+    private static boolean existsUser(User usr)
     {
         Iterator<User> iterator=users.values().iterator();
+        User user;
         while(iterator.hasNext())
         {
-            if(iterator.next().getUsername().compareTo(user.getUsername())==0)
+            user=iterator.next();
+            if(user.getUsername().compareTo(usr.getUsername())==0)
                 return true;
         }
-        return user.getId()==null || users.get(user.getId()) == null ? false : true;
+        return usr.getId()==null || users.get(usr.getId()) == null ? false : true;
+    }
+
+    public static User userWithUsernamePassword(String username, String password)
+    {
+        Iterator<User> iterator = users().iterator();
+        while(iterator.hasNext()) {
+            User user = iterator.next();
+            if (username.compareTo(user.getUsername()) == 0 && password.compareTo(user.getPassword()) == 0) {
+                return user;
+            }
+        }
+        return null;
     }
 
     public static User user(String uuid, String token) {
-        if(checkCredentials(uuid,token))
+        if(checkCredentialsUser(uuid,token))
             return users.get(uuid);
         return null;
     }
 
-    public static User add(String uuid, User user) {
+    public static boolean addID(String uuid, User user) {
 
-        if(users.containsKey(uuid))
-            return null;
-        File userStorage = new File("storage/"+uuid);
+        if(existsUser(user))
+            return false;
+
+        File userStorage = new File(storagePath+"/"+uuid);
         if (!userStorage.isDirectory()) userStorage.mkdir();
             user.setId(uuid);
-        return users.put(uuid, user);
+        users.put(uuid, user);
+        return true;
     }
 
-    public static User add(User user) {
-
+    public static boolean add(User user) {
         String generatedId;
-
         do {
             generatedId=randomUUID().toString().split("-")[0];
         } while(users.containsKey(generatedId));
 
-        return add(generatedId, user);
+        return addID(generatedId, user);
     }
 
     public static User remove(String uuid, String token) {
-        if(checkCredentials(uuid,token))
+        if(checkCredentialsUser(uuid,token))
             return users.remove(uuid);
         return null;
     }
@@ -68,11 +83,14 @@ public class ImageServerAPI {
         return users.values();
     }
 
+    public static int getTokenExpirationTimeThirdParty() { return tokenExpirationTimeThirdParty; }
+
+    public static int getTokenExpirationTimeUsers() { return tokenExpirationTimeUsers; }
+
     //Image methods
 
     public static Collection<Image> imagesOfUser(String uuid, String token) {
-        if(checkCredentials(uuid,token))
-            //if(images.get(uuid)==null)
+        if(checkCredentialsUser(uuid,token) && images.get(uuid)!=null)
             return images.get(uuid).getImages();
         return null;
     }
@@ -80,7 +98,7 @@ public class ImageServerAPI {
     public static Image image(String uuid,String key) {return images.get(uuid).getImage(key);}
 
     public static boolean addImage(String user,Image img, String token) {
-        if(checkCredentials(user, token)) {
+        if(checkCredentialsUser(user, token)) {
             addImage(user, randomUUID().toString().split("-")[0], img);
             return true;
         }
@@ -103,43 +121,16 @@ public class ImageServerAPI {
             if(user.getUsername().compareTo(usr.getUsername())==0 &&
             user.getPassword().compareTo(usr.getPassword())==0)
             {
-                return user.addToken(tokenExpirationTime);
+                return user.addToken(tokenExpirationTimeUsers);
             }
         }
         return null;
     }
 
-    private static boolean checkCredentials(String uuid, String token)
+    public static boolean checkCredentialsUser(String uuid, String token)
     {
         User user=users.get(uuid);
         return user!=null && user.hasToken(token);
-    }
-
-    public static OauthResponseToken authenticate(OauthRequestToken requestToken)
-    {
-        OauthResponseToken responseToken;
-        if(requestToken.getClient_secret()==null || requestToken.getClient_id()== null || requestToken.getGrant_type()== null )
-            return new OauthFailedResponse("invalid_request","Missing parameter in the request.");
-
-        if(requestToken.getGrant_type().compareTo("client_credentials")!=0)
-            return new OauthFailedResponse("unsupported_grant_type","The only supported grant type is client_credentials.");
-
-
-        Iterator<User> iterator = users.values().iterator();
-        while(iterator.hasNext())
-        {
-            User user=iterator.next();
-            if(requestToken.getClient_id().compareTo(user.getUsername())==0 && requestToken.getClient_secret().compareTo(user.getPassword())==0)
-            {
-                responseToken=new OauthSuccessfulResponse();
-                ((OauthSuccessfulResponse) responseToken).setAccess_token(user.addThirdPartyToken(tokenExpirationTime));
-                return responseToken;
-            }
-
-        }
-
-        responseToken= new OauthFailedResponse("invalid_client","Username and password don't correspond to any user.");
-        return responseToken;
     }
 
     public static boolean checkThirdPartyCredentials(String uuid, String token)
@@ -148,4 +139,5 @@ public class ImageServerAPI {
         return user!=null && (user.hasThirdPartyToken(token) || user.hasToken(token));
     }
 
+    public static String getStoragePath() { return storagePath; }
 }
