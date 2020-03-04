@@ -2,7 +2,6 @@ package polimi.mw.imageServer;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 
 import static java.util.UUID.randomUUID;
 

@@ -1,5 +1,7 @@
 package polimi.mw.imageServer.Oauth.Messages;
 
+//Represents the request sent by a third party asking to access a user's storage
+
 public class OauthRequestToken {
 
     private String grant_type;

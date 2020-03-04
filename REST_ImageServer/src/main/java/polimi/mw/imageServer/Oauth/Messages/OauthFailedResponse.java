@@ -1,9 +1,11 @@
 package polimi.mw.imageServer.Oauth.Messages;
 
+//Response returned by Oauth in case of wrong request
+
 public class OauthFailedResponse implements OauthResponseToken {
 
-    private String error;
-    private String error_description;
+    private String error;               //represents the type of error
+    private String error_description;   //represents a brief description of the type of error
 
     public OauthFailedResponse(String error, String error_description) {
 

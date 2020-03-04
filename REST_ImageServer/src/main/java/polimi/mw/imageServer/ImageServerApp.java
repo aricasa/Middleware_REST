@@ -3,7 +3,6 @@ package polimi.mw.imageServer;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import polimi.mw.imageServer.Oauth.OauthApp;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -35,6 +34,8 @@ public class ImageServerApp {
         Gson gson = new Gson();
 
         path("/imageServer", () -> {
+
+            //Retrieve the token, used in case of request of protected information
             before("/*", (request, response) -> {
                 String auth = request.headers("Authorization");
                 if(auth != null && auth.startsWith("Bearer")) {

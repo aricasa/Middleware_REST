@@ -2,6 +2,7 @@ package polimi.mw.imageServer;
 
 import com.google.gson.JsonElement;
 
+
 public class Response {
 
     private int status;

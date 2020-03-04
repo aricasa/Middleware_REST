@@ -1,11 +1,15 @@
 package polimi.mw.imageServer;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+
+//Represents the Bearer Token released after login (in case of user) or after authorization (in case of third party)
 
 public class Token {
 
+    //String that represents the token
     private String token;
+
+    //Date and time in which the token expires
     private LocalDateTime expirationDate;
 
     public Token(String token, LocalDateTime expirationDate ) {

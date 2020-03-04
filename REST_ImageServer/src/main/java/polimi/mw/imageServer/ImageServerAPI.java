@@ -6,11 +6,18 @@ import static java.util.UUID.randomUUID;
 
 public class ImageServerAPI {
 
+    //Represents the association between each user and the unique key
     private static Map<String, User> users = new HashMap<>();
+
+    //Each user (key) is associated to its user storage
     private static Map<String, UserStorage> images = new HashMap<>();
+
+    //Path of the folder which contains the images of users
+    private static String storagePath;
+
     private static int tokenExpirationTimeUsers=1000;
     private static int tokenExpirationTimeThirdParty=1000;
-    private static String storagePath;
+
 
     //User methods
 

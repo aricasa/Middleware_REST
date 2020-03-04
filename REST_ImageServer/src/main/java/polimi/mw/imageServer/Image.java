@@ -1,5 +1,7 @@
 package polimi.mw.imageServer;
 
+//Abstractly represents an image kept in the online storage space
+
 public class Image {
 
     private String id;
