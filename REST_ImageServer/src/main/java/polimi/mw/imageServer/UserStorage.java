@@ -13,4 +13,6 @@ public class UserStorage {
     public Collection<Image> getImages() {return storageSpace.values();}
 
     public Image getImage(String id) {return storageSpace.get(id);}
+
+    public void clearStorage() { storageSpace.clear(); }
 }

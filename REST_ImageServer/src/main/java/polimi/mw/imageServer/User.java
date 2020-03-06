@@ -14,6 +14,16 @@ public class User {
     private ArrayList<Token> tokens= new ArrayList<Token>();
     private ArrayList<Token> thirdPartyTokens= new ArrayList<Token>();
 
+    public User(String id, String name, String username, String password, ArrayList<Token> tokens, ArrayList<Token> thirdPartyTokens )
+    {
+        this.id=id;
+        this.name=name;
+        this.username=username;
+        this.password=password;
+        this.tokens=tokens;
+        this.thirdPartyTokens=thirdPartyTokens;
+    }
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -42,6 +52,8 @@ public class User {
 
     public String addToken(int exprirationTime)
     {
+        if(tokens==null)
+            tokens= new ArrayList<Token>();
         String token=randomUUID().toString().split("-")[0];
         LocalDateTime expirationDate=LocalDateTime.now();
         expirationDate=expirationDate.plusSeconds(exprirationTime);
@@ -51,6 +63,8 @@ public class User {
 
     public String addThirdPartyToken(int exprirationTime)
     {
+        if(thirdPartyTokens==null)
+            thirdPartyTokens=new ArrayList<Token>();
         String token=randomUUID().toString().split("-")[0];
         LocalDateTime expirationDate=LocalDateTime.now();
         expirationDate=expirationDate.plusSeconds(exprirationTime);
@@ -59,6 +73,9 @@ public class User {
     }
 
     public boolean hasThirdPartyToken(String token) {
+
+        if(thirdPartyTokens==null)
+            return false;
 
         for(int i=0;i<thirdPartyTokens.size();i++)
         {

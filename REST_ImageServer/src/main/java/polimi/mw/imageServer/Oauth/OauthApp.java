@@ -7,6 +7,8 @@ import polimi.mw.imageServer.Oauth.Messages.OauthRequestToken;
 
 import static spark.Spark.*;
 
+/** Manages the requests for obtaining a token from third parties */
+
 public class OauthApp {
 
     static Logger logger = LoggerFactory.getLogger(OauthApp.class);
@@ -15,15 +17,15 @@ public class OauthApp {
     public OauthApp(OauthAPI oauthAPI)
     {
         this.oauthAPI=oauthAPI;
-        Init();
+        Start();
     }
 
-    public static void Init() {
+    public static void Start() {
 
         Gson gson = new Gson();
 
-        //This allows a third party to authenticate
-        //Example of curl command: curl -X GET http://localhost:4567/imageServer/authorization -H 'Cache-Control: no-cache' -d '{ "grant_type" : "client_credentials" , "client_id" : "piPPone" , "client_secret" : "myPassword" }'
+        /** This allows a third party to authenticate
+        * Example of curl command: curl -X GET http://localhost:4567/imageServer/authorization -H 'Cache-Control: no-cache' -d '{ "grant_type" : "client_credentials" , "client_id" : "piPPone" , "client_secret" : "myPassword" }' */
         path("/imageServer", () -> {
             get("/authorization", (request, response) -> {
 

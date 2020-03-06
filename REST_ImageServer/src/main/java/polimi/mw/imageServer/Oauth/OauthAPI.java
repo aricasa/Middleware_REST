@@ -17,8 +17,9 @@ public class OauthAPI {
     }
 
 
-    // @param requestToken          represents the Oauth request of a token
-    // Returns a OauthResponseToken object which can be a OauthSuccesfulResponse or a OauthFailedResponse
+    /** @param requestToken          represents the Oauth request sent by a third party
+     *
+     * Returns a OauthResponseToken object which can be a OauthSuccesfulResponse or a OauthFailedResponse */
     public static OauthResponseToken authenticate(OauthRequestToken requestToken)
     {
         OauthResponseToken responseToken;
@@ -35,6 +36,7 @@ public class OauthAPI {
         if(user!=null)
         {
             responseToken=new OauthSuccessfulResponse();
+            ((OauthSuccessfulResponse) responseToken).setExpires_in(imageServerAPI.getTokenExpirationTimeThirdParty());
             ((OauthSuccessfulResponse) responseToken).setAccess_token(user.addThirdPartyToken(imageServerAPI.getTokenExpirationTimeThirdParty()));
             return responseToken;
         }
