@@ -23,8 +23,5 @@ dependencies {
     // https://mvnrepository.com/artifact/commons-io/commons-io
     compile group: 'commons-io', name: 'commons-io', version: '2.6'
 
-    // https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload
-    compile group: 'commons-fileupload', name: 'commons-fileupload', version: '1.4'
-
 
 }

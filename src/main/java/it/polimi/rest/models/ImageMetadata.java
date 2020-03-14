@@ -1,7 +1,6 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
-import it.polimi.rest.messages.Link;
 
 import java.util.*;
 
@@ -23,20 +22,24 @@ public class ImageMetadata implements Model {
 
     @Override
     public Optional<String> self() {
-        return Optional.of("/users/" + owner.username + "/images/" + id);
+        return owner.images().map(url -> url + "/" + id);
     }
 
     @Override
-    public Collection<Link> links() {
-        Collection<Link> links = new ArrayList<>();
-        links.add(new Link("owner", "/user/" + owner.username));
-        links.add(new Link("raw", "/user/" + owner.username + "/images/" + id + "/raw"));
+    public Map<String, Link> links() {
+        Map<String, Link> links = new HashMap<>();
+        owner.self().ifPresent(url -> links.put("author", new Link(url)));
+        raw().ifPresent(url -> links.put("describes", new Link(url)));
         return links;
     }
 
     @Override
     public Map<String, Object> embedded() {
         return Collections.emptyMap();
+    }
+
+    public Optional<String> raw() {
+        return self().map(url -> url + "/raw");
     }
 
 }

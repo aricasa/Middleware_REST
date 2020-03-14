@@ -2,7 +2,7 @@ package it.polimi.rest.serialization;
 
 import com.google.gson.*;
 import it.polimi.rest.models.Model;
-import it.polimi.rest.messages.Link;
+import it.polimi.rest.models.Link;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -33,11 +33,14 @@ public class ModelJsonSerializer implements JsonSerializer<Model> {
         JsonObject json = gsonNoModel.toJsonTree(src).getAsJsonObject();
 
         // Links
-        Collection<Link> links = new ArrayList<>();
+        Map<String, Link> links = new HashMap<>();
 
         Optional<String> self = src.self();
-        self.ifPresent(selfUri -> links.add(new Link("self", selfUri)));
-        Optional.ofNullable(src.links()).ifPresent(links::addAll);
+        self.ifPresent(url -> links.put("self", new Link(url)));
+
+        if (embed) {
+            Optional.ofNullable(src.links()).ifPresent(links::putAll);
+        }
 
         if (links.size() != 0) {
             json.add("_links", context.serialize(links));

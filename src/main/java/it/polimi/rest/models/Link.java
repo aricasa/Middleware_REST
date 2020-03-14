@@ -1,4 +1,4 @@
-package it.polimi.rest.messages;
+package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -6,15 +6,10 @@ import com.google.gson.annotations.SerializedName;
 public class Link {
 
     @Expose
-    @SerializedName("rel")
-    public final String name;
-
-    @Expose
     @SerializedName("href")
     public final String url;
 
-    public Link(String name, String url) {
-        this.name = name;
+    public Link(String url) {
         this.url = url;
     }
 

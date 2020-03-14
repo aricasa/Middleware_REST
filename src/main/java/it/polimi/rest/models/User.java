@@ -1,7 +1,6 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
-import it.polimi.rest.messages.Link;
 
 import java.util.*;
 
@@ -33,15 +32,19 @@ public class User implements Model {
     }
 
     @Override
-    public Collection<Link> links() {
-        Collection<Link> links = new ArrayList<>();
-        links.add(new Link("images", "/users/" + username + "/images"));
+    public Map<String, Link> links() {
+        Map<String, Link> links = new HashMap<>();
+        images().ifPresent(url -> links.put("images", new Link(url)));
         return links;
     }
 
     @Override
     public Map<String, Object> embedded() {
         return Collections.emptyMap();
+    }
+
+    public Optional<String> images() {
+        return self().map(url -> url + "/images");
     }
 
 }

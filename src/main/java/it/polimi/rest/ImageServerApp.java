@@ -33,17 +33,20 @@ public class ImageServerApp {
 
         exception(Exception.class, (exception, request, response) -> exception.printStackTrace());
 
+        get("/", imageServerAPI.root(), jsonTransformer);
+
         path("/users", () -> {
             get("", imageServerAPI.users(), jsonTransformer);
             post("", imageServerAPI.signup(), jsonTransformer);
 
-            get("/:username", imageServerAPI.username(":username"), jsonTransformer);
-            delete("/:username", imageServerAPI.deleteUser(":username"), jsonTransformer);
-
-            // TODO: update user data
+            path("/:username", () -> {
+                get("", imageServerAPI.username(":username"), jsonTransformer);
+                delete("", imageServerAPI.deleteUser(":username"), jsonTransformer);
+            });
         });
 
-        path("/session", () -> {
+        path("/sessions", () -> {
+            // TODO: get session details
             post("", imageServerAPI.login(), jsonTransformer);
             delete("", imageServerAPI.logout(), jsonTransformer);
         });
@@ -51,9 +54,12 @@ public class ImageServerApp {
         path("/users/:username/images", () -> {
             get("", imageServerAPI.userImages(":username"), jsonTransformer);
             post("", imageServerAPI.newImage(":username"), jsonTransformer);
-            get("/:imageId", imageServerAPI.getImageDetails(":username", ":imageId"), jsonTransformer);
-            get("/:imageId/raw", imageServerAPI.getImageRaw(":username", ":imageId"));
-            delete("/:imageId", imageServerAPI.deleteImage(":username", ":imageId"), jsonTransformer);
+
+            path("/:imageId", () -> {
+                get("", imageServerAPI.getImageDetails(":username", ":imageId"), jsonTransformer);
+                get("/raw", imageServerAPI.getImageRaw(":username", ":imageId"));
+                delete("", imageServerAPI.deleteImage(":username", ":imageId"), jsonTransformer);
+            });
         });
     }
 

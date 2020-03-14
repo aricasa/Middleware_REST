@@ -1,7 +1,5 @@
 package it.polimi.rest.models;
 
-import it.polimi.rest.messages.Link;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -21,13 +19,13 @@ public class UsersList implements Model {
     }
 
     @Override
-    public Collection<Link> links() {
-        return Collections.emptyList();
+    public Map<String, Link> links() {
+        return Collections.emptyMap();
     }
 
     @Override
     public Map<String, Object> embedded() {
-        return Collections.singletonMap("users", users);
+        return Collections.singletonMap("item", users);
     }
 
 }

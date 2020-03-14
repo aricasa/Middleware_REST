@@ -44,6 +44,10 @@ public class ImageServerAPI {
         this.dataProvider = dataProvider;
     }
 
+    public Route root() {
+        return Responder.build(request -> new RootMessage(new Root()));
+    }
+
     public Route users() {
         return Responder.build(request -> {
             authenticate(request);

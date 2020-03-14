@@ -4,9 +4,7 @@ import com.google.gson.annotations.Expose;
 
 import java.util.*;
 
-// Represents the Bearer Token released after login (in case of user) or after authorization (in case of third party)
-
-public class Token {
+public class Token implements Model {
 
     @Expose
     public final String id;
@@ -46,6 +44,23 @@ public class Token {
     public boolean isValid() {
         Calendar now = Calendar.getInstance();
         return now.before(expiration);
+    }
+
+    @Override
+    public Optional<String> self() {
+        return Optional.of("/sessions/" + id);
+    }
+
+    @Override
+    public Map<String, Link> links() {
+        Map<String, Link> links = new HashMap<>();
+        owner.self().ifPresent(url -> links.put("author", new Link(url)));
+        return links;
+    }
+
+    @Override
+    public Map<String, Object> embedded() {
+        return Collections.emptyMap();
     }
 
 }
