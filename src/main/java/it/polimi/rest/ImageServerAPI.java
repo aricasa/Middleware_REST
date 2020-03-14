@@ -14,13 +14,9 @@ import spark.Route;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Part;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static java.util.UUID.randomUUID;
@@ -213,6 +209,33 @@ public class ImageServerAPI {
             } catch (IOException | ServletException e) {
                 throw new BadRequestException();
             }
+        });
+    }
+
+    public Route deleteImage(String usernameParam, String imageIdParam) {
+        return Responder.build(request -> {
+            User logged = authenticate(request);
+            String username = request.params(usernameParam);
+            User requestedUser = credentialsManager.userByUsername(username);
+
+            if (!logged.equals(requestedUser)) {
+                throw new ForbiddenException();
+            }
+
+            String imageId = request.params(imageIdParam);
+            Optional<Image> image = dataProvider.get(imageId);
+
+            if (!image.isPresent()) {
+                throw new NotFoundException();
+            }
+
+            if (!image.get().info.owner.equals(logged)) {
+                throw new NotFoundException();
+            }
+
+            dataProvider.remove(image.get().info.id);
+
+            return new ImageDeletionMessage(image.get().info);
         });
     }
 
