@@ -1,5 +1,6 @@
 package it.polimi.rest.authorization;
 
+import it.polimi.rest.models.Token;
 import it.polimi.rest.models.User;
 
 import java.util.*;

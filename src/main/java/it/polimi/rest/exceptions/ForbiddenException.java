@@ -1,5 +1,7 @@
 package it.polimi.rest.exceptions;
 
+import it.polimi.rest.messages.HttpStatus;
+
 public final class ForbiddenException extends RestException {
 
     private static final long serialVersionUID = 1972931111655250395L;
@@ -9,7 +11,7 @@ public final class ForbiddenException extends RestException {
     }
 
     public ForbiddenException(String message) {
-        super(403, message);
+        super(HttpStatus.FORBIDDEN, message);
     }
 
 }

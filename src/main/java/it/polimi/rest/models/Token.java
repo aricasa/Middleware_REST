@@ -1,10 +1,8 @@
-package it.polimi.rest.authorization;
+package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
-import it.polimi.rest.models.User;
 
-import java.util.Calendar;
-import java.util.Objects;
+import java.util.*;
 
 // Represents the Bearer Token released after login (in case of user) or after authorization (in case of third party)
 

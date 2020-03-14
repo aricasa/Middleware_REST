@@ -2,14 +2,17 @@ package it.polimi.rest.serialization;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import it.polimi.rest.responses.Response;
+import it.polimi.rest.models.Model;
 import spark.ResponseTransformer;
+
+import java.util.Calendar;
 
 public class JsonTransformer implements ResponseTransformer {
 
     private final Gson gson = new GsonBuilder()
             .excludeFieldsWithoutExposeAnnotation()
-            .registerTypeHierarchyAdapter(Response.class, new ResponseJsonSerializer())
+            .registerTypeHierarchyAdapter(Model.class, new ModelJsonSerializer())
+            .registerTypeHierarchyAdapter(Calendar.class, new CalendarSerializer())
             .create();
 
     @Override

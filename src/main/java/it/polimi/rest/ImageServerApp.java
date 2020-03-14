@@ -2,15 +2,24 @@ package it.polimi.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.exceptions.RestException;
+import it.polimi.rest.messages.ImageMessage;
+import it.polimi.rest.models.Image;
+import it.polimi.rest.models.ImageMetadata;
 import it.polimi.rest.serialization.JsonTransformer;
 import spark.ResponseTransformer;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static spark.Spark.*;
 
 public class ImageServerApp {
 
-    private final Logger logger = new Logger(this.getClass());
     private final ImageServerAPI imageServerAPI;
 
     public ImageServerApp(ImageServerAPI imageServerAPI) {
@@ -32,17 +41,14 @@ public class ImageServerApp {
             response.body(gson.toJson(exception));
         });
 
-        exception(Exception.class, (exception, request, response) -> {
-            logger.e(exception.getMessage());
-            exception.printStackTrace();
-        });
+        exception(Exception.class, (exception, request, response) -> exception.printStackTrace());
 
         path("/users", () -> {
             get("", imageServerAPI.users(), jsonTransformer);
             post("", imageServerAPI.signup(), jsonTransformer);
 
             get("/:username", imageServerAPI.username(":username"), jsonTransformer);
-            get("/id/:id", imageServerAPI.userId(":id"), jsonTransformer);
+            delete("/:username", imageServerAPI.deleteUser(":username"), jsonTransformer);
 
             // TODO: update user data
         });
@@ -53,45 +59,30 @@ public class ImageServerApp {
         });
 
         path("/users/:username/images", () -> {
-            //get("", imageServerAPI.userImages(":username"), jsonTransformer);
-            //post("", imageServerAPI.newImage(":username"), jsonTransformer);
-            //get("/:imageId", imageServerAPI.getImage(":username", ":imageId"));
+            get("", imageServerAPI.userImages(":username"), jsonTransformer);
+            post("", imageServerAPI.newImage(":username"), jsonTransformer);
+            get("/:imageId", imageServerAPI.getImageDetails(":username", ":imageId"), jsonTransformer);
+            get("/:imageId/raw", imageServerAPI.getImageRaw(":username", ":imageId"));
             //delete("/:imageId", imageServerAPI.deleteImage(":username", ":imageId"), jsonTransformer);
+
+
+            get("/:imageId/raw2", ((request, response) -> {
+                try {
+                    response.type("image/png");
+                    Path filePath = Paths.get("D:/Rest").resolve("test.jpg");
+                    byte[] data = Files.readAllBytes(filePath);
+                    return data;
+                } catch (Exception e) {
+                    throw new BadRequestException();
+                }
+
+            }));
         });
 
         path("/imageServer", () -> {
-
-            /*
-            path("/users/:id", () -> {
-
-                // Delete the user
-                delete("", ((request, response) -> {
-                    String id = request.params(":id");
-
-                    try {
-                        imageServerAPI.remove(id, credentials);
-                        return Responder.success();
-                    } catch (RestException e) {
-                        return new Responder(e);
-                    }
-                }));
-            });
-            */
-
-
             /*
             path("/:id", () -> {
                 path("/storageSpace" , () -> {
-
-                    // This allows to return information about all the images of a certain user
-                    Example of curl command: curl -H "Authorization: Bearer 9e218e81" -X GET http://localhost:4567/imageServer/123/storageSpace
-                    get("", (request, response) -> {
-                        String id = request.params(":id");
-                        if(imageServerAPI.imagesOfUser(id, credentials)==null && !imageServerAPI.checkCredentialsUser(id,credentials))
-                            return gson.toJson(new Responder(401, "Wrong token."));
-                        return gson.toJson(imageServerAPI.imagesOfUser(id, credentials));
-                    });
-
                    // Check the Bearer token before downloading an image
                     before("/*",(request, response) -> {
                         String id = request.params(":id");

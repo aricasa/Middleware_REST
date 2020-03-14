@@ -1,17 +1,20 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
+import it.polimi.rest.messages.Link;
 
-public class User extends BaseModel implements Model {
+import java.util.*;
+
+public class User implements Model {
 
     @Expose(deserialize = false)
-    private String id;
+    public final String id;
 
     @Expose
-    private String username;
+    public final String username;
 
     @Expose(serialize = false)
-    private String password;
+    public final String password;
 
     public User(String id, String username, String password) {
         this.id = id;
@@ -24,28 +27,21 @@ public class User extends BaseModel implements Model {
         return "{" + id + ", " + username + "}";
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    @Override
+    public Optional<String> self() {
+        return Optional.of("/users/" + username);
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    @Override
+    public Collection<Link> links() {
+        Collection<Link> links = new ArrayList<>();
+        links.add(new Link("images", "/users/" + username + "/images"));
+        return links;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
+    @Override
+    public Map<String, Object> embedded() {
+        return Collections.emptyMap();
     }
 
 }

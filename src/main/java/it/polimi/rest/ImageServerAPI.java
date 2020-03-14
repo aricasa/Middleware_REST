@@ -3,16 +3,27 @@ package it.polimi.rest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.Token;
+import it.polimi.rest.exceptions.*;
+import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.models.*;
 import it.polimi.rest.credentials.CredentialsManager;
-import it.polimi.rest.exceptions.NotFoundException;
-import it.polimi.rest.exceptions.UnauthorizedException;
-import it.polimi.rest.models.User;
-import it.polimi.rest.responses.*;
+import it.polimi.rest.messages.*;
+import org.apache.commons.io.IOUtils;
 import spark.Request;
 import spark.Route;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.Part;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
+
+import static java.util.UUID.randomUUID;
 
 public class ImageServerAPI {
 
@@ -24,22 +35,24 @@ public class ImageServerAPI {
 
     private final CredentialsManager credentialsManager;
     private final Authorizer authorizer;
+    private final DataProvider dataProvider;
 
     /**
      * Constructor.
      *
      * @param credentialsManager    credentials manager
      */
-    public ImageServerAPI(CredentialsManager credentialsManager, Authorizer authorizer) {
+    public ImageServerAPI(CredentialsManager credentialsManager, Authorizer authorizer, DataProvider dataProvider) {
         this.credentialsManager = credentialsManager;
         this.authorizer = authorizer;
+        this.dataProvider = dataProvider;
     }
 
     public Route users() {
         return Responder.build(request -> {
             authenticate(request);
             Collection<User> users = credentialsManager.users();
-            return new UsersListResponse(users);
+            return new UsersListMessage(new UsersList(users));
         });
     }
 
@@ -48,7 +61,7 @@ public class ImageServerAPI {
             User user = gson.fromJson(request.body(), User.class);
             User registered = credentialsManager.signup(user);
             logger.d("User " + registered + " created");
-            return new SignupResponse(registered);
+            return new UserCreationMessage(registered);
         });
     }
 
@@ -57,7 +70,7 @@ public class ImageServerAPI {
             User user = gson.fromJson(request.body(), User.class);
             Token token = credentialsManager.login(user);
             logger.d("User " + token.owner + " logged in");
-            return new LoginResponse(token);
+            return new LoginMessage(token);
         });
     }
 
@@ -66,7 +79,7 @@ public class ImageServerAPI {
             User user = authenticate(request);
             authorizer.revoke(user);
             logger.d("User " + user + " logged out");
-            return new LogoutResponse();
+            return new LogoutMessage();
         });
     }
 
@@ -74,13 +87,8 @@ public class ImageServerAPI {
         return Responder.build(request -> {
             authenticate(request);
             String username = request.params(usernameParam);
-            Optional<User> user = credentialsManager.userByUsername(username);
-
-            if (user.isPresent()) {
-                return new UserDetailsResponse(user.get());
-            } else {
-                throw new NotFoundException();
-            }
+            User user = credentialsManager.userByUsername(username);
+            return new UserDetailsMessage(user);
         });
     }
 
@@ -88,21 +96,125 @@ public class ImageServerAPI {
         return Responder.build(request -> {
             authenticate(request);
             String id = request.params(idParam);
-            Optional<User> user = credentialsManager.userById(id);
-
-            if (user.isPresent()) {
-                return new UserDetailsResponse(user.get());
-            } else {
-                throw new NotFoundException();
-            }
+            User user = credentialsManager.userById(id);
+            return new UserDetailsMessage(user);
         });
     }
 
+    public Route deleteUser(String usernameParam) {
+        return Responder.build(request -> {
+            User logged = authenticate(request);
+            String username = request.params(usernameParam);
+            User userToBeRemoved = credentialsManager.userByUsername(username);
 
+            if (!logged.equals(userToBeRemoved)) {
+                throw new ForbiddenException();
+            }
 
+            credentialsManager.delete(userToBeRemoved);
+            return new UserDeletionMessage();
+        });
+    }
 
+    public Route userImages(String usernameParam) {
+        return Responder.build(request -> {
+            User logged = authenticate(request);
+            String username = request.params(usernameParam);
+            User requestedUser = credentialsManager.userByUsername(username);
 
+            if (!logged.equals(requestedUser)) {
+                throw new ForbiddenException();
+            }
 
+            Collection<ImageMetadata> images = dataProvider.get(requestedUser);
+            return new ImagesListMessage(new ImagesList(requestedUser, images));
+        });
+    }
+
+    public Route getImageDetails(String usernameParam, String imageIdParam) {
+        return Responder.build(request -> {
+            User logged = authenticate(request);
+            String username = request.params(usernameParam);
+            User requestedUser = credentialsManager.userByUsername(username);
+
+            if (!logged.equals(requestedUser)) {
+                throw new ForbiddenException();
+            }
+
+            String imageId = request.params(imageIdParam);
+            Optional<Image> image = dataProvider.get(imageId);
+
+            if (!image.isPresent()) {
+                throw new NotFoundException();
+            }
+
+            if (!image.get().info.owner.equals(logged)) {
+                throw new NotFoundException();
+            }
+
+            return new ImageDetailsMessage(image.get().info);
+        });
+    }
+
+    public Route getImageRaw(String usernameParam, String imageIdParam) {
+        return Responder.build(request -> {
+            User logged = authenticate(request);
+            String username = request.params(usernameParam);
+            User requestedUser = credentialsManager.userByUsername(username);
+
+            if (!logged.equals(requestedUser)) {
+                throw new ForbiddenException();
+            }
+
+            String imageId = request.params(imageIdParam);
+            Optional<Image> image = dataProvider.get(imageId);
+
+            if (!image.isPresent()) {
+                throw new NotFoundException();
+            }
+
+            if (!image.get().info.owner.equals(logged)) {
+                throw new NotFoundException();
+            }
+
+            return new ImageMessage(image.get());
+        });
+    }
+
+    public Route newImage(String usernameParam) {
+        return Responder.build(request -> {
+            User logged = authenticate(request);
+            String username = request.params(usernameParam);
+            User requestedUser = credentialsManager.userByUsername(username);
+
+            if (!logged.equals(requestedUser)) {
+                throw new ForbiddenException();
+            }
+
+            String id;
+
+            do {
+                id = randomUUID().toString();
+            } while (dataProvider.contains(id));
+
+            try {
+                Part titlePart = request.raw().getPart("title");
+                String title = IOUtils.toString(titlePart.getInputStream(), Charset.defaultCharset());
+
+                Part filePart = request.raw().getPart("file");
+                InputStream stream = filePart.getInputStream();
+
+                ImageMetadata metadata = new ImageMetadata(id, title, requestedUser);
+                Image image = new Image(metadata, IOUtils.toByteArray(stream));
+                dataProvider.put(image);
+
+                return new ImageCreationMessage(metadata);
+
+            } catch (IOException | ServletException e) {
+                throw new BadRequestException();
+            }
+        });
+    }
 
     /**
      * Check if the request contains a proper authentication token and get the user owning it.
@@ -124,129 +236,14 @@ public class ImageServerAPI {
         String tokenId = authorization.substring("Bearer".length()).trim();
         Optional<Token> token = authorizer.searchToken(tokenId);
 
-        if (token.isPresent()) {
-            return token.get().owner;
-        } else {
+        if (!token.isPresent())
+            throw new UnauthorizedException();
+
+        try {
+            return credentialsManager.userById(token.get().owner.id);
+        } catch (RestException e) {
             throw new UnauthorizedException();
         }
     }
 
-    /** Returns the User (if exists) with username and password passed as arguments */
-    /*public User userWithUsernamePassword(String username, String password) {
-        for (User user : users()) {
-            if (username.compareTo(user.getUsername()) == 0 && password.compareTo(user.getPassword()) == 0) {
-                return user;
-            }
-        }
-
-        return null;
-    }*/
-
-    /*
-    // Returns the user if exists and if the token is valid with id passed as argument
-    public User user(String uuid, String token) throws RestException {
-        if (!checkCredentialsUser(uuid, token))
-            throw new ForbiddenException();
-
-        return users.get(uuid);
-    }
-    */
-
-    /**
-     *  @param uuid         id of the user to be removed
-     *  @param token        authorization token necessary for removing the user
-     *
-     *  Removes the user passed as argument */
-    /*
-    public void remove(String uuid, String token) throws RestException {
-        if (!checkCredentialsUser(uuid, token))
-            throw new ForbiddenException();
-
-        users.remove(uuid);
-    }
-    */
-
-    /*
-    public static int getTokenLifetime() { return tokenLifetime; }
-
-    public void clearUsers() { users.clear(); }
-*/
-    /**
-     *  @param uuid         id of the user
-     *  @param token        authorization token necessary for retrieving images
-     *
-     *  @return  the images of the user specified as argument */
-    /*
-    public Collection<Image> imagesOfUser(String uuid, String token) {
-        if(checkCredentialsUser(uuid,token) && images.get(uuid)!=null && uuid != null) {
-            return images.get(uuid).getImages();
-        }
-        return null;
-    }
-    */
-
-    /**
-     * @param uuid          id of the user
-     * @param key           id of the image to be retrieved
-     *
-     * @return the image in the usare storage of user id which has key id */
-    //private Image image(String uuid,String key) {return images.get(uuid).getImage(key);}
-
-    /**
-     * @param user          id of the user
-     * @param img           image to be added to the storage of user
-     * @param token         authorization token necessary for adding an image
-     *
-     * Add the image to the stotage space of a user
-     *
-     * @return true if the token is valid, false otherwise */
-    /*
-    public boolean addImage(String user,Image img, String token) {
-        if(checkCredentialsUser(user, token)) {
-            String imgID = randomUUID().toString().split("-")[0];
-            img.setId(imgID);
-            if(images.get(user)==null)
-                images.put(user,new UserStorage());
-            else
-                images.get(user).getStorageSpace().put(imgID, img);
-            return true;
-        }
-        return false;
-    }*/
-
-    /**
-     * @param usr           user who is asking to login (consider only username and password)
-     *
-     * @return the user if the credentials (username and password) given as arguments match a user
-     *          null otherwise */
-    /*
-    public String logins(User usr) {
-        for (User user : users.values()) {
-            if (user.getUsername().compareTo(usr.getUsername()) == 0 &&
-                    user.getPassword().compareTo(usr.getPassword()) == 0) {
-                return user.addToken(tokenLifetime);
-            }
-        }
-
-        return null;
-    }*/
-
-    /** @return true if the token is registered to the user (as user token) with id uuid and isn't expired yet */
-    /*public boolean checkCredentialsUser(String uuid, String token) {
-        User user=users.get(uuid);
-        return user!=null && user.hasToken(token);
-    }*/
-
-    /** @return true if the token is registered to the user (as third party token) with id uuid and isn't expired yet */
-    /*public boolean checkThirdPartyCredentials(String uuid, String token) {
-        User user=users.get(uuid);
-        return user!=null && (user.hasThirdPartyToken(token) || user.hasToken(token));
-    }
-
-    public void clearImages() {
-        for(int i=0;i < images.size(); i++)
-            images.get(i).clearStorage();
-
-        images.clear();
-    }*/
 }

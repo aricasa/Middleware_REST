@@ -1,22 +1,24 @@
 package it.polimi.rest;
 
+import it.polimi.rest.models.ImageMetadata;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class UserStorage {
 
-    static Map<String, Image> storageSpace = new HashMap<>();
+    static Map<String, ImageMetadata> storageSpace = new HashMap<>();
 
-    public Map<String,Image> getStorageSpace() {
+    public Map<String, ImageMetadata> getStorageSpace() {
         return storageSpace;
     }
 
-    public Collection<Image> getImages() {
+    public Collection<ImageMetadata> getImages() {
         return storageSpace.values();
     }
 
-    public Image getImage(String id) {
+    public ImageMetadata getImage(String id) {
         return storageSpace.get(id);
     }
 

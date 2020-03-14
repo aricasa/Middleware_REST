@@ -1,7 +1,8 @@
 package it.polimi.rest.credentials;
 
 import it.polimi.rest.Logger;
-import it.polimi.rest.authorization.Token;
+import it.polimi.rest.exceptions.NotFoundException;
+import it.polimi.rest.models.Token;
 import it.polimi.rest.models.User;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.exceptions.ForbiddenException;
@@ -21,12 +22,22 @@ public abstract class CredentialsManager {
         this.authorizer = authorizer;
     }
 
-    protected abstract void add(String id, User user);
-    protected abstract void remove(String id);
+    protected abstract void add(User user);
+    protected abstract void remove(User id);
 
     public abstract Collection<User> users();
-    public abstract Optional<User> userById(String id);
-    public abstract Optional<User> userByUsername(String username);
+    protected abstract Optional<User> getByUsername(String username);
+    protected abstract Optional<User> getById(String id);
+
+    public final User userByUsername(String username) {
+        Optional<User> user = getByUsername(username);
+        return user.orElseThrow(NotFoundException::new);
+    }
+
+    public final User userById(String id) {
+        Optional<User> user = getById(id);
+        return user.orElseThrow(NotFoundException::new);
+    }
 
     /**
      * Check the user credentials and, if valid, generate a
@@ -36,21 +47,16 @@ public abstract class CredentialsManager {
      * @return token
      */
     public final Token login(User user) {
-        Optional<User> account = userByUsername(user.getUsername());
+        User account = userByUsername(user.username);
 
-        if (!account.isPresent()) {
-            logger.w("Login: user " + user.getUsername() + " doesn't exist");
+        String storedPassword = account.password;
+
+        if (!storedPassword.equals(user.password)) {
+            logger.w("Login: wrong password for user " + user.password);
             throw new UnauthorizedException("Wrong credentials");
         }
 
-        String storedPassword = account.get().getPassword();
-
-        if (!storedPassword.equals(user.getPassword())) {
-            logger.w("Login: wrong password for user " + user.getUsername());
-            throw new UnauthorizedException("Wrong credentials");
-        }
-
-        return authorizer.authorize(account.get());
+        return authorizer.authorize(account);
     }
 
     /**
@@ -60,18 +66,19 @@ public abstract class CredentialsManager {
      * @return the created user with its ID set
      */
     public final User signup(User user) {
-        if (userByUsername(user.getUsername()).isPresent()) {
-            logger.w("Signup: " + user.getUsername() + " already in use");
+        if (getByUsername(user.username).isPresent()) {
+            logger.w("Signup: " + user.username + " already in use");
             throw new ForbiddenException("Username already in use");
         }
 
-        User registered = new User(newId(), user.getUsername(), user.getPassword());
-        add(registered.getId(), registered);
+        User registered = new User(newId(), user.username, user.password);
+        add(registered);
         return registered;
     }
 
     public final void delete(User user) {
-
+        authorizer.revoke(user);
+        remove(user);
     }
 
     /**
@@ -84,7 +91,7 @@ public abstract class CredentialsManager {
 
         do {
             id = randomUUID().toString().split("-")[0];
-        } while (userById(id).isPresent());
+        } while (getById(id).isPresent());
 
         return id;
     }

@@ -1,4 +1,4 @@
-package it.polimi.rest.responses;
+package it.polimi.rest.messages;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

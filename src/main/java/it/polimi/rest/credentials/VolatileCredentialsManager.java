@@ -14,13 +14,13 @@ public final class VolatileCredentialsManager extends CredentialsManager {
     }
 
     @Override
-    public Optional<User> userById(String id) {
+    public Optional<User> getById(String id) {
         return Optional.ofNullable(users.get(id));
     }
 
     @Override
-    public Optional<User> userByUsername(String username) {
-        return users.values().stream().filter(user -> user.getUsername().equals(username)).findAny();
+    public Optional<User> getByUsername(String username) {
+        return users.values().stream().filter(user -> user.username.equals(username)).findAny();
     }
 
     @Override
@@ -29,13 +29,13 @@ public final class VolatileCredentialsManager extends CredentialsManager {
     }
 
     @Override
-    protected void add(String id, User user) {
-        users.put(id, user);
+    protected void add(User user) {
+        users.put(user.id, user);
     }
 
     @Override
-    protected void remove(String id) {
-        users.remove(id);
+    protected void remove(User user) {
+        users.remove(user.id);
     }
 
 }

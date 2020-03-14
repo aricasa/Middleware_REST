@@ -4,6 +4,8 @@ import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.authorization.VolatileAuthorizer;
 import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.credentials.VolatileCredentialsManager;
+import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.data.VolatileDataProvider;
 
 public class Main {
 
@@ -18,7 +20,8 @@ public class Main {
     public Main() {
         Authorizer authorizer = new VolatileAuthorizer();
         CredentialsManager credentialsManager = new VolatileCredentialsManager(authorizer);
-        imageServerAPI= new ImageServerAPI(credentialsManager, authorizer);
+        DataProvider dataProvider = new VolatileDataProvider();
+        imageServerAPI= new ImageServerAPI(credentialsManager, authorizer, dataProvider);
         imageServerApp= new ImageServerApp(imageServerAPI);
 
         //oauthAPI = new OauthAPI(imageServerAPI);
