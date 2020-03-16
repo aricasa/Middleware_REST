@@ -1,4 +1,4 @@
-package it.polimi.rest.serialization;
+package it.polimi.rest.adapters;
 
 import com.google.gson.*;
 
@@ -8,7 +8,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class CalendarSerializer implements JsonSerializer<Calendar> {
+public class CalendarJsonAdapter implements JsonSerializer<Calendar> {
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 

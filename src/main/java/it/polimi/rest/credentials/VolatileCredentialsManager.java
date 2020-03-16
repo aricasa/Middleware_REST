@@ -1,41 +1,75 @@
 package it.polimi.rest.credentials;
 
 import it.polimi.rest.models.User;
-import it.polimi.rest.authorization.Authorizer;
+import it.polimi.rest.models.UserId;
 
 import java.util.*;
 
-public final class VolatileCredentialsManager extends CredentialsManager {
+import static java.util.UUID.randomUUID;
 
-    private final Map<String, User> users = new HashMap<>();
+public class VolatileCredentialsManager implements CredentialsManager {
 
-    public VolatileCredentialsManager(Authorizer authorizer) {
-        super(authorizer);
+    private final Map<UserId, User> users = new HashMap<>();
+    private final Collection<UserId> reserved = new HashSet<>();
+
+    @Override
+    public synchronized UserId getUniqueId() {
+        UserId id;
+
+        do {
+            id = new UserId(randomUUID().toString().split("-")[0]);
+        } while (userById(id).isPresent() || reserved.contains(id));
+
+        // Reserve the ID
+        reserved.add(id);
+
+        return id;
     }
 
     @Override
-    public Optional<User> getById(String id) {
+    public synchronized Collection<User> users() {
+        return users.values();
+    }
+
+    @Override
+    public synchronized Optional<User> userById(UserId id) {
         return Optional.ofNullable(users.get(id));
     }
 
     @Override
-    public Optional<User> getByUsername(String username) {
-        return users.values().stream().filter(user -> user.username.equals(username)).findAny();
+    public synchronized Optional<User> userByUsername(String username) {
+        return users.values().stream()
+                .filter(user -> user.username.equals(username))
+                .findFirst();
     }
 
     @Override
-    public Collection<User> users() {
-        return Collections.unmodifiableCollection(users.values());
+    public Optional<User> authenticate(String username, String password) {
+        Optional<User> user = userByUsername(username);
+
+        if (user.isPresent() && user.get().password.equals(password)) {
+            return user;
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
-    protected void add(User user) {
-        users.put(user.id, user);
+    public void add(User user) {
+        users.putIfAbsent(user.id, user);
+        reserved.remove(user.id);
     }
 
     @Override
-    protected void remove(User user) {
-        users.remove(user.id);
+    public void update(User user) {
+        if (users.containsKey(user.id)) {
+            users.put(user.id, user);
+        }
+    }
+
+    @Override
+    public void remove(UserId id) {
+        users.remove(id);
     }
 
 }

@@ -2,7 +2,7 @@ package it.polimi.rest.models;
 
 import java.util.*;
 
-public class Root implements Model {
+public class Root implements Model, TokenAcceptor {
 
     @Override
     public Optional<String> self() {
@@ -21,4 +21,10 @@ public class Root implements Model {
     public Map<String, Object> embedded() {
         return null;
     }
+
+    @Override
+    public boolean accept(Token token) {
+        return true;
+    }
+
 }

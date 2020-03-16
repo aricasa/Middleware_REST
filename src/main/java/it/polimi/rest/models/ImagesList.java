@@ -4,7 +4,7 @@ import com.google.gson.annotations.Expose;
 
 import java.util.*;
 
-public class ImagesList implements Model {
+public class ImagesList implements Model, TokenAcceptor {
 
     private final User owner;
     private final Collection<ImageMetadata> images;
@@ -33,6 +33,11 @@ public class ImagesList implements Model {
     @Override
     public Map<String, Object> embedded() {
         return Collections.singletonMap("item", images);
+    }
+
+    @Override
+    public boolean accept(Token token) {
+        return token.managed.equals(owner.id);
     }
 
 }

@@ -1,8 +1,8 @@
 package it.polimi.rest.exceptions;
 
-import it.polimi.rest.messages.HttpStatus;
+import it.polimi.rest.communication.HttpStatus;
 
-public class UnauthorizedException extends RestException {
+public final class UnauthorizedException extends RestException {
 
     private static final long serialVersionUID = -182820727825587302L;
 

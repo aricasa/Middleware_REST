@@ -4,10 +4,10 @@ import com.google.gson.annotations.Expose;
 
 import java.util.*;
 
-public class User implements Model {
+public class User implements Model, TokenAcceptor {
 
     @Expose(deserialize = false)
-    public final String id;
+    public final UserId id;
 
     @Expose
     public final String username;
@@ -15,7 +15,7 @@ public class User implements Model {
     @Expose(serialize = false)
     public final String password;
 
-    public User(String id, String username, String password) {
+    public User(UserId id, String username, String password) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -45,6 +45,11 @@ public class User implements Model {
 
     public Optional<String> images() {
         return self().map(url -> url + "/images");
+    }
+
+    @Override
+    public boolean accept(Token token) {
+        return token.managed.equals(id);
     }
 
 }

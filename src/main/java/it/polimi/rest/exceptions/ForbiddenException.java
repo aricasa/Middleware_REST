@@ -1,6 +1,6 @@
 package it.polimi.rest.exceptions;
 
-import it.polimi.rest.messages.HttpStatus;
+import it.polimi.rest.communication.HttpStatus;
 
 public final class ForbiddenException extends RestException {
 

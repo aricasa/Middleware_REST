@@ -1,8 +1,10 @@
-package it.polimi.rest.messages;
+package it.polimi.rest.communication.messages;
+
+import it.polimi.rest.communication.HttpStatus;
 
 import java.util.Optional;
 
-public class LogoutMessage implements Message {
+public class ImageDeletionMessage implements Message {
 
     @Override
     public int code() {
@@ -11,7 +13,7 @@ public class LogoutMessage implements Message {
 
     @Override
     public String type() {
-        return APPLICATION_JSON;
+        return null;
     }
 
     @Override

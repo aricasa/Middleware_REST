@@ -3,7 +3,7 @@ package it.polimi.rest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import it.polimi.rest.exceptions.RestException;
-import it.polimi.rest.serialization.JsonTransformer;
+import it.polimi.rest.adapters.JsonTransformer;
 import spark.ResponseTransformer;
 
 import static spark.Spark.*;
@@ -40,15 +40,15 @@ public class ImageServerApp {
             post("", imageServerAPI.signup(), jsonTransformer);
 
             path("/:username", () -> {
-                get("", imageServerAPI.username(":username"), jsonTransformer);
+                get("", imageServerAPI.userByUsername(":username"), jsonTransformer);
                 delete("", imageServerAPI.deleteUser(":username"), jsonTransformer);
             });
         });
 
         path("/sessions", () -> {
-            // TODO: get session details
             post("", imageServerAPI.login(), jsonTransformer);
-            delete("", imageServerAPI.logout(), jsonTransformer);
+            // TODO: get session details
+            delete("/:tokenId", imageServerAPI.logout(":tokenId"), jsonTransformer);
         });
 
         path("/users/:username/images", () -> {
@@ -56,9 +56,9 @@ public class ImageServerApp {
             post("", imageServerAPI.newImage(":username"), jsonTransformer);
 
             path("/:imageId", () -> {
-                get("", imageServerAPI.getImageDetails(":username", ":imageId"), jsonTransformer);
-                get("/raw", imageServerAPI.getImageRaw(":username", ":imageId"));
-                delete("", imageServerAPI.deleteImage(":username", ":imageId"), jsonTransformer);
+                get("", imageServerAPI.getImageDetails(":imageId"), jsonTransformer);
+                get("/raw", imageServerAPI.getImageRaw(":imageId"));
+                delete("", imageServerAPI.deleteImage(":imageId"), jsonTransformer);
             });
         });
     }

@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-public class UsersList implements Model {
+public class UsersList implements Model, TokenAcceptor {
 
     private final Collection<User> users;
 
@@ -26,6 +26,11 @@ public class UsersList implements Model {
     @Override
     public Map<String, Object> embedded() {
         return Collections.singletonMap("item", users);
+    }
+
+    @Override
+    public boolean accept(Token token) {
+        return true;
     }
 
 }

@@ -4,36 +4,25 @@ import com.google.gson.annotations.Expose;
 
 import java.util.*;
 
-public class Token implements Model {
+public class Token implements Model, TokenAcceptor {
 
     @Expose
-    public final String id;
+    public final TokenId id;
 
     @Expose(deserialize = false)
     private final Calendar expiration;
 
-    public final User owner;
+    public final UserId owner;
+    public final UserId managed;
 
-    public Token(String id, int lifeTime, User owner) {
+    public Token(TokenId id, int lifeTime, UserId owner, UserId managed) {
         this.id = id;
 
         this.expiration = Calendar.getInstance();
         this.expiration.add(Calendar.SECOND, lifeTime);
 
         this.owner = owner;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Token token = (Token) o;
-        return id.equals(token.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+        this.managed = managed;
     }
 
     /**
@@ -53,14 +42,21 @@ public class Token implements Model {
 
     @Override
     public Map<String, Link> links() {
-        Map<String, Link> links = new HashMap<>();
-        owner.self().ifPresent(url -> links.put("author", new Link(url)));
-        return links;
+        return Collections.emptyMap();
     }
 
     @Override
     public Map<String, Object> embedded() {
         return Collections.emptyMap();
+    }
+
+    @Override
+    public boolean accept(Token token) {
+        return token.id.equals(id) && token.owner.equals(owner);
+    }
+
+    public boolean hasAccess(TokenAcceptor acceptor) {
+        return isValid() && acceptor.accept(this);
     }
 
 }

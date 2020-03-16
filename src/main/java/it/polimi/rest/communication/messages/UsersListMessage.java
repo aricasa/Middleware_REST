@@ -1,5 +1,6 @@
-package it.polimi.rest.messages;
+package it.polimi.rest.communication.messages;
 
+import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.models.UsersList;
 
 import java.util.*;
@@ -19,7 +20,7 @@ public class UsersListMessage implements Message {
 
     @Override
     public String type() {
-        return APPLICATION_JSON;
+        return "application/hal+json";
     }
 
     @Override

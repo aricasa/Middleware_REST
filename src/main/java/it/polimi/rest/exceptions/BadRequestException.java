@@ -1,8 +1,8 @@
 package it.polimi.rest.exceptions;
 
-import it.polimi.rest.messages.HttpStatus;
+import it.polimi.rest.communication.HttpStatus;
 
-public class BadRequestException extends RestException {
+public final class BadRequestException extends RestException {
 
     private static final long serialVersionUID = -5907891550213393838L;
 

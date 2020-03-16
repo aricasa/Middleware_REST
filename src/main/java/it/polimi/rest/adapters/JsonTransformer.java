@@ -1,4 +1,4 @@
-package it.polimi.rest.serialization;
+package it.polimi.rest.adapters;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -11,8 +11,8 @@ public class JsonTransformer implements ResponseTransformer {
 
     private final Gson gson = new GsonBuilder()
             .excludeFieldsWithoutExposeAnnotation()
-            .registerTypeHierarchyAdapter(Model.class, new ModelJsonSerializer())
-            .registerTypeHierarchyAdapter(Calendar.class, new CalendarSerializer())
+            .registerTypeHierarchyAdapter(Model.class, new ModelJsonAdapter())
+            .registerTypeHierarchyAdapter(Calendar.class, new CalendarJsonAdapter())
             .create();
 
     @Override

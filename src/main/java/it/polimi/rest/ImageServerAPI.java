@@ -1,15 +1,15 @@
 package it.polimi.rest;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import it.polimi.rest.authorization.Authorizer;
+import it.polimi.rest.adapters.GsonDeserializer;
+import it.polimi.rest.adapters.Deserializer;
+import it.polimi.rest.communication.Responder;
+import it.polimi.rest.communication.messages.*;
+import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.exceptions.*;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.*;
-import it.polimi.rest.credentials.CredentialsManager;
-import it.polimi.rest.messages.*;
+import it.polimi.rest.sessions.SessionsManager;
 import org.apache.commons.io.IOUtils;
-import spark.Request;
 import spark.Route;
 
 import javax.servlet.ServletException;
@@ -25,176 +25,229 @@ public class ImageServerAPI {
 
     private final Logger logger = new Logger(this.getClass());
 
-    private final Gson gson = new GsonBuilder()
-            .excludeFieldsWithoutExposeAnnotation()
-            .create();
-
     private final CredentialsManager credentialsManager;
-    private final Authorizer authorizer;
+    private final SessionsManager sessionsManager;
     private final DataProvider dataProvider;
+
+    private static final int SESSION_LIFETIME = 60 * 60;
 
     /**
      * Constructor.
      *
      * @param credentialsManager    credentials manager
+     * @param sessionsManager       sessions manager
+     * @param dataProvider          data provider
      */
-    public ImageServerAPI(CredentialsManager credentialsManager, Authorizer authorizer, DataProvider dataProvider) {
+    public ImageServerAPI(CredentialsManager credentialsManager, SessionsManager sessionsManager, DataProvider dataProvider) {
         this.credentialsManager = credentialsManager;
-        this.authorizer = authorizer;
+        this.sessionsManager = sessionsManager;
         this.dataProvider = dataProvider;
     }
 
     public Route root() {
-        return Responder.build(request -> new RootMessage(new Root()));
+        Deserializer<Void> deserializer = request -> null;
+        Responder.Action<Void> action = (payload, token) -> new RootMessage(new Root());
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
     public Route users() {
-        return Responder.build(request -> {
-            authenticate(request);
+        Deserializer<Void> deserializer = request -> null;
+
+        Responder.Action<Void> action = (payload, token) -> {
             Collection<User> users = credentialsManager.users();
             return new UsersListMessage(new UsersList(users));
-        });
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
     public Route signup() {
-        return Responder.build(request -> {
-            User user = gson.fromJson(request.body(), User.class);
-            User registered = credentialsManager.signup(user);
-            logger.d("User " + registered + " created");
-            return new UserCreationMessage(registered);
-        });
+        Deserializer<User> deserializer = new GsonDeserializer<>(User.class);
+
+        Responder.Action<User> action = (payload, token) -> {
+            credentialsManager.userByUsername(payload.username).ifPresent(user -> {
+                logger.w("Signup: " + user.username + " already in use");
+                throw new ForbiddenException("Username already in use");
+            });
+
+            User user = new User(credentialsManager.getUniqueId(), payload.username, payload.password);
+            credentialsManager.add(user);
+            logger.d("User " + user + " created");
+            return new UserCreationMessage(user);
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
     public Route login() {
-        return Responder.build(request -> {
-            User user = gson.fromJson(request.body(), User.class);
-            Token token = credentialsManager.login(user);
-            logger.d("User " + token.owner + " logged in");
-            return new LoginMessage(token);
-        });
+        Deserializer<User> deserializer = new GsonDeserializer<>(User.class);
+
+        Responder.Action<User> action = (payload, token) -> {
+            Optional<User> user = credentialsManager.authenticate(payload.username, payload.password);
+
+            if (!user.isPresent()) {
+                throw new UnauthorizedException();
+            }
+
+            Token session = new Token(sessionsManager.getUniqueId(), SESSION_LIFETIME, user.get().id, user.get().id);
+            sessionsManager.add(session);
+            logger.d("User " + session.owner + " logged in");
+            return new LoginMessage(session);
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
-    public Route logout() {
-        return Responder.build(request -> {
-            User user = authenticate(request);
-            authorizer.revoke(user);
-            logger.d("User " + user + " logged out");
+    public Route logout(String tokenIdParam) {
+        Deserializer<TokenId> deserializer = request -> {
+            String id = request.params(tokenIdParam);
+            return new TokenId(id);
+        };
+
+        Responder.Action<TokenId> action = (payload, token) -> {
+            if (!payload.accept(token)) {
+                throw new ForbiddenException();
+            }
+
+            sessionsManager.remove(payload);
             return new LogoutMessage();
-        });
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
-    public Route username(String usernameParam) {
-        return Responder.build(request -> {
-            authenticate(request);
-            String username = request.params(usernameParam);
-            User user = credentialsManager.userByUsername(username);
-            return new UserDetailsMessage(user);
-        });
+    public Route userByUsername(String usernameParam) {
+        Deserializer<String> deserializer = request -> request.params(usernameParam);
+
+        Responder.Action<String> action = (payload, token) -> {
+            Optional<User> user = credentialsManager.userByUsername(payload);
+
+            if (!user.isPresent()) {
+                throw new NotFoundException();
+            } else if (!token.hasAccess(user.get())) {
+                throw new ForbiddenException();
+            }
+
+            return new UserDetailsMessage(user.get());
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
-    public Route userId(String idParam) {
-        return Responder.build(request -> {
-            authenticate(request);
+    public Route userById(String idParam) {
+        Deserializer<UserId> deserializer = request -> {
             String id = request.params(idParam);
-            User user = credentialsManager.userById(id);
-            return new UserDetailsMessage(user);
-        });
+            return new UserId(id);
+        };
+
+        Responder.Action<UserId> action = (payload, token) -> {
+            Optional<User> user = credentialsManager.userById(payload);
+
+            if (!user.isPresent()) {
+                throw new NotFoundException();
+            } else if (!token.hasAccess(user.get())) {
+                throw new ForbiddenException();
+            }
+
+            return new UserDetailsMessage(user.get());
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
     public Route deleteUser(String usernameParam) {
-        return Responder.build(request -> {
-            User logged = authenticate(request);
-            String username = request.params(usernameParam);
-            User userToBeRemoved = credentialsManager.userByUsername(username);
+        Deserializer<String> deserializer = request -> request.params(usernameParam);
 
-            if (!logged.equals(userToBeRemoved)) {
+        Responder.Action<String> action = (payload, token) -> {
+            Optional<User> user = credentialsManager.userByUsername(payload);
+
+            if (!user.isPresent()) {
+                throw new NotFoundException();
+            } else if (!token.hasAccess(user.get())) {
                 throw new ForbiddenException();
             }
 
-            credentialsManager.delete(userToBeRemoved);
+            credentialsManager.remove(user.get().id);
             return new UserDeletionMessage();
-        });
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
     public Route userImages(String usernameParam) {
-        return Responder.build(request -> {
-            User logged = authenticate(request);
-            String username = request.params(usernameParam);
-            User requestedUser = credentialsManager.userByUsername(username);
+        Deserializer<String> deserializer = request -> request.params(usernameParam);
 
-            if (!logged.equals(requestedUser)) {
+        Responder.Action<String> action = (payload, token) -> {
+            Optional<User> user = credentialsManager.userByUsername(payload);
+
+            if (!user.isPresent()) {
+                throw new NotFoundException();
+            } else if (!token.hasAccess(user.get())) {
                 throw new ForbiddenException();
             }
 
-            Collection<ImageMetadata> images = dataProvider.get(requestedUser);
-            return new ImagesListMessage(new ImagesList(requestedUser, images));
-        });
+            Collection<ImageMetadata> images = dataProvider.get(user.get());
+            return new ImagesListMessage(new ImagesList(user.get(), images));
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
-    public Route getImageDetails(String usernameParam, String imageIdParam) {
-        return Responder.build(request -> {
-            User logged = authenticate(request);
-            String username = request.params(usernameParam);
-            User requestedUser = credentialsManager.userByUsername(username);
+    public Route getImageDetails(String imageIdParam) {
+        Deserializer<ImageId> deserializer = request -> {
+            String id = request.params(imageIdParam);
+            return new ImageId(id);
+        };
 
-            if (!logged.equals(requestedUser)) {
-                throw new ForbiddenException();
-            }
-
-            String imageId = request.params(imageIdParam);
-            Optional<Image> image = dataProvider.get(imageId);
+        Responder.Action<ImageId> action = (payload, token) -> {
+            Optional<Image> image = dataProvider.get(payload);
 
             if (!image.isPresent()) {
                 throw new NotFoundException();
-            }
-
-            if (!image.get().info.owner.equals(logged)) {
-                throw new NotFoundException();
+            } else if (!token.hasAccess(image.get())) {
+                throw new ForbiddenException();
             }
 
             return new ImageDetailsMessage(image.get().info);
-        });
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
-    public Route getImageRaw(String usernameParam, String imageIdParam) {
-        return Responder.build(request -> {
-            User logged = authenticate(request);
-            String username = request.params(usernameParam);
-            User requestedUser = credentialsManager.userByUsername(username);
+    public Route getImageRaw(String imageIdParam) {
+        Deserializer<ImageId> deserializer = request -> {
+            String id = request.params(imageIdParam);
+            return new ImageId(id);
+        };
 
-            if (!logged.equals(requestedUser)) {
-                throw new ForbiddenException();
-            }
-
-            String imageId = request.params(imageIdParam);
-            Optional<Image> image = dataProvider.get(imageId);
+        Responder.Action<ImageId> action = (payload, token) -> {
+            Optional<Image> image = dataProvider.get(payload);
 
             if (!image.isPresent()) {
                 throw new NotFoundException();
-            }
-
-            if (!image.get().info.owner.equals(logged)) {
-                throw new NotFoundException();
-            }
-
-            return new ImageMessage(image.get());
-        });
-    }
-
-    public Route newImage(String usernameParam) {
-        return Responder.build(request -> {
-            User logged = authenticate(request);
-            String username = request.params(usernameParam);
-            User requestedUser = credentialsManager.userByUsername(username);
-
-            if (!logged.equals(requestedUser)) {
+            } else if (!token.hasAccess(image.get())) {
                 throw new ForbiddenException();
             }
 
-            String id;
+            return new ImageMessage(image.get());
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
+    }
+
+    public Route newImage(String usernameParam) {
+        Deserializer<Image> deserializer = request -> {
+            String username = request.params(usernameParam);
+            Optional<User> user = credentialsManager.userByUsername(username);
+
+            if (!user.isPresent()) {
+                throw new NotFoundException();
+            }
+
+            ImageId id;
 
             do {
-                id = randomUUID().toString();
+                id = new ImageId(randomUUID().toString());
             } while (dataProvider.contains(id));
 
             try {
@@ -204,73 +257,48 @@ public class ImageServerAPI {
                 Part filePart = request.raw().getPart("file");
                 InputStream stream = filePart.getInputStream();
 
-                ImageMetadata metadata = new ImageMetadata(id, title, requestedUser);
-                Image image = new Image(metadata, IOUtils.toByteArray(stream));
-                dataProvider.put(image);
-
-                return new ImageCreationMessage(metadata);
+                ImageMetadata metadata = new ImageMetadata(id, title, user.get());
+                return new Image(metadata, IOUtils.toByteArray(stream));
 
             } catch (IOException | ServletException e) {
                 throw new BadRequestException();
             }
-        });
-    }
+        };
 
-    public Route deleteImage(String usernameParam, String imageIdParam) {
-        return Responder.build(request -> {
-            User logged = authenticate(request);
-            String username = request.params(usernameParam);
-            User requestedUser = credentialsManager.userByUsername(username);
-
-            if (!logged.equals(requestedUser)) {
+        Responder.Action<Image> action = (payload, token) -> {
+            if (!token.hasAccess(payload.info.owner)) {
                 throw new ForbiddenException();
             }
 
-            String imageId = request.params(imageIdParam);
-            Optional<Image> image = dataProvider.get(imageId);
+            dataProvider.put(payload);
+            return new ImageCreationMessage(payload.info);
+        };
+
+        return new Responder<>(sessionsManager, deserializer, action);
+    }
+
+    public Route deleteImage(String imageIdParam) {
+        Deserializer<ImageMetadata> deserializer = request -> {
+            String id = request.params(imageIdParam);
+            Optional<Image> image = dataProvider.get(new ImageId(id));
 
             if (!image.isPresent()) {
                 throw new NotFoundException();
             }
 
-            if (!image.get().info.owner.equals(logged)) {
-                throw new NotFoundException();
+            return image.get().info;
+        };
+
+        Responder.Action<ImageMetadata> action = (payload, token) -> {
+            if (!token.hasAccess(payload)) {
+                throw new ForbiddenException();
             }
 
-            dataProvider.remove(image.get().info.id);
+            dataProvider.remove(payload.id);
+            return new ImageDeletionMessage();
+        };
 
-            return new ImageDeletionMessage(image.get().info);
-        });
-    }
-
-    /**
-     * Check if the request contains a proper authentication token and get the user owning it.
-     *
-     * @param request   request
-     * @return user owning the token
-     */
-    private User authenticate(Request request) {
-        Optional<String> authenticationHeader = Optional.ofNullable(request.headers("Authorization"));
-
-        if (!authenticationHeader.isPresent())
-            throw new UnauthorizedException();
-
-        String authorization = authenticationHeader.get();
-
-        if (!authorization.startsWith("Bearer"))
-            throw new UnauthorizedException();
-
-        String tokenId = authorization.substring("Bearer".length()).trim();
-        Optional<Token> token = authorizer.searchToken(tokenId);
-
-        if (!token.isPresent())
-            throw new UnauthorizedException();
-
-        try {
-            return credentialsManager.userById(token.get().owner.id);
-        } catch (RestException e) {
-            throw new UnauthorizedException();
-        }
+        return new Responder<>(sessionsManager, deserializer, action);
     }
 
 }

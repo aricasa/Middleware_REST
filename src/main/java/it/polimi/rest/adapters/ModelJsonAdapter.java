@@ -1,4 +1,4 @@
-package it.polimi.rest.serialization;
+package it.polimi.rest.adapters;
 
 import com.google.gson.*;
 import it.polimi.rest.models.Model;
@@ -7,24 +7,24 @@ import it.polimi.rest.models.Link;
 import java.lang.reflect.Type;
 import java.util.*;
 
-public class ModelJsonSerializer implements JsonSerializer<Model> {
+public class ModelJsonAdapter implements JsonSerializer<Model> {
 
     private final boolean embed;
     private final Gson gsonNoModel;
     private final Gson gsonModelNoEmbed;
 
-    public ModelJsonSerializer() {
+    public ModelJsonAdapter() {
         this(true);
     }
 
-    public ModelJsonSerializer(boolean embed) {
+    public ModelJsonAdapter(boolean embed) {
         this.embed = embed;
 
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.excludeFieldsWithoutExposeAnnotation();
-        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarSerializer());
+        gsonBuilder.registerTypeHierarchyAdapter(Calendar.class, new CalendarJsonAdapter());
         this.gsonNoModel = gsonBuilder.create();
-        gsonBuilder.registerTypeHierarchyAdapter(Model.class, embed ? new ModelJsonSerializer(false) : this);
+        gsonBuilder.registerTypeHierarchyAdapter(Model.class, embed ? new ModelJsonAdapter(false) : this);
         this.gsonModelNoEmbed = gsonBuilder.create();
     }
 

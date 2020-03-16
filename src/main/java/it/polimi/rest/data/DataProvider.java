@@ -1,6 +1,7 @@
 package it.polimi.rest.data;
 
 import it.polimi.rest.models.Image;
+import it.polimi.rest.models.ImageId;
 import it.polimi.rest.models.ImageMetadata;
 import it.polimi.rest.models.User;
 
@@ -15,7 +16,7 @@ public interface DataProvider {
      * @param id    image ID
      * @return true if the ID exists; false otherwise
      */
-    boolean contains(String id);
+    boolean contains(ImageId id);
 
     /**
      * Get an image given its ID
@@ -23,7 +24,7 @@ public interface DataProvider {
      * @param id    image ID
      * @return image
      */
-    Optional<Image> get(String id);
+    Optional<Image> get(ImageId id);
 
     /**
      * Get all the images of a user.
@@ -45,6 +46,6 @@ public interface DataProvider {
      *
      * @param id    image ID
      */
-    void remove(String id);
+    void remove(ImageId id);
 
 }

@@ -1,4 +1,4 @@
-package it.polimi.rest.messages;
+package it.polimi.rest.communication;
 
 public final class HttpStatus {
 

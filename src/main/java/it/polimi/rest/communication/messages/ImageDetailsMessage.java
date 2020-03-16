@@ -1,5 +1,6 @@
-package it.polimi.rest.messages;
+package it.polimi.rest.communication.messages;
 
+import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.models.ImageMetadata;
 
 import java.util.Optional;
@@ -19,7 +20,7 @@ public class ImageDetailsMessage implements Message {
 
     @Override
     public String type() {
-        return APPLICATION_JSON;
+        return "application/hal+json";
     }
 
     @Override
