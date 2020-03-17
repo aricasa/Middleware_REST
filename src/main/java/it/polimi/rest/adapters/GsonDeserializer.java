@@ -2,6 +2,7 @@ package it.polimi.rest.adapters;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import it.polimi.rest.models.TokenId;
 import spark.Request;
 
 public class GsonDeserializer<T> implements Deserializer<T> {
@@ -17,7 +18,7 @@ public class GsonDeserializer<T> implements Deserializer<T> {
     }
 
     @Override
-    public T parse(Request request) {
+    public T parse(Request request, TokenId token) {
         return gson.fromJson(request.body(), clazz);
     }
 

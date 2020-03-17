@@ -1,9 +1,9 @@
 package it.polimi.rest.sessions;
 
+import it.polimi.rest.exceptions.ForbiddenException;
+import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.Token;
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.User;
-import it.polimi.rest.models.UserId;
 
 import java.util.*;
 
@@ -11,7 +11,7 @@ import static java.util.UUID.randomUUID;
 
 public class VolatileSessionManager implements SessionsManager {
 
-    private final Collection<Token> tokens = new HashSet<>();
+    private final HashMap<TokenId, Token> tokens = new HashMap<>();
     private final Collection<TokenId> reserved = new HashSet<>();
 
     @Override
@@ -20,7 +20,7 @@ public class VolatileSessionManager implements SessionsManager {
 
         do {
             id = new TokenId(randomUUID().toString().split("-")[0]);
-        } while (get(id).isPresent() || reserved.contains(id));
+        } while (tokens.containsKey(id) || reserved.contains(id));
 
         // Reserve the ID
         reserved.add(id);
@@ -29,22 +29,33 @@ public class VolatileSessionManager implements SessionsManager {
     }
 
     @Override
-    public synchronized Optional<Token> get(TokenId id) {
-        return tokens.stream().filter(token -> token.id.equals(id)).findFirst();
+    public synchronized Token token(TokenId id) {
+        Token result = tokens.values().stream()
+                .filter(token -> token.id.equals(id))
+                .findFirst()
+                .orElseThrow(NotFoundException::new);
+
+        if (!result.isValid()) {
+            remove(result.id);
+            throw new NotFoundException();
+        }
+
+        return result;
     }
 
     @Override
     public synchronized void add(Token token) {
-        if (!get(token.id).isPresent()) {
-            tokens.add(token);
+        if (tokens.containsKey(token.id)) {
+            throw new ForbiddenException();
         }
 
+        tokens.put(token.id, token);
         reserved.remove(token.id);
     }
 
     @Override
     public synchronized void remove(TokenId id) {
-        tokens.removeIf(token -> token.id.equals(id));
+        tokens.remove(id);
         reserved.remove(id);
     }
 

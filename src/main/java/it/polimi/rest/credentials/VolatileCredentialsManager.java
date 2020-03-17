@@ -1,7 +1,11 @@
 package it.polimi.rest.credentials;
 
+import it.polimi.rest.exceptions.ForbiddenException;
+import it.polimi.rest.exceptions.NotFoundException;
+import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.User;
 import it.polimi.rest.models.UserId;
+import it.polimi.rest.models.UsersList;
 
 import java.util.*;
 
@@ -18,7 +22,7 @@ public class VolatileCredentialsManager implements CredentialsManager {
 
         do {
             id = new UserId(randomUUID().toString().split("-")[0]);
-        } while (userById(id).isPresent() || reserved.contains(id));
+        } while (users.containsKey(id) || reserved.contains(id));
 
         // Reserve the ID
         reserved.add(id);
@@ -27,48 +31,62 @@ public class VolatileCredentialsManager implements CredentialsManager {
     }
 
     @Override
-    public synchronized Collection<User> users() {
-        return users.values();
+    public synchronized UsersList users() {
+        return new UsersList(users.values());
     }
 
     @Override
-    public synchronized Optional<User> userById(UserId id) {
-        return Optional.ofNullable(users.get(id));
+    public synchronized User userById(UserId id) {
+        if (!users.containsKey(id)) {
+            throw new NotFoundException();
+        }
+
+        return users.get(id);
     }
 
     @Override
-    public synchronized Optional<User> userByUsername(String username) {
+    public synchronized User userByUsername(String username) {
         return users.values().stream()
                 .filter(user -> user.username.equals(username))
-                .findFirst();
+                .findFirst().orElseThrow(NotFoundException::new);
     }
 
     @Override
-    public Optional<User> authenticate(String username, String password) {
-        Optional<User> user = userByUsername(username);
+    public synchronized User authenticate(String username, String password) {
+        User user = userByUsername(username);
 
-        if (user.isPresent() && user.get().password.equals(password)) {
+        if (user.password.equals(password)) {
             return user;
         } else {
-            return Optional.empty();
+            throw new UnauthorizedException();
         }
     }
 
     @Override
-    public void add(User user) {
-        users.putIfAbsent(user.id, user);
+    public synchronized void add(User user) {
+        if (users.containsKey(user.id)) {
+            throw new ForbiddenException("User " + user + " already exists");
+        }
+
+        users.put(user.id, user);
         reserved.remove(user.id);
     }
 
     @Override
-    public void update(User user) {
+    public synchronized void update(User user) {
         if (users.containsKey(user.id)) {
             users.put(user.id, user);
+        } else {
+            throw new NotFoundException();
         }
     }
 
     @Override
     public void remove(UserId id) {
+        if (!users.containsKey(id)) {
+            throw new NotFoundException();
+        }
+
         users.remove(id);
     }
 

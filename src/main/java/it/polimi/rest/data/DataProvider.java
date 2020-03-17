@@ -1,11 +1,7 @@
 package it.polimi.rest.data;
 
-import it.polimi.rest.models.Image;
-import it.polimi.rest.models.ImageId;
-import it.polimi.rest.models.ImageMetadata;
-import it.polimi.rest.models.User;
+import it.polimi.rest.models.*;
 
-import java.util.Collection;
 import java.util.Optional;
 
 public interface DataProvider {
@@ -19,12 +15,19 @@ public interface DataProvider {
     boolean contains(ImageId id);
 
     /**
+     * Get a new ID that is guaranteed not to be used by any other image.
+     *
+     * @return ID
+     */
+    ImageId getUniqueId();
+
+    /**
      * Get an image given its ID
      *
      * @param id    image ID
      * @return image
      */
-    Optional<Image> get(ImageId id);
+    Image image(ImageId id);
 
     /**
      * Get all the images of a user.
@@ -32,14 +35,14 @@ public interface DataProvider {
      * @param user  images owner
      * @return user images
      */
-    Collection<ImageMetadata> get(User user);
+    ImagesList images(UserId user);
 
     /**
      * Add an image.
      *
      * @param image image to be added
      */
-    void put(Image image);
+    void add(Image image);
 
     /**
      * Remove an image given its ID.

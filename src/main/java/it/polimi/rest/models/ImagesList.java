@@ -1,18 +1,21 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
+import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.Authorizer;
+import it.polimi.rest.authorization.Permission;
 
 import java.util.*;
 
-public class ImagesList implements Model, TokenAcceptor {
+public class ImagesList implements Model {
 
-    private final User owner;
+    public final UserId owner;
     private final Collection<ImageMetadata> images;
 
     @Expose
     public final int count;
 
-    public ImagesList(User owner, Collection<ImageMetadata> images) {
+    public ImagesList(UserId owner, Collection<ImageMetadata> images) {
         this.owner = owner;
         this.images = images;
         this.count = images.size();
@@ -33,11 +36,6 @@ public class ImagesList implements Model, TokenAcceptor {
     @Override
     public Map<String, Object> embedded() {
         return Collections.singletonMap("item", images);
-    }
-
-    @Override
-    public boolean accept(Token token) {
-        return token.managed.equals(owner.id);
     }
 
 }

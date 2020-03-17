@@ -20,7 +20,7 @@ public interface SessionsManager {
      * @param id    token ID
      * @return token
      */
-    Optional<Token> get(TokenId id);
+    Token token(TokenId id);
 
     /**
      * Add a new token.

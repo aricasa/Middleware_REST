@@ -1,16 +1,17 @@
 package it.polimi.rest.data;
 
-import it.polimi.rest.models.Image;
-import it.polimi.rest.models.ImageId;
-import it.polimi.rest.models.ImageMetadata;
-import it.polimi.rest.models.User;
+import it.polimi.rest.exceptions.NotFoundException;
+import it.polimi.rest.models.*;
 
 import java.util.*;
+
+import static java.util.UUID.randomUUID;
 
 public class VolatileDataProvider implements DataProvider {
 
     private final Map<ImageId, Image> images = new HashMap<>();
-    private final Map<User, Collection<ImageMetadata>> userImages = new HashMap<>();
+    private final Map<UserId, Collection<ImageMetadata>> userImages = new HashMap<>();
+    private final Collection<ImageId> reserved = new HashSet<>();
 
     @Override
     public boolean contains(ImageId id) {
@@ -18,17 +19,35 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public Optional<Image> get(ImageId id) {
-        return Optional.ofNullable(images.get(id));
+    public synchronized ImageId getUniqueId() {
+        ImageId id;
+
+        do {
+            id = new ImageId(randomUUID().toString().split("-")[0]);
+        } while (contains(id) || reserved.contains(id));
+
+        // Reserve the ID
+        reserved.add(id);
+
+        return id;
     }
 
     @Override
-    public Collection<ImageMetadata> get(User user) {
-        return userImages.getOrDefault(user, Collections.emptyList());
+    public Image image(ImageId id) {
+        if (!images.containsKey(id)) {
+            throw new NotFoundException();
+        }
+
+        return images.get(id);
     }
 
     @Override
-    public void put(Image image) {
+    public ImagesList images(UserId user) {
+        return new ImagesList(user, userImages.getOrDefault(user, Collections.emptyList()));
+    }
+
+    @Override
+    public void add(Image image) {
         images.put(image.info.id, image);
 
         if (!userImages.containsKey(image.info.owner)) {
@@ -36,6 +55,7 @@ public class VolatileDataProvider implements DataProvider {
         }
 
         userImages.get(image.info.owner).add(image.info);
+        reserved.remove(image.info.id);
     }
 
     @Override

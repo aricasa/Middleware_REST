@@ -4,7 +4,6 @@ import it.polimi.rest.adapters.Deserializer;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.models.Token;
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.sessions.SessionsManager;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -14,12 +13,10 @@ import java.util.Optional;
 
 public class Responder<T> implements Route {
 
-    private final SessionsManager sessionsManager;
     private final Deserializer<T> deserializer;
     private final Action<T> action;
 
-    public Responder(SessionsManager sessionsManager, Deserializer<T> deserializer, Action<T> action) {
-        this.sessionsManager = sessionsManager;
+    public Responder(Deserializer<T> deserializer, Action<T> action) {
         this.deserializer = deserializer;
         this.action = action;
     }
@@ -29,9 +26,9 @@ public class Responder<T> implements Route {
         MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
         request.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
 
-        T data = deserializer.parse(request);
-        Optional<Token> token = authenticate(request);
-        Message message = action.run(data, token.orElse(new Token(new TokenId(null), 0, null, null)));
+        Optional<TokenId> token = authenticate(request);
+        T data = deserializer.parse(request, token.orElse(null));
+        Message message = action.run(data, token.orElse(null));
 
         response.status(message.code());
         response.type(message.type());
@@ -40,7 +37,7 @@ public class Responder<T> implements Route {
         return payload.orElse("");
     }
 
-    private Optional<Token> authenticate(Request request) {
+    private Optional<TokenId> authenticate(Request request) {
         Optional<String> authenticationHeader = Optional.ofNullable(request.headers("Authorization"));
 
         if (!authenticationHeader.isPresent()) {
@@ -54,11 +51,11 @@ public class Responder<T> implements Route {
         }
 
         String tokenId = authorization.substring("Bearer".length()).trim();
-        return sessionsManager.get(new TokenId(tokenId));
+        return Optional.of(new TokenId(tokenId));
     }
 
-    public interface Action<T> {
-        Message run(T payload, Token token);
+    public interface Action<R> {
+        Message run(R data, TokenId token);
     }
 
 }

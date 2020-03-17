@@ -1,10 +1,13 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
+import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.Authorizer;
+import it.polimi.rest.authorization.Permission;
 
 import java.util.*;
 
-public class User implements Model, TokenAcceptor {
+public class User implements Model {
 
     @Expose(deserialize = false)
     public final UserId id;
@@ -45,11 +48,6 @@ public class User implements Model, TokenAcceptor {
 
     public Optional<String> images() {
         return self().map(url -> url + "/images");
-    }
-
-    @Override
-    public boolean accept(Token token) {
-        return token.managed.equals(id);
     }
 
 }

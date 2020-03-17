@@ -10,7 +10,7 @@ import java.lang.reflect.Type;
 import java.util.Objects;
 
 @JsonAdapter(TokenId.Serializer.class)
-public class TokenId implements TokenAcceptor {
+public class TokenId {
 
     @Expose
     private final String id;
@@ -35,11 +35,6 @@ public class TokenId implements TokenAcceptor {
     @Override
     public String toString() {
         return id;
-    }
-
-    @Override
-    public boolean accept(Token token) {
-        return token.id.equals(this);
     }
 
     public static class Serializer implements JsonSerializer<TokenId> {

@@ -1,11 +1,14 @@
 package it.polimi.rest.models;
 
+import it.polimi.rest.authorization.Authorizer;
+import it.polimi.rest.authorization.Permission;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-public class UsersList implements Model, TokenAcceptor {
+public class UsersList implements Model {
 
     private final Collection<User> users;
 
@@ -26,11 +29,6 @@ public class UsersList implements Model, TokenAcceptor {
     @Override
     public Map<String, Object> embedded() {
         return Collections.singletonMap("item", users);
-    }
-
-    @Override
-    public boolean accept(Token token) {
-        return true;
     }
 
 }

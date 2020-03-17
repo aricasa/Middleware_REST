@@ -4,7 +4,7 @@ import com.google.gson.annotations.Expose;
 
 import java.util.*;
 
-public class Token implements Model, TokenAcceptor {
+public class Token implements Model {
 
     @Expose
     public final TokenId id;
@@ -13,16 +13,16 @@ public class Token implements Model, TokenAcceptor {
     private final Calendar expiration;
 
     public final UserId owner;
-    public final UserId managed;
+    public final UserId accessible;
 
-    public Token(TokenId id, int lifeTime, UserId owner, UserId managed) {
+    public Token(TokenId id, int lifeTime, UserId owner, UserId accessible) {
         this.id = id;
 
         this.expiration = Calendar.getInstance();
         this.expiration.add(Calendar.SECOND, lifeTime);
 
         this.owner = owner;
-        this.managed = managed;
+        this.accessible = accessible;
     }
 
     /**
@@ -48,15 +48,6 @@ public class Token implements Model, TokenAcceptor {
     @Override
     public Map<String, Object> embedded() {
         return Collections.emptyMap();
-    }
-
-    @Override
-    public boolean accept(Token token) {
-        return token.id.equals(id) && token.owner.equals(owner);
-    }
-
-    public boolean hasAccess(TokenAcceptor acceptor) {
-        return isValid() && acceptor.accept(this);
     }
 
 }

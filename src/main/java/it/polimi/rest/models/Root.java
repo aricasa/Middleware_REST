@@ -1,8 +1,12 @@
 package it.polimi.rest.models;
 
+import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.Authorizer;
+import it.polimi.rest.authorization.Permission;
+
 import java.util.*;
 
-public class Root implements Model, TokenAcceptor {
+public class Root implements Model{
 
     @Override
     public Optional<String> self() {
@@ -20,11 +24,6 @@ public class Root implements Model, TokenAcceptor {
     @Override
     public Map<String, Object> embedded() {
         return null;
-    }
-
-    @Override
-    public boolean accept(Token token) {
-        return true;
     }
 
 }

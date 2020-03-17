@@ -7,10 +7,10 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
 
 import java.lang.reflect.Type;
-import java.util.Objects;
+import java.util.*;
 
 @JsonAdapter(UserId.JsonAdapter.class)
-public class UserId {
+public class UserId implements Model {
 
     @Expose
     private final String id;
@@ -35,6 +35,25 @@ public class UserId {
     @Override
     public String toString() {
         return id;
+    }
+
+    @Override
+    public Optional<String> self() {
+        return Optional.of("/users/" + id);
+    }
+
+    @Override
+    public Map<String, Link> links() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<String, Object> embedded() {
+        return Collections.emptyMap();
+    }
+
+    public Optional<String> images() {
+        return self().map(url -> url + "/images");
     }
 
     public static class JsonAdapter implements JsonSerializer<UserId> {

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 
-public class Image implements TokenAcceptor {
+public class Image {
 
     public final ImageMetadata info;
     public final byte[] data;
@@ -17,11 +17,6 @@ public class Image implements TokenAcceptor {
         this.info = info;
         this.data = data;
         checkMediaType();
-    }
-
-    @Override
-    public boolean accept(Token token) {
-        return info.accept(token);
     }
 
     private void checkMediaType() {

@@ -2,6 +2,7 @@ package it.polimi.rest.credentials;
 
 import it.polimi.rest.models.User;
 import it.polimi.rest.models.UserId;
+import it.polimi.rest.models.UsersList;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -20,7 +21,7 @@ public interface CredentialsManager {
      *
      * @return users
      */
-    Collection<User> users();
+    UsersList users();
 
     /**
      * Get user by ID.
@@ -28,7 +29,7 @@ public interface CredentialsManager {
      * @param id    user ID
      * @return user
      */
-    Optional<User> userById(UserId id);
+    User userById(UserId id);
 
     /**
      * Get user by username.
@@ -36,7 +37,7 @@ public interface CredentialsManager {
      * @param username  username
      * @return user
      */
-    Optional<User> userByUsername(String username);
+    User userByUsername(String username);
 
     /**
      * Check if the credentials (username and password) match with
@@ -47,7 +48,7 @@ public interface CredentialsManager {
      *
      * @return user matching the credentials
      */
-    Optional<User> authenticate(String username, String password);
+    User authenticate(String username, String password);
 
     /**
      * Add a new user.
