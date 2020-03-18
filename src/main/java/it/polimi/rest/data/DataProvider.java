@@ -1,25 +1,51 @@
 package it.polimi.rest.data;
 
+import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public interface DataProvider {
 
     /**
-     * Check whether exists an image with a certain ID.
+     * Reserve and get an ID that is guaranteed not to be used
+     * by any other entity.
      *
-     * @param id    image ID
-     * @return true if the ID exists; false otherwise
+     * @return unique ID
      */
-    boolean contains(ImageId id);
+    <T extends Id> T uniqueId(Function<String, T> supplier);
 
     /**
-     * Get a new ID that is guaranteed not to be used by any other image.
+     * Get user by ID.
      *
-     * @return ID
+     * @param id    user ID
+     * @return user
      */
-    ImageId getUniqueId();
+    User userById(UserId id);
+
+    /**
+     * Get user by username.
+     *
+     * @param username  username
+     * @return user
+     */
+    User userByUsername(String username);
+
+    /**
+     * Get all the users.
+     *
+     * @return users
+     */
+    UsersList users();
+
+    void add(User user);
+
+    void update(User user);
+
+    void remove(UserId user);
 
     /**
      * Get an image given its ID
@@ -47,8 +73,8 @@ public interface DataProvider {
     /**
      * Remove an image given its ID.
      *
-     * @param id    image ID
+     * @param image     image to be removed
      */
-    void remove(ImageId id);
+    void remove(ImageId image);
 
 }

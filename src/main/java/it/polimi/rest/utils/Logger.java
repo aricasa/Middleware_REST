@@ -1,4 +1,4 @@
-package it.polimi.rest;
+package it.polimi.rest.utils;
 
 public class Logger {
 

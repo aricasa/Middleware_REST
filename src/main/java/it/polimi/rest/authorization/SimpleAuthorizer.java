@@ -11,10 +11,10 @@ public class SimpleAuthorizer implements Authorizer {
 
     @Override
     public Permission check(Token token, ImageMetadata item) {
-        if (token.owner.equals(item.owner)) {
+        if (token.owner.equals(item.owner.id)) {
             return Permission.WRITE;
 
-        } else if (token.accessible.equals(item.owner)) {
+        } else if (token.accessible.equals(item.owner.id)) {
             return Permission.READ;
 
         } else {
@@ -24,10 +24,10 @@ public class SimpleAuthorizer implements Authorizer {
 
     @Override
     public Permission check(Token token, ImagesList item) {
-        if (token.owner.equals(item.owner)) {
+        if (token.owner.equals(item.owner.id)) {
             return Permission.WRITE;
 
-        } else if (token.accessible.equals(item.owner)) {
+        } else if (token.accessible.equals(item.owner.id)) {
             return Permission.READ;
 
         } else {

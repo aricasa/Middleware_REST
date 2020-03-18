@@ -2,7 +2,6 @@ package it.polimi.rest.communication;
 
 import it.polimi.rest.adapters.Deserializer;
 import it.polimi.rest.communication.messages.Message;
-import it.polimi.rest.models.Token;
 import it.polimi.rest.models.TokenId;
 import spark.Request;
 import spark.Response;

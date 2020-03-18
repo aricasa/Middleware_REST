@@ -1,21 +1,18 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
-import it.polimi.rest.authorization.AuthorizationProxy;
-import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.Permission;
 
 import java.util.*;
 
 public class ImagesList implements Model {
 
-    public final UserId owner;
+    public final User owner;
     private final Collection<ImageMetadata> images;
 
     @Expose
     public final int count;
 
-    public ImagesList(UserId owner, Collection<ImageMetadata> images) {
+    public ImagesList(User owner, Collection<ImageMetadata> images) {
         this.owner = owner;
         this.images = images;
         this.count = images.size();

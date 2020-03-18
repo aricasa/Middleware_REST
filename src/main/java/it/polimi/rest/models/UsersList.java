@@ -1,8 +1,5 @@
 package it.polimi.rest.models;
 
-import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.Permission;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;

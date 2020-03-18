@@ -5,7 +5,8 @@ import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
 
-import java.util.Optional;
+import java.util.Collection;
+import java.util.function.Function;
 
 class SecureDataProvider implements DataProvider {
 
@@ -20,13 +21,88 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public boolean contains(ImageId id) {
-        return dataProvider.contains(id);
+    public <T extends Id> T uniqueId(Function<String, T> supplier) {
+        return dataProvider.uniqueId(supplier);
     }
 
     @Override
-    public ImageId getUniqueId() {
-        return dataProvider.getUniqueId();
+    public User userById(UserId id) {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException();
+        }
+
+        User user = dataProvider.userById(id);
+
+        if (!authorizer.check(token, user).read) {
+            throw new ForbiddenException();
+        }
+
+        return user;
+    }
+
+    @Override
+    public User userByUsername(String username) {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException();
+        }
+
+        User user = dataProvider.userByUsername(username);
+
+        if (!authorizer.check(token, user).read) {
+            throw new ForbiddenException();
+        }
+
+        return user;
+    }
+
+    @Override
+    public UsersList users() {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException();
+        }
+
+        UsersList users = dataProvider.users();
+
+        if (!authorizer.check(token, users).read) {
+            throw new ForbiddenException();
+        }
+
+        return users;
+    }
+
+    @Override
+    public void add(User user) {
+        dataProvider.add(user);
+    }
+
+    @Override
+    public void update(User user) {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException();
+        }
+
+        User u = userById(user.id);
+
+        if (!authorizer.check(token, u).write) {
+            throw new ForbiddenException();
+        }
+
+        dataProvider.update(user);
+    }
+
+    @Override
+    public void remove(UserId userId) {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException();
+        }
+
+        User u = userById(userId);
+
+        if (!authorizer.check(token, u).write) {
+            throw new ForbiddenException();
+        }
+
+        dataProvider.remove(userId);
     }
 
     @Override
@@ -73,14 +149,14 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(ImageId id) {
-        Image image = image(id);
+    public void remove(ImageId imageId) {
+        Image image = image(imageId);
 
         if (!authorizer.check(token, image).write) {
             throw new ForbiddenException();
         }
 
-        dataProvider.remove(id);
+        dataProvider.remove(imageId);
     }
 
 }

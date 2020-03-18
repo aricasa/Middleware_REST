@@ -12,9 +12,9 @@ public class ImageMetadata implements Model {
     @Expose
     public final String title;
 
-    public final UserId owner;
+    public final User owner;
 
-    public ImageMetadata(ImageId id, String title, UserId owner) {
+    public ImageMetadata(ImageId id, String title, User owner) {
         this.id = id;
         this.title = title;
         this.owner = owner;

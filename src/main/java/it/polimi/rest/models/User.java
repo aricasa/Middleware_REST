@@ -1,9 +1,6 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
-import it.polimi.rest.authorization.AuthorizationProxy;
-import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.Permission;
 
 import java.util.*;
 
@@ -13,10 +10,10 @@ public class User implements Model {
     public final UserId id;
 
     @Expose
-    public final String username;
+    public String username;
 
     @Expose(serialize = false)
-    public final String password;
+    public String password;
 
     public User(UserId id, String username, String password) {
         this.id = id;

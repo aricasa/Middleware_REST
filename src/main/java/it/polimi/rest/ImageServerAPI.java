@@ -11,12 +11,14 @@ import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.*;
 import it.polimi.rest.sessions.SessionsManager;
+import it.polimi.rest.utils.Logger;
 import spark.Route;
 
 public class ImageServerAPI {
 
     private final Logger logger = new Logger(this.getClass());
 
+    private final CredentialsManager credentialsManager;
     private final AuthorizationProxy proxy;
 
     private static final int SESSION_LIFETIME = 60 * 60;
@@ -34,7 +36,8 @@ public class ImageServerAPI {
                           SessionsManager sessionsManager,
                           DataProvider dataProvider) {
 
-        this.proxy = new AuthorizationProxy(authorizer, credentialsManager, sessionsManager, dataProvider);
+        this.credentialsManager = credentialsManager;
+        this.proxy = new AuthorizationProxy(authorizer, sessionsManager, dataProvider);
     }
 
     public Route root() {
@@ -47,8 +50,8 @@ public class ImageServerAPI {
         Deserializer<Void> deserializer = (request, token) -> null;
 
         Responder.Action<Void> action = (data, token) -> {
-            CredentialsManager credentialsManager = proxy.getCredentialsManager(token);
-            UsersList users = credentialsManager.users();
+            DataProvider dataProvider = proxy.getDataProvider(token);
+            UsersList users = dataProvider.users();
             return new UsersListMessage(users);
         };
 
@@ -59,9 +62,10 @@ public class ImageServerAPI {
         Deserializer<User> deserializer = new GsonDeserializer<>(User.class);
 
         Responder.Action<User> action = (data, token) -> {
-            CredentialsManager credentialsManager = proxy.getCredentialsManager(token);
-            User user = new User(credentialsManager.getUniqueId(), data.username, data.password);
-            credentialsManager.add(user);
+            DataProvider dataProvider = proxy.getDataProvider(token);
+            User user = new User(dataProvider.uniqueId(UserId::new), data.username, data.password);
+            dataProvider.add(user);
+            credentialsManager.add(user.id, user.username, user.password);
             logger.d("User " + user + " created");
             return new UserCreationMessage(user);
         };
@@ -73,10 +77,9 @@ public class ImageServerAPI {
         Deserializer<User> deserializer = new GsonDeserializer<>(User.class);
 
         Responder.Action<User> action = (data, token) -> {
-            CredentialsManager credentialsManager = proxy.getCredentialsManager(token);
+            UserId user = credentialsManager.authenticate(data.username, data.password);
             SessionsManager sessionsManager = proxy.getSessionsManager(token);
-            User user = credentialsManager.authenticate(data.username, data.password);
-            Token session = new Token(sessionsManager.getUniqueId(), SESSION_LIFETIME, user.id, user.id);
+            Token session = new Token(sessionsManager.getUniqueId(), SESSION_LIFETIME, user, user);
             sessionsManager.add(session);
             logger.d("User " + session.owner + " logged in");
             return new LoginMessage(session);
@@ -105,8 +108,8 @@ public class ImageServerAPI {
         Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
-            CredentialsManager credentialsManager = proxy.getCredentialsManager(token);
-            User user = credentialsManager.userByUsername(data);
+            DataProvider dataProvider = proxy.getDataProvider(token);
+            User user = dataProvider.userByUsername(data);
             return new UserDetailsMessage(user);
         };
 
@@ -120,8 +123,8 @@ public class ImageServerAPI {
         };
 
         Responder.Action<UserId> action = (data, token) -> {
-            CredentialsManager credentialsManager = proxy.getCredentialsManager(token);
-            User user = credentialsManager.userById(data);
+            DataProvider dataProvider = proxy.getDataProvider(token);
+            User user = dataProvider.userById(data);
             return new UserDetailsMessage(user);
         };
 
@@ -132,9 +135,11 @@ public class ImageServerAPI {
         Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
-            CredentialsManager credentialsManager = proxy.getCredentialsManager(token);
-            User user = credentialsManager.userByUsername(data);
+            DataProvider dataProvider = proxy.getDataProvider(token);
+            User user = dataProvider.userByUsername(data);
+            dataProvider.remove(user.id);
             credentialsManager.remove(user.id);
+            logger.d("User " + user + " deleted");
             return new UserDeletionMessage();
         };
 
@@ -145,9 +150,8 @@ public class ImageServerAPI {
         Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
-            CredentialsManager credentialsManager = proxy.getCredentialsManager(token);
             DataProvider dataProvider = proxy.getDataProvider(token);
-            User user = credentialsManager.userByUsername(data);
+            User user = dataProvider.userByUsername(data);
             ImagesList images = dataProvider.images(user.id);
             return new ImagesListMessage(images);
         };
@@ -186,9 +190,8 @@ public class ImageServerAPI {
 
     public Route newImage(String usernameParam) {
         Deserializer<Image> deserializer = (request, token) -> {
-            CredentialsManager credentialsManager = proxy.getCredentialsManager(token);
             DataProvider dataProvider = proxy.getDataProvider(token);
-            ImageDeserializer imageDeserializer = new ImageDeserializer(usernameParam, credentialsManager, dataProvider);
+            ImageDeserializer imageDeserializer = new ImageDeserializer(usernameParam, dataProvider);
             return imageDeserializer.parse(request, token);
         };
 

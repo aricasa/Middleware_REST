@@ -1,74 +1,25 @@
 package it.polimi.rest.credentials;
 
-import it.polimi.rest.models.User;
+import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.UserId;
-import it.polimi.rest.models.UsersList;
-
-import java.util.Collection;
-import java.util.Optional;
 
 public interface CredentialsManager {
 
     /**
-     * Get a new ID that is guaranteed not to be used by any other user.
-     *
-     * @return ID
-     */
-    UserId getUniqueId();
-
-    /**
-     * Get all the users.
-     *
-     * @return users
-     */
-    UsersList users();
-
-    /**
-     * Get user by ID.
-     *
-     * @param id    user ID
-     * @return user
-     */
-    User userById(UserId id);
-
-    /**
-     * Get user by username.
-     *
-     * @param username  username
-     * @return user
-     */
-    User userByUsername(String username);
-
-    /**
-     * Check if the credentials (username and password) match with
-     * the ones already registered.
+     * Check if the password is correct.
      *
      * @param username  username
      * @param password  password
      *
-     * @return user matching the credentials
+     * @return user ID
+     * @throws UnauthorizedException if the credentials are wrong
      */
-    User authenticate(String username, String password);
+    UserId authenticate(String username, String password);
 
-    /**
-     * Add a new user.
-     *
-     * @param user  user to be added
-     */
-    void add(User user);
+    void add(UserId user, String username, String password);
 
-    /**
-     * Update a user.
-     *
-     * @param user  user to be updated
-     */
-    void update(User user);
+    void update(UserId user, String username, String password);
 
-    /**
-     * Remove a user.
-     *
-     * @param id    ID of the user to be removed
-     */
-    void remove(UserId id);
+    void remove(UserId user);
 
 }
