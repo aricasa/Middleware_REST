@@ -36,7 +36,7 @@ public class Image {
             return URLConnection.guessContentTypeFromStream(stream);
 
         } catch (IOException e) {
-            throw new UnsupportedMediaTypeException("Can't determine media type");
+            throw new UnsupportedMediaTypeException("Can't determine the media type");
         }
     }
 

@@ -13,16 +13,16 @@ public class Token implements Model {
     private final Calendar expiration;
 
     public final UserId owner;
-    public final UserId accessible;
+    public final UserId readableUser;
 
-    public Token(TokenId id, int lifeTime, UserId owner, UserId accessible) {
+    public Token(TokenId id, int lifeTime, UserId owner, UserId readableUser) {
         this.id = id;
 
         this.expiration = Calendar.getInstance();
         this.expiration.add(Calendar.SECOND, lifeTime);
 
         this.owner = owner;
-        this.accessible = accessible;
+        this.readableUser = readableUser;
     }
 
     /**

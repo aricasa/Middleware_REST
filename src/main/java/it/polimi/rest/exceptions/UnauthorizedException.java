@@ -6,12 +6,31 @@ public final class UnauthorizedException extends RestException {
 
     private static final long serialVersionUID = -182820727825587302L;
 
-    public UnauthorizedException() {
-        this(null);
+    public enum AuthType {
+        BASIC("Basic"),
+        BEARER("Bearer");
+
+        private final String type;
+
+        AuthType(String type) {
+            this.type = type;
+        }
+
+        @Override
+        public String toString() {
+            return type;
+        }
     }
 
-    public UnauthorizedException(String message) {
+    public final AuthType authentication;
+
+    public UnauthorizedException(AuthType authentication) {
+        this(authentication, null);
+    }
+
+    public UnauthorizedException(AuthType authentication, String message) {
         super(HttpStatus.UNAUTHORIZED, message);
+        this.authentication = authentication;
     }
 
 }

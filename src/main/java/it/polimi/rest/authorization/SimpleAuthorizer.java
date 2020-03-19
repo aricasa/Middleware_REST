@@ -14,7 +14,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (token.owner.equals(item.owner.id)) {
             return Permission.WRITE;
 
-        } else if (token.accessible.equals(item.owner.id)) {
+        } else if (token.readableUser.equals(item.owner.id)) {
             return Permission.READ;
 
         } else {
@@ -27,7 +27,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (token.owner.equals(item.owner.id)) {
             return Permission.WRITE;
 
-        } else if (token.accessible.equals(item.owner.id)) {
+        } else if (token.readableUser.equals(item.owner.id)) {
             return Permission.READ;
 
         } else {
@@ -45,7 +45,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (token.owner.equals(item.owner)) {
             return Permission.WRITE;
 
-        } else if (token.accessible.equals(item.owner)) {
+        } else if (token.readableUser.equals(item.owner)) {
             return Permission.READ;
 
         } else {
@@ -63,7 +63,7 @@ public class SimpleAuthorizer implements Authorizer {
         if (token.owner.equals(item)) {
             return Permission.WRITE;
 
-        } else if (token.accessible.equals(item)) {
+        } else if (token.readableUser.equals(item)) {
             return Permission.READ;
 
         } else {

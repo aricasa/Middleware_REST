@@ -9,10 +9,17 @@ import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.messages.*;
 import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
 import it.polimi.rest.sessions.SessionsManager;
 import it.polimi.rest.utils.Logger;
+import it.polimi.rest.utils.Pair;
 import spark.Route;
+
+import java.util.Base64;
+import java.util.Optional;
+
+import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 
 public class ImageServerAPI {
 
@@ -63,10 +70,12 @@ public class ImageServerAPI {
 
         Responder.Action<User> action = (data, token) -> {
             DataProvider dataProvider = proxy.getDataProvider(token);
+
             User user = new User(dataProvider.uniqueId(UserId::new), data.username, data.password);
             dataProvider.add(user);
             credentialsManager.add(user.id, user.username, user.password);
-            logger.d("User " + user + " created");
+
+            logger.d("User " + user + " signed up");
             return new UserCreationMessage(user);
         };
 
@@ -74,13 +83,32 @@ public class ImageServerAPI {
     }
 
     public Route login() {
-        Deserializer<User> deserializer = new GsonDeserializer<>(User.class);
+        Deserializer<Pair<String, String>> deserializer = (request, token) -> {
+            Optional<String> authenticationHeader = Optional.ofNullable(request.headers("Authorization"));
 
-        Responder.Action<User> action = (data, token) -> {
-            UserId user = credentialsManager.authenticate(data.username, data.password);
+            if (!authenticationHeader.isPresent()) {
+                throw new UnauthorizedException(BASIC);
+            }
+
+            String authorization = authenticationHeader.get();
+
+            if (!authorization.startsWith("Basic")) {
+                throw new UnauthorizedException(BASIC);
+            }
+
+            String encoded = authorization.substring("Basic".length()).trim();
+            String decoded = new String(Base64.getDecoder().decode(encoded));
+            String[] credentials = decoded.split(":");
+            return new Pair<>(credentials[0], credentials[1]);
+        };
+
+        Responder.Action<Pair<String, String>> action = (data, token) -> {
+            UserId user = credentialsManager.authenticate(data.first, data.second);
+
             SessionsManager sessionsManager = proxy.getSessionsManager(token);
             Token session = new Token(sessionsManager.getUniqueId(), SESSION_LIFETIME, user, user);
             sessionsManager.add(session);
+
             logger.d("User " + session.owner + " logged in");
             return new LoginMessage(session);
         };
@@ -95,9 +123,15 @@ public class ImageServerAPI {
         };
 
         Responder.Action<TokenId> action = (data, token) -> {
+            DataProvider dataProvider = proxy.getDataProvider(token);
             SessionsManager sessionsManager = proxy.getSessionsManager(token);
+
             Token t = sessionsManager.token(data);
             sessionsManager.remove(t.id);
+
+            User user = dataProvider.userById(t.owner);
+            logger.d("User " + user + " logged out");
+
             return new LogoutMessage();
         };
 
@@ -131,15 +165,17 @@ public class ImageServerAPI {
         return new Responder<>(deserializer, action);
     }
 
-    public Route deleteUser(String usernameParam) {
+    public Route removeUser(String usernameParam) {
         Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
             DataProvider dataProvider = proxy.getDataProvider(token);
+
             User user = dataProvider.userByUsername(data);
             dataProvider.remove(user.id);
             credentialsManager.remove(user.id);
-            logger.d("User " + user + " deleted");
+
+            logger.d("User " + user + " removed");
             return new UserDeletionMessage();
         };
 
@@ -159,7 +195,7 @@ public class ImageServerAPI {
         return new Responder<>(deserializer, action);
     }
 
-    public Route getImageDetails(String imageIdParam) {
+    public Route imageDetails(String imageIdParam) {
         Deserializer<ImageId> deserializer = (request, token) -> {
             String id = request.params(imageIdParam);
             return new ImageId(id);
@@ -174,7 +210,7 @@ public class ImageServerAPI {
         return new Responder<>(deserializer, action);
     }
 
-    public Route getImageRaw(String imageIdParam) {
+    public Route imageRaw(String imageIdParam) {
         Deserializer<ImageId> deserializer = (request, token) -> {
             String id = request.params(imageIdParam);
             return new ImageId(id);
@@ -185,10 +221,11 @@ public class ImageServerAPI {
             Image image = dataProvider.image(data);
             return new ImageMessage(image);
         };
+
         return new Responder<>(deserializer, action);
     }
 
-    public Route newImage(String usernameParam) {
+    public Route addImage(String usernameParam) {
         Deserializer<Image> deserializer = (request, token) -> {
             DataProvider dataProvider = proxy.getDataProvider(token);
             ImageDeserializer imageDeserializer = new ImageDeserializer(usernameParam, dataProvider);
@@ -198,13 +235,15 @@ public class ImageServerAPI {
         Responder.Action<Image> action = (data, token) -> {
             DataProvider dataProvider = proxy.getDataProvider(token);
             dataProvider.add(data);
+
+            logger.d("Image " + data.info.id + " added");
             return new ImageCreationMessage(data.info);
         };
 
         return new Responder<>(deserializer, action);
     }
 
-    public Route deleteImage(String imageIdParam) {
+    public Route removeImage(String imageIdParam) {
         Deserializer<ImageId> deserializer = (request, token) -> {
             String id = request.params(imageIdParam);
             return new ImageId(id);
@@ -213,6 +252,8 @@ public class ImageServerAPI {
         Responder.Action<ImageId> action = (data, token) -> {
             DataProvider dataProvider = proxy.getDataProvider(token);
             dataProvider.remove(data);
+
+            logger.d("Image " + data + " removed");
             return new ImageDeletionMessage();
         };
 

@@ -41,7 +41,7 @@ public class ImageServerApp {
 
             path("/:username", () -> {
                 get("", imageServerAPI.userByUsername(":username"), jsonTransformer);
-                delete("", imageServerAPI.deleteUser(":username"), jsonTransformer);
+                delete("", imageServerAPI.removeUser(":username"), jsonTransformer);
             });
         });
 
@@ -53,12 +53,12 @@ public class ImageServerApp {
 
         path("/users/:username/images", () -> {
             get("", imageServerAPI.userImages(":username"), jsonTransformer);
-            post("", imageServerAPI.newImage(":username"), jsonTransformer);
+            post("", imageServerAPI.addImage(":username"), jsonTransformer);
 
             path("/:imageId", () -> {
-                get("", imageServerAPI.getImageDetails(":imageId"), jsonTransformer);
-                get("/raw", imageServerAPI.getImageRaw(":imageId"));
-                delete("", imageServerAPI.deleteImage(":imageId"), jsonTransformer);
+                get("", imageServerAPI.imageDetails(":imageId"), jsonTransformer);
+                get("/raw", imageServerAPI.imageRaw(":imageId"));
+                delete("", imageServerAPI.removeImage(":imageId"), jsonTransformer);
             });
         });
     }

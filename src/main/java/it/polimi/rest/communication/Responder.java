@@ -2,6 +2,7 @@ package it.polimi.rest.communication;
 
 import it.polimi.rest.adapters.Deserializer;
 import it.polimi.rest.communication.messages.Message;
+import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.TokenId;
 import spark.Request;
 import spark.Response;
@@ -25,15 +26,21 @@ public class Responder<T> implements Route {
         MultipartConfigElement multipartConfigElement = new MultipartConfigElement(System.getProperty("java.io.tmpdir"));
         request.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
 
-        Optional<TokenId> token = authenticate(request);
-        T data = deserializer.parse(request, token.orElse(null));
-        Message message = action.run(data, token.orElse(null));
+        try {
+            Optional<TokenId> token = authenticate(request);
+            T data = deserializer.parse(request, token.orElse(null));
+            Message message = action.run(data, token.orElse(null));
 
-        response.status(message.code());
-        response.type(message.type());
+            response.status(message.code());
+            response.type(message.type());
 
-        Optional<Object> payload = message.payload();
-        return payload.orElse("");
+            Optional<Object> payload = message.payload();
+            return payload.orElse("");
+
+        } catch (UnauthorizedException e) {
+            response.header("WWW-Authenticate", e.authentication.toString());
+            throw e;
+        }
     }
 
     private Optional<TokenId> authenticate(Request request) {

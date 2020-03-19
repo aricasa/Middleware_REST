@@ -1,5 +1,6 @@
 package it.polimi.rest.data;
 
+import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
@@ -53,6 +54,12 @@ public class VolatileDataProvider implements DataProvider {
 
     @Override
     public void add(User user) {
+        if (user.username == null) {
+            throw new BadRequestException("Username not specified");
+        } else if (user.password == null) {
+            throw new BadRequestException("Password not specified");
+        }
+
         // ID must be unique
         if (users.stream().anyMatch(u -> u.id.equals(user.id))) {
             throw new ForbiddenException("User with ID '" + user.id + "' already existing");
@@ -108,6 +115,10 @@ public class VolatileDataProvider implements DataProvider {
 
     @Override
     public void add(Image image) {
+        if (image.info.title == null) {
+            throw new BadRequestException("Title not specified");
+        }
+
         // ID must be unique
         if (images.stream().anyMatch(i -> i.info.id.equals(image.info.id))) {
             throw new ForbiddenException("Image with ID '" + image.info.id + "' already existing");

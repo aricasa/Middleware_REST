@@ -1,5 +1,7 @@
 package it.polimi.rest.models;
 
+import com.google.gson.annotations.Expose;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -9,8 +11,12 @@ public class UsersList implements Model {
 
     private final Collection<User> users;
 
+    @Expose
+    public final int count;
+
     public UsersList(Collection<User> users) {
         this.users = users;
+        this.count = users.size();
     }
 
     @Override

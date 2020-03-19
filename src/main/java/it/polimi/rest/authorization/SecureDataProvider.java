@@ -5,8 +5,9 @@ import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
 
-import java.util.Collection;
 import java.util.function.Function;
+
+import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BEARER;
 
 class SecureDataProvider implements DataProvider {
 
@@ -28,7 +29,7 @@ class SecureDataProvider implements DataProvider {
     @Override
     public User userById(UserId id) {
         if (token == null || !token.isValid()) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(BEARER);
         }
 
         User user = dataProvider.userById(id);
@@ -43,7 +44,7 @@ class SecureDataProvider implements DataProvider {
     @Override
     public User userByUsername(String username) {
         if (token == null || !token.isValid()) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(BEARER);
         }
 
         User user = dataProvider.userByUsername(username);
@@ -58,7 +59,7 @@ class SecureDataProvider implements DataProvider {
     @Override
     public UsersList users() {
         if (token == null || !token.isValid()) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(BEARER);
         }
 
         UsersList users = dataProvider.users();
@@ -78,7 +79,7 @@ class SecureDataProvider implements DataProvider {
     @Override
     public void update(User user) {
         if (token == null || !token.isValid()) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(BEARER);
         }
 
         User u = userById(user.id);
@@ -93,7 +94,7 @@ class SecureDataProvider implements DataProvider {
     @Override
     public void remove(UserId userId) {
         if (token == null || !token.isValid()) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(BEARER);
         }
 
         User u = userById(userId);
@@ -108,7 +109,7 @@ class SecureDataProvider implements DataProvider {
     @Override
     public Image image(ImageId id) {
         if (token == null || !token.isValid()) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(BEARER);
         }
 
         Image image = dataProvider.image(id);
@@ -123,7 +124,7 @@ class SecureDataProvider implements DataProvider {
     @Override
     public ImagesList images(UserId user) {
         if (token == null || !token.isValid()) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(BEARER);
         }
 
         ImagesList images = dataProvider.images(user);
@@ -138,7 +139,7 @@ class SecureDataProvider implements DataProvider {
     @Override
     public void add(Image image) {
         if (token == null || !token.isValid()) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(BEARER);
         }
 
         if (!authorizer.check(token, image.info.owner).write) {

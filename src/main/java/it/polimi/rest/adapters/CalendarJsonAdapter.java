@@ -8,6 +8,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+/**
+ * Print date and time following ISO 8601.
+ * See https://www.w3.org/TR/NOTE-datetime for details about the standard
+ */
 public class CalendarJsonAdapter implements JsonSerializer<Calendar> {
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");

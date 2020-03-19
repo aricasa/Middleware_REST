@@ -6,6 +6,8 @@ import it.polimi.rest.models.Token;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.sessions.SessionsManager;
 
+import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BEARER;
+
 class SecureSessionManager implements SessionsManager {
 
     private final SessionsManager sessionsManager;
@@ -26,7 +28,7 @@ class SecureSessionManager implements SessionsManager {
     @Override
     public Token token(TokenId id) {
         if (token == null || !token.isValid()) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(BEARER);
         }
 
         Token result = sessionsManager.token(id);
@@ -48,6 +50,8 @@ class SecureSessionManager implements SessionsManager {
         if (!authorizer.check(token, token(id)).write) {
             throw new ForbiddenException();
         }
+
+        sessionsManager.remove(id);
     }
 
 }

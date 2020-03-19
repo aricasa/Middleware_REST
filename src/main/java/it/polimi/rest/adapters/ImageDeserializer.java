@@ -27,15 +27,11 @@ public class ImageDeserializer implements Deserializer<Image> {
         String username = request.params(usernameParam);
         User user = dataProvider.userByUsername(username);
 
-        ImageId id = dataProvider.uniqueId(ImageId::new);;
+        ImageId id = dataProvider.uniqueId(ImageId::new);
 
         try {
             Part titlePart = request.raw().getPart("title");
             String title = IOUtils.toString(titlePart.getInputStream(), Charset.defaultCharset()).trim();
-
-            if (title.isEmpty()) {
-                throw new BadRequestException();
-            }
 
             Part filePart = request.raw().getPart("file");
             InputStream stream = filePart.getInputStream();
