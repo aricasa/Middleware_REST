@@ -5,6 +5,7 @@ import it.polimi.rest.adapters.Deserializer;
 import it.polimi.rest.adapters.ImageDeserializer;
 import it.polimi.rest.authorization.AuthorizationProxy;
 import it.polimi.rest.authorization.Authorizer;
+import it.polimi.rest.authorization.Permission;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.messages.*;
 import it.polimi.rest.credentials.CredentialsManager;
@@ -106,10 +107,10 @@ public class ImageServerAPI {
             UserId user = credentialsManager.authenticate(data.first, data.second);
 
             SessionsManager sessionsManager = proxy.getSessionsManager(token);
-            Token session = new Token(sessionsManager.getUniqueId(), SESSION_LIFETIME, user, user);
+            Token session = new Token(sessionsManager.getUniqueId(), SESSION_LIFETIME, user, Permission.WRITE, Permission.WRITE, Permission.WRITE);
             sessionsManager.add(session);
 
-            logger.d("User " + session.owner + " logged in");
+            logger.d("User " + session.user + " logged in");
             return new LoginMessage(session);
         };
 
@@ -129,7 +130,7 @@ public class ImageServerAPI {
             Token t = sessionsManager.token(data);
             sessionsManager.remove(t.id);
 
-            User user = dataProvider.userById(t.owner);
+            User user = dataProvider.userById(t.user);
             logger.d("User " + user + " logged out");
 
             return new LogoutMessage();

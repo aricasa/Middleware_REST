@@ -11,28 +11,20 @@ public class SimpleAuthorizer implements Authorizer {
 
     @Override
     public Permission check(Token token, ImageMetadata item) {
-        if (token.owner.equals(item.owner.id)) {
-            return Permission.WRITE;
-
-        } else if (token.readableUser.equals(item.owner.id)) {
-            return Permission.READ;
-
-        } else {
+        if (!token.user.equals(item.owner.id)) {
             return Permission.NONE;
         }
+
+        return token.imagesPermission;
     }
 
     @Override
     public Permission check(Token token, ImagesList item) {
-        if (token.owner.equals(item.owner.id)) {
-            return Permission.WRITE;
-
-        } else if (token.readableUser.equals(item.owner.id)) {
-            return Permission.READ;
-
-        } else {
+        if (!token.user.equals(item.owner.id)) {
             return Permission.NONE;
         }
+
+        return token.imagesPermission;
     }
 
     @Override
@@ -42,15 +34,11 @@ public class SimpleAuthorizer implements Authorizer {
 
     @Override
     public Permission check(Token token, Token item) {
-        if (token.owner.equals(item.owner)) {
-            return Permission.WRITE;
-
-        } else if (token.readableUser.equals(item.owner)) {
-            return Permission.READ;
-
-        } else {
+        if (!token.user.equals(item.user)) {
             return Permission.NONE;
         }
+
+        return token.sessionPermission;
     }
 
     @Override
@@ -60,15 +48,11 @@ public class SimpleAuthorizer implements Authorizer {
 
     @Override
     public Permission check(Token token, UserId item) {
-        if (token.owner.equals(item)) {
-            return Permission.WRITE;
-
-        } else if (token.readableUser.equals(item)) {
-            return Permission.READ;
-
-        } else {
+        if (!token.user.equals(item)) {
             return Permission.NONE;
         }
+
+        return token.accountPermission;
     }
 
     @Override

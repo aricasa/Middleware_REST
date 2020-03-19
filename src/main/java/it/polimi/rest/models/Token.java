@@ -1,6 +1,7 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
+import it.polimi.rest.authorization.Permission;
 
 import java.util.*;
 
@@ -12,17 +13,26 @@ public class Token implements Model {
     @Expose(deserialize = false)
     private final Calendar expiration;
 
-    public final UserId owner;
-    public final UserId readableUser;
+    public final UserId user;
+    public final Permission accountPermission;
+    public final Permission sessionPermission;
+    public final Permission imagesPermission;
 
-    public Token(TokenId id, int lifeTime, UserId owner, UserId readableUser) {
+    public Token(TokenId id, int lifeTime,
+                 UserId user,
+                 Permission accountPermission,
+                 Permission sessionPermission,
+                 Permission imagesPermission) {
+
         this.id = id;
 
         this.expiration = Calendar.getInstance();
         this.expiration.add(Calendar.SECOND, lifeTime);
 
-        this.owner = owner;
-        this.readableUser = readableUser;
+        this.user = user;
+        this.accountPermission = accountPermission;
+        this.sessionPermission = sessionPermission;
+        this.imagesPermission = imagesPermission;
     }
 
     /**
