@@ -1,7 +1,7 @@
 package it.polimi.rest;
 
 import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.SimpleAuthorizer;
+import it.polimi.rest.authorization.ACL;
 import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.credentials.VolatileCredentialsManager;
 import it.polimi.rest.data.DataProvider;
@@ -12,7 +12,7 @@ import it.polimi.rest.sessions.VolatileSessionManager;
 public class Main {
 
     public static void main(String[] args) {
-        Authorizer authorizer = new SimpleAuthorizer();
+        Authorizer authorizer = new ACL();
         CredentialsManager credentialsManager = new VolatileCredentialsManager();
         SessionsManager sessionsManager = new VolatileSessionManager();
         DataProvider dataProvider = new VolatileDataProvider();

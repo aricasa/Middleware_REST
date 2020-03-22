@@ -52,12 +52,13 @@ public class Responder<T> implements Route {
 
         String authorization = authenticationHeader.get();
 
-        if (!authorization.startsWith("Bearer")) {
+        if (authorization.startsWith("Bearer")) {
+            String tokenId = authorization.substring("Bearer".length()).trim();
+            return Optional.of(new TokenId(tokenId));
+
+        } else {
             return Optional.empty();
         }
-
-        String tokenId = authorization.substring("Bearer".length()).trim();
-        return Optional.of(new TokenId(tokenId));
     }
 
     public interface Action<R> {

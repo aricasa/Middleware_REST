@@ -2,7 +2,7 @@ package it.polimi.rest.sessions;
 
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.NotFoundException;
-import it.polimi.rest.models.Token;
+import it.polimi.rest.authorization.Token;
 import it.polimi.rest.models.TokenId;
 
 import java.util.*;
@@ -31,12 +31,12 @@ public class VolatileSessionManager implements SessionsManager {
     @Override
     public synchronized Token token(TokenId id) {
         Token result = tokens.values().stream()
-                .filter(token -> token.id.equals(id))
+                .filter(token -> token.id().equals(id))
                 .findFirst()
                 .orElseThrow(NotFoundException::new);
 
         if (!result.isValid()) {
-            remove(result.id);
+            remove(result.id());
             throw new NotFoundException();
         }
 
@@ -45,12 +45,12 @@ public class VolatileSessionManager implements SessionsManager {
 
     @Override
     public synchronized void add(Token token) {
-        if (tokens.containsKey(token.id)) {
+        if (tokens.containsKey(token.id())) {
             throw new ForbiddenException();
         }
 
-        tokens.put(token.id, token);
-        reserved.remove(token.id);
+        tokens.put(token.id(), token);
+        reserved.remove(token.id());
     }
 
     @Override

@@ -2,7 +2,6 @@ package it.polimi.rest.authorization;
 
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.UnauthorizedException;
-import it.polimi.rest.models.Token;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.sessions.SessionsManager;
 
@@ -33,7 +32,7 @@ class SecureSessionManager implements SessionsManager {
 
         Token result = sessionsManager.token(id);
 
-        if (!authorizer.check(token, result).read) {
+        if (!authorizer.get(result, token.agent()).read) {
             throw new ForbiddenException();
         }
 
@@ -47,7 +46,9 @@ class SecureSessionManager implements SessionsManager {
 
     @Override
     public void remove(TokenId id) {
-        if (!authorizer.check(token, token(id)).write) {
+        Token token = token(id);
+
+        if (!authorizer.get(id, token.agent()).write) {
             throw new ForbiddenException();
         }
 

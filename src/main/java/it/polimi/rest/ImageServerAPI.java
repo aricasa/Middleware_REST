@@ -5,7 +5,7 @@ import it.polimi.rest.adapters.Deserializer;
 import it.polimi.rest.adapters.ImageDeserializer;
 import it.polimi.rest.authorization.AuthorizationProxy;
 import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.Permission;
+import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.messages.*;
 import it.polimi.rest.credentials.CredentialsManager;
@@ -15,6 +15,7 @@ import it.polimi.rest.models.*;
 import it.polimi.rest.sessions.SessionsManager;
 import it.polimi.rest.utils.Logger;
 import it.polimi.rest.utils.Pair;
+import spark.Request;
 import spark.Route;
 
 import java.util.Base64;
@@ -58,7 +59,7 @@ public class ImageServerAPI {
         Deserializer<Void> deserializer = (request, token) -> null;
 
         Responder.Action<Void> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
             UsersList users = dataProvider.users();
             return new UsersListMessage(users);
         };
@@ -70,7 +71,7 @@ public class ImageServerAPI {
         Deserializer<User> deserializer = new GsonDeserializer<>(User.class);
 
         Responder.Action<User> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
 
             User user = new User(dataProvider.uniqueId(UserId::new), data.username, data.password);
             dataProvider.add(user);
@@ -106,11 +107,11 @@ public class ImageServerAPI {
         Responder.Action<Pair<String, String>> action = (data, token) -> {
             UserId user = credentialsManager.authenticate(data.first, data.second);
 
-            SessionsManager sessionsManager = proxy.getSessionsManager(token);
-            Token session = new Token(sessionsManager.getUniqueId(), SESSION_LIFETIME, user, Permission.WRITE, Permission.WRITE, Permission.WRITE);
+            SessionsManager sessionsManager = proxy.sessionManager(token);
+            BearerToken session = new BearerToken(sessionsManager.getUniqueId(), SESSION_LIFETIME, user);
             sessionsManager.add(session);
 
-            logger.d("User " + session.user + " logged in");
+            logger.d("User " + session.user + " logged in with session " + session);
             return new LoginMessage(session);
         };
 
@@ -124,14 +125,11 @@ public class ImageServerAPI {
         };
 
         Responder.Action<TokenId> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
-            SessionsManager sessionsManager = proxy.getSessionsManager(token);
+            SessionsManager sessionsManager = proxy.sessionManager(token);
 
             Token t = sessionsManager.token(data);
-            sessionsManager.remove(t.id);
-
-            User user = dataProvider.userById(t.user);
-            logger.d("User " + user + " logged out");
+            sessionsManager.remove(t.id());
+            logger.d("Session " + t + " terminated");
 
             return new LogoutMessage();
         };
@@ -143,7 +141,7 @@ public class ImageServerAPI {
         Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userByUsername(data);
             return new UserDetailsMessage(user);
         };
@@ -158,7 +156,7 @@ public class ImageServerAPI {
         };
 
         Responder.Action<UserId> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userById(data);
             return new UserDetailsMessage(user);
         };
@@ -170,7 +168,7 @@ public class ImageServerAPI {
         Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
 
             User user = dataProvider.userByUsername(data);
             dataProvider.remove(user.id);
@@ -187,7 +185,7 @@ public class ImageServerAPI {
         Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userByUsername(data);
             ImagesList images = dataProvider.images(user.id);
             return new ImagesListMessage(images);
@@ -203,7 +201,7 @@ public class ImageServerAPI {
         };
 
         Responder.Action<ImageId> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
             Image image = dataProvider.image(data);
             return new ImageDetailsMessage(image.info);
         };
@@ -218,7 +216,7 @@ public class ImageServerAPI {
         };
 
         Responder.Action<ImageId> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
             Image image = dataProvider.image(data);
             return new ImageMessage(image);
         };
@@ -228,13 +226,13 @@ public class ImageServerAPI {
 
     public Route addImage(String usernameParam) {
         Deserializer<Image> deserializer = (request, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
             ImageDeserializer imageDeserializer = new ImageDeserializer(usernameParam, dataProvider);
             return imageDeserializer.parse(request, token);
         };
 
         Responder.Action<Image> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
             dataProvider.add(data);
 
             logger.d("Image " + data.info.id + " added");
@@ -251,11 +249,38 @@ public class ImageServerAPI {
         };
 
         Responder.Action<ImageId> action = (data, token) -> {
-            DataProvider dataProvider = proxy.getDataProvider(token);
+            DataProvider dataProvider = proxy.dataProvider(token);
             dataProvider.remove(data);
 
             logger.d("Image " + data + " removed");
             return new ImageDeletionMessage();
+        };
+
+        return new Responder<>(deserializer, action);
+    }
+
+    public Route registerClient(String usernameParam) {
+        Deserializer<Pair<String, OAuthClient>> deserializer = new Deserializer<Pair<String, OAuthClient>>() {
+            @Override
+            public Pair<String, OAuthClient> parse(Request request, TokenId token) {
+                String username = request.params(usernameParam);
+                OAuthClient client = new GsonDeserializer<>(OAuthClient.class).parse(request, token);
+                return new Pair<>(username, client);
+            }
+        };
+
+        Responder.Action<Pair<String, OAuthClient>> action = (data, token) -> {
+            DataProvider dataProvider = proxy.dataProvider(token);
+            User user = dataProvider.userByUsername(data.first);
+
+            OAuthClient oAuthClient = new OAuthClient(user.id,
+                    dataProvider.uniqueId(OAuthClientId::new),
+                dataProvider.uniqueId(OAuthClientSecret::new),
+                data.second.name,
+                data.second.callback);
+
+            dataProvider.add(oAuthClient);
+            return new OAuthClientCreationMessage(null);
         };
 
         return new Responder<>(deserializer, action);

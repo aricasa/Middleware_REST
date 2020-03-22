@@ -1,5 +1,6 @@
 package it.polimi.rest.models;
 
+import it.polimi.rest.authorization.SecuredObject;
 import it.polimi.rest.exceptions.UnsupportedMediaTypeException;
 
 import java.io.BufferedInputStream;

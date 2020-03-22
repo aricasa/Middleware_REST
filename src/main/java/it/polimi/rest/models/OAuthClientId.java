@@ -1,12 +1,11 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.JsonAdapter;
-import it.polimi.rest.authorization.SecuredObject;
 
 @JsonAdapter(Id.Serializer.class)
-public class TokenId extends Id implements SecuredObject {
+public class OAuthClientId extends Id {
 
-    public TokenId(String id) {
+    public OAuthClientId(String id) {
         super(id);
     }
 

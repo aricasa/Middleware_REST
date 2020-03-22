@@ -34,7 +34,7 @@ class SecureDataProvider implements DataProvider {
 
         User user = dataProvider.userById(id);
 
-        if (!authorizer.check(token, user).read) {
+        if (!authorizer.get(id, token.agent()).read) {
             throw new ForbiddenException();
         }
 
@@ -49,7 +49,7 @@ class SecureDataProvider implements DataProvider {
 
         User user = dataProvider.userByUsername(username);
 
-        if (!authorizer.check(token, user).read) {
+        if (!authorizer.get(user.id, token.agent()).read) {
             throw new ForbiddenException();
         }
 
@@ -62,18 +62,14 @@ class SecureDataProvider implements DataProvider {
             throw new UnauthorizedException(BEARER);
         }
 
-        UsersList users = dataProvider.users();
-
-        if (!authorizer.check(token, users).read) {
-            throw new ForbiddenException();
-        }
-
-        return users;
+        return dataProvider.users();
     }
 
     @Override
     public void add(User user) {
         dataProvider.add(user);
+        authorizer.grant(user.id, user.id, Permission.WRITE);
+        authorizer.grant(ImagesList.placeholder(user), user.id, Permission.WRITE);
     }
 
     @Override
@@ -84,7 +80,7 @@ class SecureDataProvider implements DataProvider {
 
         User u = userById(user.id);
 
-        if (!authorizer.check(token, u).write) {
+        if (!authorizer.get(u.id, token.agent()).write) {
             throw new ForbiddenException();
         }
 
@@ -92,18 +88,18 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(UserId userId) {
+    public void remove(UserId id) {
         if (token == null || !token.isValid()) {
             throw new UnauthorizedException(BEARER);
         }
 
-        User u = userById(userId);
+        User user = userById(id);
 
-        if (!authorizer.check(token, u).write) {
+        if (!authorizer.get(user.id, token.agent()).write) {
             throw new ForbiddenException();
         }
 
-        dataProvider.remove(userId);
+        dataProvider.remove(id);
     }
 
     @Override
@@ -114,7 +110,7 @@ class SecureDataProvider implements DataProvider {
 
         Image image = dataProvider.image(id);
 
-        if (!authorizer.check(token, image).read) {
+        if (!authorizer.get(image.info.id, token.agent()).read) {
             throw new ForbiddenException();
         }
 
@@ -129,7 +125,7 @@ class SecureDataProvider implements DataProvider {
 
         ImagesList images = dataProvider.images(user);
 
-        if (!authorizer.check(token, images).read) {
+        if (!authorizer.get(images, token.agent()).read) {
             throw new ForbiddenException();
         }
 
@@ -142,22 +138,42 @@ class SecureDataProvider implements DataProvider {
             throw new UnauthorizedException(BEARER);
         }
 
-        if (!authorizer.check(token, image.info.owner).write) {
+        // Check if the agent has write access to the user images list
+        if (!authorizer.get(ImagesList.placeholder(image.info.owner), token.agent()).write) {
             throw new ForbiddenException();
         }
 
         dataProvider.add(image);
+        authorizer.grant(image.info.id, token.agent(), Permission.WRITE);
     }
 
     @Override
-    public void remove(ImageId imageId) {
-        Image image = image(imageId);
+    public void remove(ImageId id) {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException(BEARER);
+        }
 
-        if (!authorizer.check(token, image).write) {
+        Image image = image(id);
+
+        if (!authorizer.get(id, token.agent()).write) {
             throw new ForbiddenException();
         }
 
-        dataProvider.remove(imageId);
+        dataProvider.remove(id);
+        authorizer.revokeAll(id);
+    }
+
+    @Override
+    public void add(OAuthClient client) {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException(BEARER);
+        }
+
+        //if (!authorizer.check(token, client.owner).write) {
+        //    throw new ForbiddenException();
+        //}
+
+        dataProvider.add(client);
     }
 
 }

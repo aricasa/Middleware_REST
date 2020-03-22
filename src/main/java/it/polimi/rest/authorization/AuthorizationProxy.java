@@ -20,11 +20,11 @@ public class AuthorizationProxy {
         this.dataProvider = dataProvider;
     }
 
-    public SessionsManager getSessionsManager(TokenId tokenId) {
+    public SessionsManager sessionManager(TokenId tokenId) {
         return new SecureSessionManager(sessionsManager, authorizer, getToken(tokenId));
     }
 
-    public DataProvider getDataProvider(TokenId tokenId) {
+    public DataProvider dataProvider(TokenId tokenId) {
         return new SecureDataProvider(dataProvider, authorizer, getToken(tokenId));
     }
 

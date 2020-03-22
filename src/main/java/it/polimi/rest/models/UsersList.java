@@ -2,14 +2,13 @@ package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
-public class UsersList implements Model {
+public class UsersList implements Model, Iterable<User> {
 
-    private final Collection<User> users;
+    public final Collection<User> users;
 
     @Expose
     public final int count;
@@ -32,6 +31,25 @@ public class UsersList implements Model {
     @Override
     public Map<String, Object> embedded() {
         return Collections.singletonMap("item", users);
+    }
+
+    @Override
+    public Iterator<User> iterator() {
+        return users.iterator();
+    }
+
+    @Override
+    public void forEach(Consumer<? super User> action) {
+        users.forEach(action);
+    }
+
+    @Override
+    public Spliterator<User> spliterator() {
+        return users.spliterator();
+    }
+
+    public Stream<User> stream() {
+        return users.stream();
     }
 
 }

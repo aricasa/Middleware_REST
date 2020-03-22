@@ -5,6 +5,7 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
+import it.polimi.rest.authorization.SecuredObject;
 
 import java.lang.reflect.Type;
 import java.util.Objects;

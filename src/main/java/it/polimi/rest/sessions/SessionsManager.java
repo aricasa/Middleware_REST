@@ -1,9 +1,7 @@
 package it.polimi.rest.sessions;
 
-import it.polimi.rest.models.Token;
+import it.polimi.rest.authorization.Token;
 import it.polimi.rest.models.TokenId;
-
-import java.util.Optional;
 
 public interface SessionsManager {
 

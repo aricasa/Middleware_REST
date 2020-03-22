@@ -15,7 +15,9 @@ public class VolatileDataProvider implements DataProvider {
 
     private final Collection<Id> ids = new HashSet<>();
     private final Collection<User> users = new HashSet<>();
+    private final Collection<BearerToken> tokens = new HashSet<>();
     private final Collection<Image> images = new HashSet<>();
+    private final Collection<OAuthClient> oAuthClients = new HashSet<>();
 
     @Override
     public synchronized <T extends Id> T uniqueId(Function<String, T> supplier) {
@@ -62,12 +64,12 @@ public class VolatileDataProvider implements DataProvider {
 
         // ID must be unique
         if (users.stream().anyMatch(u -> u.id.equals(user.id))) {
-            throw new ForbiddenException("User with ID '" + user.id + "' already existing");
+            throw new ForbiddenException("ID '" + user.id + "' already in use");
         }
 
         // Username must be unique
         if (users.stream().anyMatch(u -> u.username.equals(user.username))) {
-            throw new ForbiddenException("User with username '" + user.username + "' already exists");
+            throw new ForbiddenException("Username '" + user.username + "' already in use");
         }
 
         users.add(user);
@@ -82,16 +84,16 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(UserId userId) {
-        if (users.stream().noneMatch(u -> u.id.equals(userId))) {
+    public void remove(UserId id) {
+        if (users.stream().noneMatch(u -> u.id.equals(id))) {
             throw new NotFoundException();
         }
 
-        users.removeIf(user -> user.id.equals(userId));
-        ids.remove(userId);
+        users.removeIf(user -> user.id.equals(id));
+        ids.remove(id);
 
         // Remove the images of the user
-        images.removeIf(image -> image.info.owner.id.equals(userId));
+        images.removeIf(image -> image.info.owner.id.equals(id));
     }
 
     @Override
@@ -121,7 +123,7 @@ public class VolatileDataProvider implements DataProvider {
 
         // ID must be unique
         if (images.stream().anyMatch(i -> i.info.id.equals(image.info.id))) {
-            throw new ForbiddenException("Image with ID '" + image.info.id + "' already existing");
+            throw new ForbiddenException("ID '" + image.info.id + "' already in use");
         }
 
         images.add(image);
@@ -129,13 +131,29 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(ImageId imageId) {
-        if (images.stream().noneMatch(i -> i.info.id.equals(imageId))) {
+    public void remove(ImageId id) {
+        if (images.stream().noneMatch(i -> i.info.id.equals(id))) {
             throw new NotFoundException();
         }
 
-        images.removeIf(image -> image.info.id.equals(imageId));
-        ids.remove(imageId);
+        images.removeIf(image -> image.info.id.equals(id));
+        ids.remove(id);
+    }
+
+    @Override
+    public void add(OAuthClient client) {
+        if (client.name == null) {
+            throw new BadRequestException("Name not specified");
+        } else if (client.callback == null) {
+            throw new BadRequestException("Callback URL not specified");
+        }
+
+        // Name must be unique
+        if (oAuthClients.stream().anyMatch(c -> c.name.equals(client.name))) {
+            throw new ForbiddenException("Name '" + client.name + "'already in use");
+        }
+
+        oAuthClients.add(client);
     }
 
 }

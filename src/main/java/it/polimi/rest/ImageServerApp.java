@@ -41,6 +41,7 @@ public class ImageServerApp {
 
             path("/:username", () -> {
                 get("", imageServerAPI.userByUsername(":username"), jsonTransformer);
+                // TODO: update user data
                 delete("", imageServerAPI.removeUser(":username"), jsonTransformer);
             });
         });
@@ -60,6 +61,10 @@ public class ImageServerApp {
                 get("/raw", imageServerAPI.imageRaw(":imageId"));
                 delete("", imageServerAPI.removeImage(":imageId"), jsonTransformer);
             });
+        });
+
+        path("/oauth/v2", () -> {
+            post("/clients/:username", imageServerAPI.registerClient(":username"), jsonTransformer);
         });
     }
 

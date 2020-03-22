@@ -1,10 +1,11 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
+import it.polimi.rest.authorization.SecuredObject;
 
 import java.util.*;
 
-public class ImagesList implements Model {
+public class ImagesList implements Model, SecuredObject {
 
     public final User owner;
     private final Collection<ImageMetadata> images;
@@ -16,6 +17,23 @@ public class ImagesList implements Model {
         this.owner = owner;
         this.images = images;
         this.count = images.size();
+    }
+
+    public static ImagesList placeholder(User user) {
+        return new ImagesList(user, Collections.emptyList());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ImagesList that = (ImagesList) o;
+        return owner.id.equals(that.owner.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(owner.id);
     }
 
     @Override

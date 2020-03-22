@@ -1,11 +1,14 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
+import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.Permission;
+import it.polimi.rest.authorization.SecuredObject;
+import it.polimi.rest.authorization.Token;
 
 import java.util.*;
 
-public class Token implements Model {
+public class BearerToken implements Token, Model {
 
     @Expose
     public final TokenId id;
@@ -14,15 +17,9 @@ public class Token implements Model {
     private final Calendar expiration;
 
     public final UserId user;
-    public final Permission accountPermission;
-    public final Permission sessionPermission;
-    public final Permission imagesPermission;
 
-    public Token(TokenId id, int lifeTime,
-                 UserId user,
-                 Permission accountPermission,
-                 Permission sessionPermission,
-                 Permission imagesPermission) {
+    public BearerToken(TokenId id, int lifeTime,
+                       UserId user) {
 
         this.id = id;
 
@@ -30,16 +27,19 @@ public class Token implements Model {
         this.expiration.add(Calendar.SECOND, lifeTime);
 
         this.user = user;
-        this.accountPermission = accountPermission;
-        this.sessionPermission = sessionPermission;
-        this.imagesPermission = imagesPermission;
     }
 
-    /**
-     * Check if the token is still valid.
-     *
-     * @return whether the token is valid (true) or has expired (false)
-     */
+    @Override
+    public TokenId id() {
+        return id;
+    }
+
+    @Override
+    public Agent agent() {
+        return user;
+    }
+
+    @Override
     public boolean isValid() {
         Calendar now = Calendar.getInstance();
         return now.before(expiration);
