@@ -1,17 +1,20 @@
 package it.polimi.rest;
 
-import it.polimi.rest.adapters.GsonDeserializer;
-import it.polimi.rest.adapters.Deserializer;
-import it.polimi.rest.adapters.ImageDeserializer;
+import it.polimi.rest.adapters.*;
+import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.AuthorizationProxy;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.messages.*;
+import it.polimi.rest.communication.messages.oauth2.*;
 import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.exceptions.BadRequestException;
+import it.polimi.rest.exceptions.RedirectedException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
+import it.polimi.rest.models.oauth2.*;
 import it.polimi.rest.sessions.SessionsManager;
 import it.polimi.rest.utils.Logger;
 import it.polimi.rest.utils.Pair;
@@ -49,10 +52,24 @@ public class ImageServerAPI {
         this.proxy = new AuthorizationProxy(authorizer, sessionsManager, dataProvider);
     }
 
+    private TokenExtractor bearerAuthentication = request -> {
+        String authorization = request.headers("Authorization");
+
+        if (authorization == null) {
+            return null;
+        }
+
+        if (!authorization.startsWith("Bearer")) {
+            return null;
+        }
+
+        return new TokenId(authorization.substring("Bearer".length()).trim());
+    };
+
     public Route root() {
         Deserializer<Void> deserializer = (request, token) -> null;
         Responder.Action<Void> action = (data, token) -> new RootMessage(new Root());
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route users() {
@@ -64,7 +81,7 @@ public class ImageServerAPI {
             return new UsersListMessage(users);
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route signup() {
@@ -81,7 +98,7 @@ public class ImageServerAPI {
             return new UserCreationMessage(user);
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route login() {
@@ -107,15 +124,15 @@ public class ImageServerAPI {
         Responder.Action<Pair<String, String>> action = (data, token) -> {
             UserId user = credentialsManager.authenticate(data.first, data.second);
 
-            SessionsManager sessionsManager = proxy.sessionManager(token);
+            SessionsManager sessionsManager = proxy.sessionsManager(token);
             BearerToken session = new BearerToken(sessionsManager.getUniqueId(), SESSION_LIFETIME, user);
             sessionsManager.add(session);
 
-            logger.d("User " + session.user + " logged in with session " + session);
+            logger.d("User " + user + " logged in with session " + session);
             return new LoginMessage(session);
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route logout(String tokenIdParam) {
@@ -125,7 +142,7 @@ public class ImageServerAPI {
         };
 
         Responder.Action<TokenId> action = (data, token) -> {
-            SessionsManager sessionsManager = proxy.sessionManager(token);
+            SessionsManager sessionsManager = proxy.sessionsManager(token);
 
             Token t = sessionsManager.token(data);
             sessionsManager.remove(t.id());
@@ -134,7 +151,7 @@ public class ImageServerAPI {
             return new LogoutMessage();
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route userByUsername(String usernameParam) {
@@ -146,7 +163,7 @@ public class ImageServerAPI {
             return new UserDetailsMessage(user);
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route userById(String idParam) {
@@ -161,7 +178,7 @@ public class ImageServerAPI {
             return new UserDetailsMessage(user);
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route removeUser(String usernameParam) {
@@ -178,10 +195,10 @@ public class ImageServerAPI {
             return new UserDeletionMessage();
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
-    public Route userImages(String usernameParam) {
+    public Route images(String usernameParam) {
         Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
@@ -191,7 +208,7 @@ public class ImageServerAPI {
             return new ImagesListMessage(images);
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route imageDetails(String imageIdParam) {
@@ -206,7 +223,7 @@ public class ImageServerAPI {
             return new ImageDetailsMessage(image.info);
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route imageRaw(String imageIdParam) {
@@ -221,7 +238,7 @@ public class ImageServerAPI {
             return new ImageMessage(image);
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route addImage(String usernameParam) {
@@ -239,7 +256,7 @@ public class ImageServerAPI {
             return new ImageCreationMessage(data.info);
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route removeImage(String imageIdParam) {
@@ -256,34 +273,117 @@ public class ImageServerAPI {
             return new ImageDeletionMessage();
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
-    public Route registerClient(String usernameParam) {
-        Deserializer<Pair<String, OAuthClient>> deserializer = new Deserializer<Pair<String, OAuthClient>>() {
-            @Override
-            public Pair<String, OAuthClient> parse(Request request, TokenId token) {
-                String username = request.params(usernameParam);
-                OAuthClient client = new GsonDeserializer<>(OAuthClient.class).parse(request, token);
-                return new Pair<>(username, client);
-            }
+    public Route oAuth2Clients(String usernameParam) {
+        Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
+
+        Responder.Action<String> action = (data, token) -> {
+            DataProvider dataProvider = proxy.dataProvider(token);
+            User user = dataProvider.userByUsername(data);
+            OAuth2ClientsList clients = dataProvider.oAuth2Clients(user.id);
+            return new OAuth2ClientsListMessage(clients);
         };
 
-        Responder.Action<Pair<String, OAuthClient>> action = (data, token) -> {
+        return new Responder<>(bearerAuthentication, deserializer, action);
+    }
+
+    public Route addOAuth2Client(String usernameParam) {
+        Deserializer<Pair<String, OAuth2Client>> deserializer = (request, token) -> {
+            OAuth2Client client = new GsonDeserializer<>(OAuth2Client.class).parse(request, token);
+            String username = request.params(usernameParam);
+            return new Pair<>(username, client);
+        };
+
+        Responder.Action<Pair<String, OAuth2Client>> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userByUsername(data.first);
 
-            OAuthClient oAuthClient = new OAuthClient(user.id,
-                    dataProvider.uniqueId(OAuthClientId::new),
-                dataProvider.uniqueId(OAuthClientSecret::new),
-                data.second.name,
-                data.second.callback);
+            OAuth2ClientId id = dataProvider.uniqueId(OAuth2ClientId::new);
+            OAuth2ClientSecret secret = dataProvider.uniqueId(OAuth2ClientSecret::new);
 
+            OAuth2Client oAuthClient = new OAuth2Client(user, id, secret, data.second.name, data.second.callback);
             dataProvider.add(oAuthClient);
-            return new OAuthClientCreationMessage(null);
+
+            logger.d("OAuth2 client " + oAuthClient + " added");
+            return new OAuth2ClientCreationMessage(oAuthClient);
         };
 
-        return new Responder<>(deserializer, action);
+        return new Responder<>(bearerAuthentication, deserializer, action);
+    }
+
+    public Route removeOAuth2Client(String clientIdParam) {
+        Deserializer<OAuth2ClientId> deserializer = (request, token) -> {
+            String id = request.params(clientIdParam);
+            return new OAuth2ClientId(id);
+        };
+
+        Responder.Action<OAuth2ClientId> action = (data, token) -> {
+            DataProvider dataProvider = proxy.dataProvider(token);
+            dataProvider.remove(data);
+            return new OAuth2ClientDeletionMessage();
+        };
+
+        return new Responder<>(bearerAuthentication, deserializer, action);
+    }
+
+    public Route oAuth2Authorize() {
+        Deserializer<OAuth2AuthorizationRequest> deserializer = new OAuth2AuthorizationRequestDeserializer();
+        Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> new OAuth2LoginPage(data);
+
+        return new Responder<>(bearerAuthentication, deserializer, action);
+    }
+
+    public Route oAuth2GrantPermissions() {
+        Deserializer<OAuth2AuthorizationRequest> deserializer = new GsonDeserializer<>(OAuth2AuthorizationRequest.class);
+
+        Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> {
+            OAuth2Client client = proxy.dataProvider(new Token() {
+                @Override
+                public TokenId id() {
+                    return null;
+                }
+
+                @Override
+                public Agent agent() {
+                    return data.client;
+                }
+
+                @Override
+                public boolean isValid() {
+                    return true;
+                }
+            }).oAuth2Client(data.client);
+
+            if (!client.callback.equals(data.callback)) {
+                throw new BadRequestException();
+            }
+
+            DataProvider dataProvider = proxy.dataProvider(token);
+            OAuth2AuthorizationCode code = dataProvider.uniqueId(s -> new OAuth2AuthorizationCode(s, data.scopes));
+            return null;
+        };
+
+        return new Responder<>(bearerAuthentication, deserializer, action);
+    }
+
+    public Route oAuth2Token() {
+        Deserializer<String> deserializer = new Deserializer<String>() {
+            @Override
+            public String parse(Request request, TokenId token) {
+                return null;
+            }
+        };
+
+        Responder.Action<String> action = new Responder.Action<String>() {
+            @Override
+            public Message run(String data, TokenId token) {
+                return null;
+            }
+        };
+
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
 }

@@ -35,6 +35,7 @@ public class User implements Model {
     public Map<String, Link> links() {
         Map<String, Link> links = new HashMap<>();
         images().ifPresent(url -> links.put("images", new Link(url)));
+        oAuth2Clients().ifPresent(url -> links.put("oauth2_clients", new Link(url)));
         return links;
     }
 
@@ -45,6 +46,10 @@ public class User implements Model {
 
     public Optional<String> images() {
         return self().map(url -> url + "/images");
+    }
+
+    public Optional<String> oAuth2Clients() {
+        return self().map(url -> url + "/oauth2/clients");
     }
 
 }

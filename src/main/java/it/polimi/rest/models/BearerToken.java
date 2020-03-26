@@ -30,6 +30,11 @@ public class BearerToken implements Token, Model {
     }
 
     @Override
+    public String toString() {
+        return id.toString();
+    }
+
+    @Override
     public TokenId id() {
         return id;
     }

@@ -4,6 +4,9 @@ import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
+import it.polimi.rest.models.oauth2.OAuth2Client;
+import it.polimi.rest.models.oauth2.OAuth2ClientId;
+import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
 import java.util.function.Function;
 
@@ -70,6 +73,7 @@ class SecureDataProvider implements DataProvider {
         dataProvider.add(user);
         authorizer.grant(user.id, user.id, Permission.WRITE);
         authorizer.grant(ImagesList.placeholder(user), user.id, Permission.WRITE);
+        authorizer.grant(OAuth2ClientsList.placeholder(user), user.id, Permission.WRITE);
     }
 
     @Override
@@ -100,6 +104,10 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.remove(id);
+
+        // TODO: remove sessions
+        // TODO: remove images
+        // TODO: remove OAuth2 clients
     }
 
     @Override
@@ -155,7 +163,7 @@ class SecureDataProvider implements DataProvider {
 
         Image image = image(id);
 
-        if (!authorizer.get(id, token.agent()).write) {
+        if (!authorizer.get(image.info.id, token.agent()).write) {
             throw new ForbiddenException();
         }
 
@@ -164,16 +172,66 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public void add(OAuthClient client) {
+    public OAuth2Client oAuth2Client(OAuth2ClientId id) {
         if (token == null || !token.isValid()) {
             throw new UnauthorizedException(BEARER);
         }
 
-        //if (!authorizer.check(token, client.owner).write) {
-        //    throw new ForbiddenException();
-        //}
+        OAuth2Client client = dataProvider.oAuth2Client(id);
+
+        if (!authorizer.get(client.id, token.agent()).read) {
+            throw new ForbiddenException();
+        }
+
+        return client;
+    }
+
+    @Override
+    public OAuth2ClientsList oAuth2Clients(UserId user) {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException(BEARER);
+        }
+
+        OAuth2ClientsList clients = dataProvider.oAuth2Clients(user);
+
+        if (!authorizer.get(clients, token.agent()).read) {
+            throw new ForbiddenException();
+        }
+
+        return clients;
+    }
+
+    @Override
+    public void add(OAuth2Client client) {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException(BEARER);
+        }
+
+        User owner = userById(client.owner.id);
+
+        if (!authorizer.get(OAuth2ClientsList.placeholder(owner), token.agent()).write) {
+            throw new ForbiddenException();
+        }
 
         dataProvider.add(client);
+        authorizer.grant(client.id, owner.id, Permission.WRITE);
+        authorizer.grant(client.id, client.id, Permission.READ);
+    }
+
+    @Override
+    public void remove(OAuth2ClientId id) {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException(BEARER);
+        }
+
+        OAuth2Client client = oAuth2Client(id);
+
+        if (!authorizer.get(client.id, token.agent()).write) {
+            throw new ForbiddenException();
+        }
+
+        dataProvider.remove(id);
+        authorizer.revokeAll(id);
     }
 
 }

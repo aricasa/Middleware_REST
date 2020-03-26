@@ -1,7 +1,9 @@
 package it.polimi.rest.communication;
 
 import it.polimi.rest.adapters.Deserializer;
+import it.polimi.rest.adapters.TokenExtractor;
 import it.polimi.rest.communication.messages.Message;
+import it.polimi.rest.exceptions.RedirectedException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.TokenId;
 import spark.Request;
@@ -13,10 +15,16 @@ import java.util.Optional;
 
 public class Responder<T> implements Route {
 
+    private final TokenExtractor tokenExtractor;
     private final Deserializer<T> deserializer;
     private final Action<T> action;
 
-    public Responder(Deserializer<T> deserializer, Action<T> action) {
+    private Responder(Deserializer<T> deserializer, Action<T> action) {
+        this(null, deserializer, action);
+    }
+
+    public Responder(TokenExtractor tokenExtractor, Deserializer<T> deserializer, Action<T> action) {
+        this.tokenExtractor = tokenExtractor;
         this.deserializer = deserializer;
         this.action = action;
     }
@@ -27,9 +35,9 @@ public class Responder<T> implements Route {
         request.raw().setAttribute("org.eclipse.jetty.multipartConfig", multipartConfigElement);
 
         try {
-            Optional<TokenId> token = authenticate(request);
-            T data = deserializer.parse(request, token.orElse(null));
-            Message message = action.run(data, token.orElse(null));
+            TokenId token = tokenExtractor == null ? null : tokenExtractor.extract(request);
+            T data = deserializer.parse(request, token);
+            Message message = action.run(data, token);
 
             response.status(message.code());
             response.type(message.type());
@@ -40,24 +48,10 @@ public class Responder<T> implements Route {
         } catch (UnauthorizedException e) {
             response.header("WWW-Authenticate", e.authentication.toString());
             throw e;
-        }
-    }
 
-    private Optional<TokenId> authenticate(Request request) {
-        Optional<String> authenticationHeader = Optional.ofNullable(request.headers("Authorization"));
-
-        if (!authenticationHeader.isPresent()) {
-            return Optional.empty();
-        }
-
-        String authorization = authenticationHeader.get();
-
-        if (authorization.startsWith("Bearer")) {
-            String tokenId = authorization.substring("Bearer".length()).trim();
-            return Optional.of(new TokenId(tokenId));
-
-        } else {
-            return Optional.empty();
+        } catch (RedirectedException e) {
+            response.redirect(e.url);
+            return null;
         }
     }
 

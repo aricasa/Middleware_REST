@@ -4,6 +4,9 @@ import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
+import it.polimi.rest.models.oauth2.OAuth2Client;
+import it.polimi.rest.models.oauth2.OAuth2ClientId;
+import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
 import java.util.*;
 import java.util.function.Function;
@@ -17,7 +20,7 @@ public class VolatileDataProvider implements DataProvider {
     private final Collection<User> users = new HashSet<>();
     private final Collection<BearerToken> tokens = new HashSet<>();
     private final Collection<Image> images = new HashSet<>();
-    private final Collection<OAuthClient> oAuthClients = new HashSet<>();
+    private final Collection<OAuth2Client> oAuth2Clients = new HashSet<>();
 
     @Override
     public synchronized <T extends Id> T uniqueId(Function<String, T> supplier) {
@@ -141,7 +144,25 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public void add(OAuthClient client) {
+    public OAuth2Client oAuth2Client(OAuth2ClientId id) {
+        return oAuth2Clients.stream()
+                .filter(client -> client.id.equals(id))
+                .findFirst()
+                .orElseThrow(NotFoundException::new);
+    }
+
+    @Override
+    public OAuth2ClientsList oAuth2Clients(UserId user) {
+        User owner = userById(user);
+
+        return new OAuth2ClientsList(owner, oAuth2Clients.stream()
+                .filter(client -> client.owner.id.equals(owner.id))
+                .sorted(Comparator.comparing(client -> client.name))
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    public void add(OAuth2Client client) {
         if (client.name == null) {
             throw new BadRequestException("Name not specified");
         } else if (client.callback == null) {
@@ -149,11 +170,21 @@ public class VolatileDataProvider implements DataProvider {
         }
 
         // Name must be unique
-        if (oAuthClients.stream().anyMatch(c -> c.name.equals(client.name))) {
+        if (oAuth2Clients.stream().anyMatch(c -> c.name.equals(client.name))) {
             throw new ForbiddenException("Name '" + client.name + "'already in use");
         }
 
-        oAuthClients.add(client);
+        oAuth2Clients.add(client);
+    }
+
+    @Override
+    public void remove(OAuth2ClientId id) {
+        if (oAuth2Clients.stream().noneMatch(client -> client.id.equals(id))) {
+            throw new NotFoundException();
+        }
+
+        oAuth2Clients.removeIf(client -> client.id.equals(id));
+        ids.remove(id);
     }
 
 }

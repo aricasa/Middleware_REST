@@ -17,8 +17,9 @@ public class Main {
         SessionsManager sessionsManager = new VolatileSessionManager();
         DataProvider dataProvider = new VolatileDataProvider();
 
-        ImageServerAPI imageServerAPI = new ImageServerAPI(authorizer, credentialsManager, sessionsManager, dataProvider);
-        ImageServerApp imageServerApp = new ImageServerApp(imageServerAPI);
+        ImageServerAPI api = new ImageServerAPI(authorizer, credentialsManager, sessionsManager, dataProvider);
+        ImageServerApp app = new ImageServerApp(api);
+        app.start();
     }
 
 }

@@ -1,12 +1,11 @@
 package it.polimi.rest.data;
 
-import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
+import it.polimi.rest.models.oauth2.OAuth2Client;
+import it.polimi.rest.models.oauth2.OAuth2ClientId;
+import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
-import java.util.Collection;
-import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public interface DataProvider {
 
@@ -30,6 +29,9 @@ public interface DataProvider {
     void add(Image image);
     void remove(ImageId id);
 
-    void add(OAuthClient client);
+    OAuth2Client oAuth2Client(OAuth2ClientId id);
+    OAuth2ClientsList oAuth2Clients(UserId user);
+    void add(OAuth2Client client);
+    void remove(OAuth2ClientId id);
 
 }

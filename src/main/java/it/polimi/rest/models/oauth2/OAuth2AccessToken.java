@@ -1,15 +1,16 @@
-package it.polimi.rest.models;
+package it.polimi.rest.models.oauth2;
 
 import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.Token;
+import it.polimi.rest.models.TokenId;
 
 import java.util.Objects;
 
-public class OAuthAccessToken implements Token, Agent {
+public class OAuth2AccessToken implements Token, Agent {
 
     public final TokenId id;
 
-    public OAuthAccessToken(TokenId id) {
+    public OAuth2AccessToken(TokenId id) {
         this.id = id;
     }
 
@@ -17,7 +18,7 @@ public class OAuthAccessToken implements Token, Agent {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        OAuthAccessToken that = (OAuthAccessToken) o;
+        OAuth2AccessToken that = (OAuth2AccessToken) o;
         return id.equals(that.id);
     }
 

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!--Import materialize.css-->
+    <link type="text/css" rel="stylesheet" href="/css/materialize.css" media="screen,projection"/>
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>Login</title>
+</head>
+
+<body class="grey lighten-3">
+<div class="container">
+    <div class="row valign-wrapper" style="width: 50%;">
+        <div class="col s12 valign">
+            <div class="card">
+                <div class="card-content">
+
+                    <!-- Login card -->
+                    <div id="login">
+                        <div class="input-field black-text">
+                            <i class="material-icons prefix">account_circle</i>
+                            <input type="text" id="username" />
+                            <label for="username">Username</label>
+                        </div>
+
+                        <div class="input-field black-text">
+                            <i class="material-icons prefix">vpn_key</i>
+                            <input type="password" id="password" />
+                            <label for="password">Username</label>
+                        </div>
+
+                        <div class="center-align">
+                            <a class="waves-effect waves-light btn cyan" onclick="login()">Login</a>
+                        </div>
+                    </div>
+
+                    <!-- Permissions card -->
+                    <div id="permissions" style="display: none">
+                        <span class="row card-title center-align">Permissions</span>
+
+                        <input type="hidden" id="clientId" value="{:clientId}" />
+                        <input type="hidden" id="callback" value="{:callback}" />
+                        <input type="hidden" id="scope" value="{:scopes}" />
+                        <input type="hidden" id="state" value="{:state}" />
+
+                        <div class="container">
+                            <ul id="permissionsList" class="row"></ul>
+                        </div>
+
+                        <div class="center-align">
+                            <a class="waves-effect waves-light btn green darken-1" onclick="grant()">Grant</a>
+                            <a class="waves-effect waves-light btn red darken-1" onclick="deny()">Deny</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Javascript -->
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/materialize.js"></script>
+<script type="text/javascript" src="/js/authorize.js"></script>
+
+</body>
+</html>

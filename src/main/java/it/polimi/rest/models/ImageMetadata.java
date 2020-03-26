@@ -22,7 +22,7 @@ public class ImageMetadata implements Model {
 
     @Override
     public Optional<String> self() {
-        return owner.images().map(url -> url + "/" + id);
+        return ImagesList.placeholder(owner).self().map(url -> url + "/" + id);
     }
 
     @Override

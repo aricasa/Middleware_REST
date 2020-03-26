@@ -14,21 +14,26 @@ public class ImageServerApp {
 
     public ImageServerApp(ImageServerAPI imageServerAPI) {
         this.imageServerAPI = imageServerAPI;
-        init();
     }
 
-    public void init() {
+    public void start() {
         ResponseTransformer jsonTransformer = new JsonTransformer();
+
+        staticFiles.location("/public");
 
         exception(RestException.class, (exception, request, response) -> {
             response.status(exception.code);
-            response.type("application/json");
 
             Gson gson = new GsonBuilder()
                     .excludeFieldsWithoutExposeAnnotation()
                     .create();
 
-            response.body(gson.toJson(exception));
+            String body = gson.toJson(exception);
+
+            if (!body.isEmpty() && !body.equals("{}")) {
+                response.type("application/json");
+                response.body(body);
+            }
         });
 
         exception(Exception.class, (exception, request, response) -> exception.printStackTrace());
@@ -42,7 +47,7 @@ public class ImageServerApp {
             path("/:username", () -> {
                 get("", imageServerAPI.userByUsername(":username"), jsonTransformer);
                 // TODO: update user data
-                delete("", imageServerAPI.removeUser(":username"), jsonTransformer);
+                delete("", imageServerAPI.removeUser(":username"));
             });
         });
 
@@ -53,18 +58,26 @@ public class ImageServerApp {
         });
 
         path("/users/:username/images", () -> {
-            get("", imageServerAPI.userImages(":username"), jsonTransformer);
+            get("", imageServerAPI.images(":username"), jsonTransformer);
             post("", imageServerAPI.addImage(":username"), jsonTransformer);
 
             path("/:imageId", () -> {
                 get("", imageServerAPI.imageDetails(":imageId"), jsonTransformer);
                 get("/raw", imageServerAPI.imageRaw(":imageId"));
-                delete("", imageServerAPI.removeImage(":imageId"), jsonTransformer);
+                delete("", imageServerAPI.removeImage(":imageId"));
             });
         });
 
-        path("/oauth/v2", () -> {
-            post("/clients/:username", imageServerAPI.registerClient(":username"), jsonTransformer);
+        path("/users/:username/oauth2/clients", () -> {
+            get("", imageServerAPI.oAuth2Clients(":username"), jsonTransformer);
+            post("", imageServerAPI.addOAuth2Client(":username"), jsonTransformer);
+            delete("/:clientId", imageServerAPI.removeOAuth2Client(":clientId"));
+        });
+
+        path("/oauth2", () -> {
+            get("/authorize", "application/x-www-form-urlencoded", imageServerAPI.oAuth2Authorize());
+            post("/authorize", imageServerAPI.oAuth2GrantPermissions(), jsonTransformer);
+            post("/token", imageServerAPI.oAuth2Token(), jsonTransformer);
         });
     }
 
