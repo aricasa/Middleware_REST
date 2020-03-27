@@ -26,7 +26,7 @@ public class OAuth2ClientDetailsMessage implements Message {
 
     @Override
     public Optional<Object> payload() {
-        return Optional.of(client);
+        return Optional.ofNullable(client);
     }
 
 }

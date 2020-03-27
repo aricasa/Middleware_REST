@@ -5,7 +5,7 @@ import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.SecuredObject;
 import it.polimi.rest.models.Id;
 
-@JsonAdapter(Id.Serializer.class)
+@JsonAdapter(Id.Adapter.class)
 public class OAuth2ClientId extends Id implements Agent, SecuredObject {
 
     public OAuth2ClientId(String id) {

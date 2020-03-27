@@ -13,7 +13,7 @@ import java.util.Objects;
 public abstract class Id {
 
     @Expose
-    private final String id;
+    protected final String id;
 
     public Id(String id) {
         this.id = id;
@@ -37,7 +37,7 @@ public abstract class Id {
         return id;
     }
 
-    public static class Serializer implements JsonSerializer<Id> {
+    public static class Adapter implements JsonSerializer<Id> {
 
         @Override
         public JsonElement serialize(Id src, Type typeOfSrc, JsonSerializationContext context) {

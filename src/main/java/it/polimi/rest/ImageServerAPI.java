@@ -11,7 +11,6 @@ import it.polimi.rest.communication.messages.oauth2.*;
 import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.exceptions.BadRequestException;
-import it.polimi.rest.exceptions.RedirectedException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
 import it.polimi.rest.models.oauth2.*;
@@ -361,8 +360,9 @@ public class ImageServerAPI {
             }
 
             DataProvider dataProvider = proxy.dataProvider(token);
-            OAuth2AuthorizationCode code = dataProvider.uniqueId(s -> new OAuth2AuthorizationCode(s, data.scopes));
-            return null;
+            OAuth2AuthorizationCode code = dataProvider.uniqueId(s -> new OAuth2AuthorizationCode(s, client.id, data.scopes));
+            dataProvider.add(code);
+            return new OAuth2AuthorizationCodeCreationMessage(code);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);

@@ -4,6 +4,7 @@ import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
+import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.OAuth2ClientId;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
@@ -21,6 +22,7 @@ public class VolatileDataProvider implements DataProvider {
     private final Collection<BearerToken> tokens = new HashSet<>();
     private final Collection<Image> images = new HashSet<>();
     private final Collection<OAuth2Client> oAuth2Clients = new HashSet<>();
+    private final Collection<OAuth2AuthorizationCode> oAuth2AuthCodes = new HashSet<>();
 
     @Override
     public synchronized <T extends Id> T uniqueId(Function<String, T> supplier) {
@@ -185,6 +187,21 @@ public class VolatileDataProvider implements DataProvider {
 
         oAuth2Clients.removeIf(client -> client.id.equals(id));
         ids.remove(id);
+    }
+
+    @Override
+    public void add(OAuth2AuthorizationCode code) {
+        oAuth2AuthCodes.add(code);
+    }
+
+    @Override
+    public void remove(OAuth2AuthorizationCode code) {
+        if (!oAuth2AuthCodes.contains(code)) {
+            throw new NotFoundException();
+        }
+
+        oAuth2AuthCodes.remove(code);
+        ids.remove(code);
     }
 
 }

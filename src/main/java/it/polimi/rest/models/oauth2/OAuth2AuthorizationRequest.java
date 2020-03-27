@@ -20,6 +20,7 @@ public class OAuth2AuthorizationRequest {
 
     @Expose
     @SerializedName("client_id")
+    @JsonAdapter(ClientIdAdapter.class)
     public final OAuth2ClientId client;
 
     @Expose
@@ -28,7 +29,7 @@ public class OAuth2AuthorizationRequest {
 
     @Expose
     @SerializedName("scope")
-    @JsonAdapter(ScopesDeserializer.class)
+    @JsonAdapter(ScopesAdapter.class)
     public final Collection<Scope> scopes;
 
     @Expose
@@ -43,7 +44,16 @@ public class OAuth2AuthorizationRequest {
         this.state = state;
     }
 
-    public static class ScopesDeserializer implements JsonDeserializer<Collection<Scope>> {
+    static class ClientIdAdapter implements JsonDeserializer<OAuth2ClientId> {
+
+        @Override
+        public OAuth2ClientId deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return new OAuth2ClientId(json.getAsString());
+        }
+
+    }
+
+    static class ScopesAdapter implements JsonDeserializer<Collection<Scope>> {
 
         @Override
         public Collection<Scope> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {

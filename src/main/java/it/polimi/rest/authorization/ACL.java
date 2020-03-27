@@ -22,7 +22,7 @@ public class ACL implements Authorizer {
     }
 
     @Override
-    public void revokeAll(SecuredObject obj) {
+    public void revoke(SecuredObject obj) {
         authorizations.removeIf(auth -> auth.obj.equals(obj));
     }
 

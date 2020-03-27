@@ -1,14 +1,14 @@
 package it.polimi.rest.models.oauth2;
 
-import it.polimi.rest.exceptions.BadRequestException;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import com.google.gson.annotations.JsonAdapter;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.lang.reflect.Type;
 
+// TODO: allowed scopes list
+@JsonAdapter(Scope.Adapter.class)
 public class Scope {
 
     public static final String READ_USER = "read_user";
@@ -23,6 +23,15 @@ public class Scope {
     @Override
     public String toString() {
         return scope;
+    }
+
+    public static class Adapter implements JsonSerializer<Scope> {
+
+        @Override
+        public JsonElement serialize(Scope src, Type typeOfSrc, JsonSerializationContext context) {
+            return context.serialize(src.scope);
+        }
+
     }
 
 }

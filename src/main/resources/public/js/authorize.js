@@ -87,6 +87,11 @@ function login() {
 }
 
 function grant() {
+    let clientId = $("#clientId").val();
+    let callback = $("#callback").val();
+    let scope = $("#scope").val();
+    let state = $("#state").val();
+
     $.ajax({
         type: "POST",
         url: "/oauth2/authorize",
@@ -96,17 +101,13 @@ function grant() {
         },
         data: JSON.stringify({
             response_type: "code",
-            client_id: $("#clientId").val(),
-            redirect_uri: $("#callback").val(),
-            scope: $("#scope").val(),
-            state: $("#state").val()
+            client_id: clientId,
+            redirect_uri: callback,
+            scope: scope,
+            state: state
         }),
         success: function(response) {
-            window.location.replace("http://www.google.it");
-
-            if (response.redirect) {
-                window.location.replace(response.redirect)
-            }
+            window.location.replace(callback + "?code=" + response.code + "&state=" + state);
         }
     });
 }

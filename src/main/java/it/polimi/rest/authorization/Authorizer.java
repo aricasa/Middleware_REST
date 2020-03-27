@@ -4,7 +4,7 @@ public interface Authorizer {
 
     void grant(SecuredObject obj, Agent agent, Permission permission);
     void revoke(SecuredObject obj, Agent agent);
-    void revokeAll(SecuredObject obj);
+    void revoke(SecuredObject obj);
     Permission get(SecuredObject obj, Agent agent);
 
 }

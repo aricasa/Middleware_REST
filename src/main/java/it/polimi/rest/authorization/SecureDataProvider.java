@@ -4,6 +4,7 @@ import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
+import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.OAuth2ClientId;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
@@ -168,7 +169,7 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.remove(id);
-        authorizer.revokeAll(id);
+        authorizer.revoke(id);
     }
 
     @Override
@@ -231,7 +232,27 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.remove(id);
-        authorizer.revokeAll(id);
+        authorizer.revoke(id);
+    }
+
+    @Override
+    public void add(OAuth2AuthorizationCode code) {
+        if (token == null || !token.isValid()) {
+            throw new UnauthorizedException(BEARER);
+        }
+
+        OAuth2Client client = oAuth2Client(code.client);
+
+        if (!authorizer.get(client.id, token.agent()).write) {
+            throw new ForbiddenException();
+        }
+
+        dataProvider.add(code);
+    }
+
+    @Override
+    public void remove(OAuth2AuthorizationCode code) {
+        // TODO: implement
     }
 
 }

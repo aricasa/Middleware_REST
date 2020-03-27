@@ -1,6 +1,7 @@
 package it.polimi.rest.data;
 
 import it.polimi.rest.models.*;
+import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.OAuth2ClientId;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
@@ -33,5 +34,8 @@ public interface DataProvider {
     OAuth2ClientsList oAuth2Clients(UserId user);
     void add(OAuth2Client client);
     void remove(OAuth2ClientId id);
+
+    void add(OAuth2AuthorizationCode code);
+    void remove(OAuth2AuthorizationCode code);
 
 }
