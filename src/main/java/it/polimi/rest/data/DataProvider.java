@@ -7,6 +7,7 @@ import it.polimi.rest.models.oauth2.OAuth2ClientId;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public interface DataProvider {
 
@@ -16,7 +17,7 @@ public interface DataProvider {
      *
      * @return unique ID
      */
-    <T extends Id> T uniqueId(Function<String, T> supplier);
+    <T extends Id> T uniqueId(Supplier<String> randomizer, Function<String, T> supplier);
 
     User userById(UserId id);
     User userByUsername(String username);
@@ -35,6 +36,7 @@ public interface DataProvider {
     void add(OAuth2Client client);
     void remove(OAuth2ClientId id);
 
+    OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode id);
     void add(OAuth2AuthorizationCode code);
     void remove(OAuth2AuthorizationCode code);
 

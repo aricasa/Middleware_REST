@@ -10,6 +10,7 @@ import it.polimi.rest.models.oauth2.OAuth2ClientId;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BEARER;
 
@@ -17,28 +18,28 @@ class SecureDataProvider implements DataProvider {
 
     private final DataProvider dataProvider;
     private final Authorizer authorizer;
-    private final Token token;
+    private final Agent agent;
 
-    public SecureDataProvider(DataProvider dataProvider, Authorizer authorizer, Token token) {
+    public SecureDataProvider(DataProvider dataProvider, Authorizer authorizer, Agent agent) {
         this.dataProvider = dataProvider;
         this.authorizer = authorizer;
-        this.token = token;
+        this.agent = agent;
     }
 
     @Override
-    public <T extends Id> T uniqueId(Function<String, T> supplier) {
-        return dataProvider.uniqueId(supplier);
+    public <T extends Id> T uniqueId(Supplier<String> randomizer, Function<String, T> supplier) {
+        return dataProvider.uniqueId(randomizer, supplier);
     }
 
     @Override
     public User userById(UserId id) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         User user = dataProvider.userById(id);
 
-        if (!authorizer.get(id, token.agent()).read) {
+        if (!authorizer.get(id, agent).read) {
             throw new ForbiddenException();
         }
 
@@ -47,13 +48,13 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public User userByUsername(String username) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         User user = dataProvider.userByUsername(username);
 
-        if (!authorizer.get(user.id, token.agent()).read) {
+        if (!authorizer.get(user.id, agent).read) {
             throw new ForbiddenException();
         }
 
@@ -62,7 +63,7 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public UsersList users() {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
@@ -79,13 +80,13 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public void update(User user) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         User u = userById(user.id);
 
-        if (!authorizer.get(u.id, token.agent()).write) {
+        if (!authorizer.get(u.id, agent).write) {
             throw new ForbiddenException();
         }
 
@@ -94,13 +95,13 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public void remove(UserId id) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         User user = userById(id);
 
-        if (!authorizer.get(user.id, token.agent()).write) {
+        if (!authorizer.get(user.id, agent).write) {
             throw new ForbiddenException();
         }
 
@@ -113,13 +114,13 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public Image image(ImageId id) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         Image image = dataProvider.image(id);
 
-        if (!authorizer.get(image.info.id, token.agent()).read) {
+        if (!authorizer.get(image.info.id, agent).read) {
             throw new ForbiddenException();
         }
 
@@ -128,13 +129,13 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public ImagesList images(UserId user) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         ImagesList images = dataProvider.images(user);
 
-        if (!authorizer.get(images, token.agent()).read) {
+        if (!authorizer.get(images, agent).read) {
             throw new ForbiddenException();
         }
 
@@ -143,28 +144,28 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public void add(Image image) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         // Check if the agent has write access to the user images list
-        if (!authorizer.get(ImagesList.placeholder(image.info.owner), token.agent()).write) {
+        if (!authorizer.get(ImagesList.placeholder(image.info.owner), agent).write) {
             throw new ForbiddenException();
         }
 
         dataProvider.add(image);
-        authorizer.grant(image.info.id, token.agent(), Permission.WRITE);
+        authorizer.grant(image.info.id, agent, Permission.WRITE);
     }
 
     @Override
     public void remove(ImageId id) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         Image image = image(id);
 
-        if (!authorizer.get(image.info.id, token.agent()).write) {
+        if (!authorizer.get(image.info.id, agent).write) {
             throw new ForbiddenException();
         }
 
@@ -174,13 +175,13 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public OAuth2Client oAuth2Client(OAuth2ClientId id) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         OAuth2Client client = dataProvider.oAuth2Client(id);
 
-        if (!authorizer.get(client.id, token.agent()).read) {
+        if (!authorizer.get(client.id, agent).read) {
             throw new ForbiddenException();
         }
 
@@ -189,13 +190,13 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public OAuth2ClientsList oAuth2Clients(UserId user) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         OAuth2ClientsList clients = dataProvider.oAuth2Clients(user);
 
-        if (!authorizer.get(clients, token.agent()).read) {
+        if (!authorizer.get(clients, agent).read) {
             throw new ForbiddenException();
         }
 
@@ -204,13 +205,13 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public void add(OAuth2Client client) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         User owner = userById(client.owner.id);
 
-        if (!authorizer.get(OAuth2ClientsList.placeholder(owner), token.agent()).write) {
+        if (!authorizer.get(OAuth2ClientsList.placeholder(owner), agent).write) {
             throw new ForbiddenException();
         }
 
@@ -221,13 +222,13 @@ class SecureDataProvider implements DataProvider {
 
     @Override
     public void remove(OAuth2ClientId id) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         OAuth2Client client = oAuth2Client(id);
 
-        if (!authorizer.get(client.id, token.agent()).write) {
+        if (!authorizer.get(client.id, agent).write) {
             throw new ForbiddenException();
         }
 
@@ -236,23 +237,50 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
+    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode id) {
+        if (agent == null) {
+            throw new ForbiddenException();
+        }
+
+        OAuth2AuthorizationCode code = dataProvider.oAuth2AuthCode(id);
+
+        if (!authorizer.get(code, agent).read) {
+            throw new ForbiddenException();
+        }
+
+        return code;
+    }
+
+    @Override
     public void add(OAuth2AuthorizationCode code) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         OAuth2Client client = oAuth2Client(code.client);
 
-        if (!authorizer.get(client.id, token.agent()).write) {
+        if (!authorizer.get(client.id, agent).write) {
             throw new ForbiddenException();
         }
 
         dataProvider.add(code);
+        authorizer.grant(code, code.client, Permission.WRITE);
     }
 
     @Override
     public void remove(OAuth2AuthorizationCode code) {
-        // TODO: implement
+        if (agent == null) {
+            throw new ForbiddenException();
+        }
+
+        code = oAuth2AuthCode(code);
+
+        if (!authorizer.get(code, agent).write) {
+            throw new ForbiddenException();
+        }
+
+        dataProvider.remove(code);
+        authorizer.revoke(code);
     }
 
 }

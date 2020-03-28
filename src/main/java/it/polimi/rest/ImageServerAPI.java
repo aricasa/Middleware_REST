@@ -89,7 +89,8 @@ public class ImageServerAPI {
         Responder.Action<User> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
 
-            User user = new User(dataProvider.uniqueId(UserId::new), data.username, data.password);
+            UserId userId = dataProvider.uniqueId(Id::randomizer, UserId::new);
+            User user = new User(userId, data.username, data.password);
             dataProvider.add(user);
             credentialsManager.add(user.id, user.username, user.password);
 
@@ -299,8 +300,8 @@ public class ImageServerAPI {
             DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userByUsername(data.first);
 
-            OAuth2ClientId id = dataProvider.uniqueId(OAuth2ClientId::new);
-            OAuth2ClientSecret secret = dataProvider.uniqueId(OAuth2ClientSecret::new);
+            OAuth2ClientId id = dataProvider.uniqueId(Id::randomizer, OAuth2ClientId::new);
+            OAuth2ClientSecret secret = dataProvider.uniqueId(Id::randomizer, OAuth2ClientSecret::new);
 
             OAuth2Client oAuthClient = new OAuth2Client(user, id, secret, data.second.name, data.second.callback);
             dataProvider.add(oAuthClient);
@@ -360,7 +361,7 @@ public class ImageServerAPI {
             }
 
             DataProvider dataProvider = proxy.dataProvider(token);
-            OAuth2AuthorizationCode code = dataProvider.uniqueId(s -> new OAuth2AuthorizationCode(s, client.id, data.scopes));
+            OAuth2AuthorizationCode code = dataProvider.uniqueId(Id::randomizer, id -> new OAuth2AuthorizationCode(id, client.id, data.scopes));
             dataProvider.add(code);
             return new OAuth2AuthorizationCodeCreationMessage(code);
         };

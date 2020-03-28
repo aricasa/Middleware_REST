@@ -11,12 +11,12 @@ class SecureSessionManager implements SessionsManager {
 
     private final SessionsManager sessionsManager;
     private final Authorizer authorizer;
-    private final Token token;
+    private final Agent agent;
 
-    public SecureSessionManager(SessionsManager sessionsManager, Authorizer authorizer, Token token) {
+    public SecureSessionManager(SessionsManager sessionsManager, Authorizer authorizer, Agent agent) {
         this.sessionsManager = sessionsManager;
         this.authorizer = authorizer;
-        this.token = token;
+        this.agent = agent;
     }
 
     @Override
@@ -26,13 +26,13 @@ class SecureSessionManager implements SessionsManager {
 
     @Override
     public Token token(TokenId id) {
-        if (token == null || !token.isValid()) {
+        if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
         Token result = sessionsManager.token(id);
 
-        if (!authorizer.get(result, token.agent()).read) {
+        if (!authorizer.get(result, agent).read) {
             throw new ForbiddenException();
         }
 

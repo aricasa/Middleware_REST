@@ -4,11 +4,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.JsonAdapter;
-import it.polimi.rest.authorization.SecuredObject;
 
 import java.lang.reflect.Type;
 import java.util.Objects;
+
+import static java.util.UUID.randomUUID;
 
 public abstract class Id {
 
@@ -35,6 +35,17 @@ public abstract class Id {
     @Override
     public String toString() {
         return id;
+    }
+
+    /**
+     * Get a 16 chars random string.
+     *
+     * @return random string
+     */
+    public static String randomizer() {
+        return randomUUID().toString()
+                .replace("-", "")
+                .substring(0, 16);
     }
 
     public static class Adapter implements JsonSerializer<Id> {

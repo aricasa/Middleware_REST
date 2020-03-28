@@ -6,6 +6,7 @@ import it.polimi.rest.authorization.Token;
 import it.polimi.rest.models.TokenId;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 import static java.util.UUID.randomUUID;
 
@@ -15,11 +16,11 @@ public class VolatileSessionManager implements SessionsManager {
     private final Collection<TokenId> reserved = new HashSet<>();
 
     @Override
-    public synchronized TokenId getUniqueId() {
+    public synchronized TokenId getUniqueId(Supplier<String> randomizer) {
         TokenId id;
 
         do {
-            id = new TokenId(randomUUID().toString().split("-")[0]);
+            id = new TokenId(randomizer.get());
         } while (tokens.containsKey(id) || reserved.contains(id));
 
         // Reserve the ID

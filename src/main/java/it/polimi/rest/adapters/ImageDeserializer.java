@@ -27,7 +27,7 @@ public class ImageDeserializer implements Deserializer<Image> {
         String username = request.params(usernameParam);
         User user = dataProvider.userByUsername(username);
 
-        ImageId id = dataProvider.uniqueId(ImageId::new);
+        ImageId id = dataProvider.uniqueId(Id::randomizer, ImageId::new);
 
         try {
             Part titlePart = request.raw().getPart("title");

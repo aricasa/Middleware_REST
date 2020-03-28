@@ -11,6 +11,7 @@ import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.UUID.randomUUID;
@@ -19,17 +20,16 @@ public class VolatileDataProvider implements DataProvider {
 
     private final Collection<Id> ids = new HashSet<>();
     private final Collection<User> users = new HashSet<>();
-    private final Collection<BearerToken> tokens = new HashSet<>();
     private final Collection<Image> images = new HashSet<>();
     private final Collection<OAuth2Client> oAuth2Clients = new HashSet<>();
     private final Collection<OAuth2AuthorizationCode> oAuth2AuthCodes = new HashSet<>();
 
     @Override
-    public synchronized <T extends Id> T uniqueId(Function<String, T> supplier) {
+    public synchronized <T extends Id> T uniqueId(Supplier<String> randomizer, Function<String, T> supplier) {
         T id;
 
         do {
-            id = supplier.apply(randomUUID().toString().split("-")[0]);
+            id = supplier.apply(randomizer.get());
         } while (ids.contains(id));
 
         // Reserve the ID
@@ -187,6 +187,14 @@ public class VolatileDataProvider implements DataProvider {
 
         oAuth2Clients.removeIf(client -> client.id.equals(id));
         ids.remove(id);
+    }
+
+    @Override
+    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode id) {
+        return oAuth2AuthCodes.stream()
+                .filter(code -> code.equals(id))
+                .findFirst()
+                .orElseThrow(NotFoundException::new);
     }
 
     @Override

@@ -25,7 +25,8 @@ public class AuthorizationProxy {
     }
 
     public SessionsManager sessionsManager(Token token) {
-        return new SecureSessionManager(sessionsManager, authorizer, token);
+        Agent agent = token == null || !token.isValid() ? null : token.agent();
+        return new SecureSessionManager(sessionsManager, authorizer, agent);
     }
 
     public DataProvider dataProvider(TokenId tokenId) {
@@ -33,7 +34,8 @@ public class AuthorizationProxy {
     }
 
     public DataProvider dataProvider(Token token) {
-        return new SecureDataProvider(dataProvider, authorizer, token);
+        Agent agent = token == null || !token.isValid() ? null : token.agent();
+        return new SecureDataProvider(dataProvider, authorizer, agent);
     }
 
     private Token getToken(TokenId id) {

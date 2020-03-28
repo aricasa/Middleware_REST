@@ -3,6 +3,8 @@ package it.polimi.rest.sessions;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.models.TokenId;
 
+import java.util.function.Supplier;
+
 public interface SessionsManager {
 
     /**
@@ -10,7 +12,7 @@ public interface SessionsManager {
      *
      * @return ID
      */
-    TokenId getUniqueId();
+    TokenId getUniqueId(Supplier<String> randomizer);
 
     /**
      * Get a token by its ID.
