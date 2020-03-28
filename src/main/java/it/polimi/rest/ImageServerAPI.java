@@ -9,11 +9,11 @@ import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.messages.*;
 import it.polimi.rest.communication.messages.image.ImageMessage;
 import it.polimi.rest.communication.messages.oauth2.*;
+import it.polimi.rest.communication.messages.session.SessionMessage;
 import it.polimi.rest.communication.messages.user.UserMessage;
 import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.data.DataProvider;
-import it.polimi.rest.exceptions.BadRequestException;
-import it.polimi.rest.exceptions.UnauthorizedException;
+import it.polimi.rest.exceptions.*;
 import it.polimi.rest.models.*;
 import it.polimi.rest.models.oauth2.*;
 import it.polimi.rest.sessions.SessionsManager;
@@ -131,7 +131,7 @@ public class ImageServerAPI {
             sessionsManager.add(session);
 
             logger.d("User " + user + " logged in with session " + session);
-            return new LoginMessage(session);
+            return SessionMessage.creation(session);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -150,7 +150,7 @@ public class ImageServerAPI {
             sessionsManager.remove(t.id());
             logger.d("Session " + t + " terminated");
 
-            return new LogoutMessage();
+            return SessionMessage.deletion();
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -347,7 +347,45 @@ public class ImageServerAPI {
         Deserializer<OAuth2AuthorizationRequest> deserializer = new GsonDeserializer<>(OAuth2AuthorizationRequest.class);
 
         Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> {
-            OAuth2Client client = proxy.dataProvider(new Token() {
+            OAuth2Client client = getClient(data.client);
+
+            if (!client.callback.equals(data.callback)) {
+                throw new OAuth2Exception(false, OAuth2Exception.INVALID_REQUEST, "Invalid redirect URI", null);
+            }
+
+            DataProvider dataProvider = proxy.dataProvider(token);
+
+            OAuth2AuthorizationCode code = new OAuth2AuthorizationCode(
+                    dataProvider.uniqueId(Id::randomizer, OAuth2AuthorizationCode.Id::new),
+                    client.id, Scope.convert(data.scopes));
+
+            dataProvider.add(code);
+            return new OAuth2AuthorizationCodeCreationMessage(code);
+        };
+
+        // TODO: bearer authentication may cause unauthorized redirection to callback URL
+        return new Responder<>(bearerAuthentication, deserializer, action);
+    }
+
+    public Route oAuth2DenyPermissions() {
+        Deserializer<OAuth2AuthorizationRequest> deserializer = new GsonDeserializer<>(OAuth2AuthorizationRequest.class);
+
+        Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> {
+            OAuth2Client client = getClient(data.client);
+
+            if (!client.callback.equals(data.callback)) {
+                throw new OAuth2Exception(false, OAuth2Exception.INVALID_REQUEST, "Invalid redirect URI", null);
+            }
+
+            throw new OAuth2Exception(true, OAuth2Exception.ACCESS_DENIED, null, null);
+        };
+
+        return new Responder<>(bearerAuthentication, deserializer, action);
+    }
+
+    private OAuth2Client getClient(OAuth2Client.Id id) {
+        try {
+            return proxy.dataProvider(new Token() {
                 @Override
                 public TokenId id() {
                     return null;
@@ -355,36 +393,31 @@ public class ImageServerAPI {
 
                 @Override
                 public Agent agent() {
-                    return data.client;
+                    return id;
                 }
 
                 @Override
                 public boolean isValid() {
                     return true;
                 }
-            }).oAuth2Client(data.client);
+            }).oAuth2Client(id);
 
-            if (!client.callback.equals(data.callback)) {
-                throw new BadRequestException();
-            }
+        } catch (NotFoundException e) {
+            throw new OAuth2Exception(false, OAuth2Exception.INVALID_REQUEST, "Client not found", null);
 
-            DataProvider dataProvider = proxy.dataProvider(token);
+        } catch (RestException e) {
+            throw new OAuth2Exception(false, OAuth2Exception.INVALID_REQUEST, e.getMessage(), null);
 
-            OAuth2AuthorizationCode code = new OAuth2AuthorizationCode(
-                    dataProvider.uniqueId(Id::randomizer, OAuth2AuthorizationCode.Id::new),
-                    client.id, data.scopes);
-
-            dataProvider.add(code);
-            return new OAuth2AuthorizationCodeCreationMessage(code);
-        };
-
-        return new Responder<>(bearerAuthentication, deserializer, action);
+        } catch (Exception e) {
+            throw new OAuth2Exception(false, OAuth2Exception.SERVER_ERROR, e.getMessage(), null);
+        }
     }
 
     public Route oAuth2Token() {
         Deserializer<String> deserializer = new Deserializer<String>() {
             @Override
             public String parse(Request request) {
+                String body = request.body();
                 return null;
             }
         };

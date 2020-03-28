@@ -2,7 +2,7 @@ package it.polimi.rest.exceptions;
 
 import it.polimi.rest.communication.HttpStatus;
 
-public final class UnsupportedMediaTypeException extends RestException {
+public class UnsupportedMediaTypeException extends RestException {
 
     private static final long serialVersionUID = 2973920502884725563L;
 

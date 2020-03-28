@@ -1,15 +1,16 @@
-package it.polimi.rest.communication.messages;
+package it.polimi.rest.communication.messages.session;
 
 import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.models.BearerToken;
 
 import java.util.Optional;
 
-public class LoginMessage implements Message {
+class Creation implements Message {
 
     private final BearerToken token;
 
-    public LoginMessage(BearerToken token) {
+    public Creation(BearerToken token) {
         this.token = token;
     }
 

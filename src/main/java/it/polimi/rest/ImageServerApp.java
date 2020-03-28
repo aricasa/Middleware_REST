@@ -2,6 +2,7 @@ package it.polimi.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.exceptions.RestException;
 import it.polimi.rest.adapters.JsonTransformer;
 import spark.ResponseTransformer;
@@ -30,13 +31,20 @@ public class ImageServerApp {
 
             String body = gson.toJson(exception);
 
-            if (!body.isEmpty() && !body.equals("{}")) {
+            if (body.isEmpty() || body.equals("{}")) {
+                response.body("");
+            } else {
                 response.type("application/json");
                 response.body(body);
             }
         });
 
-        exception(Exception.class, (exception, request, response) -> exception.printStackTrace());
+        exception(Exception.class, (exception, request, response) -> {
+            exception.printStackTrace();
+
+            response.status(HttpStatus.INTERNAL_SERVER_ERROR);
+            response.body("");
+        });
 
         get("/", imageServerAPI.root(), jsonTransformer);
 
@@ -76,7 +84,8 @@ public class ImageServerApp {
 
         path("/oauth2", () -> {
             get("/authorize", "application/x-www-form-urlencoded", imageServerAPI.oAuth2Authorize());
-            post("/authorize", imageServerAPI.oAuth2GrantPermissions(), jsonTransformer);
+            post("/grant", imageServerAPI.oAuth2GrantPermissions(), jsonTransformer);
+            post("/deny", imageServerAPI.oAuth2DenyPermissions(), jsonTransformer);
             post("/token", imageServerAPI.oAuth2Token(), jsonTransformer);
         });
     }

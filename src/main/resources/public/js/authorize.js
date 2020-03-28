@@ -86,7 +86,7 @@ function login() {
     });
 }
 
-function grant() {
+function sendAuthorization(action) {
     let clientId = $("#clientId").val();
     let callback = $("#callback").val();
     let scope = $("#scope").val();
@@ -94,7 +94,7 @@ function grant() {
 
     $.ajax({
         type: "POST",
-        url: "/oauth2/authorize",
+        url: "/oauth2/" + action,
         dataType: "json",
         beforeSend: function (xhr) {
             xhr.setRequestHeader("Authorization", "Bearer " + token.id);
@@ -107,11 +107,38 @@ function grant() {
             state: state
         }),
         success: function(response) {
-            window.location.replace(callback + "?code=" + response.code + "&state=" + state);
+            let url = callback + "?code" + response.code;
+
+            if (state && state.trim().length !== 0)
+                url += "&state=" + state;
+
+            window.location.replace(url);
+        },
+        error: function(jqXHR) {
+            let status = jqXHR.status;
+            let response = JSON.parse(jqXHR.responseText);
+
+            if (!response.redirect)
+                return;
+
+            let url = callback;
+
+            if (status === 400) {
+                url += "?error=" + response.error;
+            } else {
+                url += "?error=server_error";
+            }
+
+            if (response.error_description && !response.error_description.trim().length !== 0)
+                url += "&error_description=" + JSON.stringify(response.error_description.trim());
+
+            if (response.error_uri && !response.error_uri.trim().length !== 0)
+                url += "&error_uri=" + response.error_uri;
+
+            if (state && state.trim().length !== 0)
+                url += "&state=" + state;
+
+            window.location.replace(url);
         }
     });
-}
-
-function deny() {
-
 }

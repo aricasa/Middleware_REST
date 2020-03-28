@@ -2,7 +2,7 @@ package it.polimi.rest.exceptions;
 
 import it.polimi.rest.communication.HttpStatus;
 
-public final class NotFoundException extends RestException {
+public class NotFoundException extends RestException {
 
     private static final long serialVersionUID = 6309092990469034744L;
 

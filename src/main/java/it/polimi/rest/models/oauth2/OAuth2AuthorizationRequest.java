@@ -30,13 +30,13 @@ public class OAuth2AuthorizationRequest {
     @Expose
     @SerializedName("scope")
     @JsonAdapter(ScopesAdapter.class)
-    public final Collection<Scope> scopes;
+    public final Collection<String> scopes;
 
     @Expose
     @SerializedName("state")
     public final String state;
 
-    public OAuth2AuthorizationRequest(String responseType, OAuth2Client.Id client, String callback, Collection<Scope> scopes, String state) {
+    public OAuth2AuthorizationRequest(String responseType, OAuth2Client.Id client, String callback, Collection<String> scopes, String state) {
         this.responseType = responseType;
         this.client = client;
         this.callback = callback;
@@ -53,12 +53,12 @@ public class OAuth2AuthorizationRequest {
 
     }
 
-    static class ScopesAdapter implements JsonDeserializer<Collection<Scope>> {
+    static class ScopesAdapter implements JsonDeserializer<Collection<String>> {
 
         @Override
-        public Collection<Scope> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        public Collection<String> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             String[] scopes = json.getAsString().split(" ");
-            return Stream.of(scopes).map(Scope::new).collect(Collectors.toList());
+            return Stream.of(scopes).collect(Collectors.toList());
         }
 
     }

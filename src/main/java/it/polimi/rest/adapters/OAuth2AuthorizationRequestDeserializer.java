@@ -3,7 +3,6 @@ package it.polimi.rest.adapters;
 import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationRequest;
 import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.models.oauth2.Scope;
 import spark.Request;
 
 import java.util.Collection;
@@ -19,7 +18,7 @@ public class OAuth2AuthorizationRequestDeserializer implements Deserializer<OAut
         String responseType = getResponseType(request);
         OAuth2Client.Id client = getClientId(request);
         String callback = getRedirectUri(request);
-        Collection<Scope> scope = getScope(request);
+        Collection<String> scope = getScope(request);
         String state = getState(request);
 
         return new OAuth2AuthorizationRequest(responseType, client, callback, scope, state);
@@ -41,11 +40,11 @@ public class OAuth2AuthorizationRequestDeserializer implements Deserializer<OAut
                 .orElseThrow(() -> new BadRequestException("Redirect URI not specified"));
     }
 
-    private Collection<Scope> getScope(Request request) {
+    private Collection<String> getScope(Request request) {
         return Optional.ofNullable(request.queryParams("scope"))
                 .map(scope -> scope.split(" "))
                 .map(Stream::of)
-                .map(stream -> stream.map(Scope::new).collect(Collectors.toList()))
+                .map(stream -> stream.collect(Collectors.toList()))
                 .orElse(Collections.emptyList());
     }
 
