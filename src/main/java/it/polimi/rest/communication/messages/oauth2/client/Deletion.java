@@ -1,11 +1,11 @@
-package it.polimi.rest.communication.messages.oauth2;
+package it.polimi.rest.communication.messages.oauth2.client;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.communication.messages.Message;
 
 import java.util.Optional;
 
-public class OAuth2ClientDeletionMessage implements Message {
+class Deletion implements Message {
 
     @Override
     public int code() {

@@ -1,4 +1,4 @@
-package it.polimi.rest.communication.messages.oauth2;
+package it.polimi.rest.communication.messages.oauth2.client;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.communication.messages.Message;
@@ -6,11 +6,11 @@ import it.polimi.rest.models.oauth2.OAuth2Client;
 
 import java.util.Optional;
 
-public class OAuth2ClientDetailsMessage implements Message {
+class Details implements Message {
 
     private final OAuth2Client client;
 
-    public OAuth2ClientDetailsMessage(OAuth2Client client) {
+    public Details(OAuth2Client client) {
         this.client = client;
     }
 

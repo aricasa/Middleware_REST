@@ -10,6 +10,7 @@ import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.messages.*;
 import it.polimi.rest.communication.messages.image.ImageMessage;
 import it.polimi.rest.communication.messages.oauth2.*;
+import it.polimi.rest.communication.messages.oauth2.client.OAuth2ClientMessage;
 import it.polimi.rest.communication.messages.session.SessionMessage;
 import it.polimi.rest.communication.messages.user.UserMessage;
 import it.polimi.rest.credentials.CredentialsManager;
@@ -293,7 +294,7 @@ public class ImageServerAPI {
             DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userByUsername(data);
             OAuth2ClientsList clients = dataProvider.oAuth2Clients(user.id);
-            return new OAuth2ClientsListMessage(clients);
+            return OAuth2ClientMessage.list(clients);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -317,7 +318,7 @@ public class ImageServerAPI {
             dataProvider.add(oAuthClient);
 
             logger.d("OAuth2 client " + oAuthClient + " added");
-            return new OAuth2ClientCreationMessage(oAuthClient);
+            return OAuth2ClientMessage.creation(oAuthClient);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -332,7 +333,7 @@ public class ImageServerAPI {
         Responder.Action<OAuth2Client.Id> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             dataProvider.remove(data);
-            return new OAuth2ClientDeletionMessage();
+            return OAuth2ClientMessage.deletion();
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);

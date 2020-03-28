@@ -1,11 +1,11 @@
-package it.polimi.rest.communication.messages.oauth2;
+package it.polimi.rest.communication.messages.oauth2.client;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 
-public class OAuth2ClientCreationMessage extends OAuth2ClientDetailsMessage {
+class Creation extends Details {
 
-    public OAuth2ClientCreationMessage(OAuth2Client client) {
+    public Creation(OAuth2Client client) {
         super(client);
     }
 
