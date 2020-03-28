@@ -1,11 +1,11 @@
-package it.polimi.rest.communication.messages;
+package it.polimi.rest.communication.messages.user;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.models.User;
 
-public class UserCreationMessage extends UserDetailsMessage {
+class Creation extends Details {
 
-    public UserCreationMessage(User user) {
+    public Creation(User user) {
         super(user);
     }
 

@@ -1,11 +1,11 @@
-package it.polimi.rest.communication.messages;
+package it.polimi.rest.communication.messages.image;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.models.ImageMetadata;
 
-public class ImageCreationMessage extends ImageDetailsMessage {
+class Creation extends Details {
 
-    public ImageCreationMessage(ImageMetadata metadata) {
+    public Creation(ImageMetadata metadata) {
         super(metadata);
     }
 

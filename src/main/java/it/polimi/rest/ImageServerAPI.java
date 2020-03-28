@@ -7,7 +7,9 @@ import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.messages.*;
+import it.polimi.rest.communication.messages.image.ImageMessage;
 import it.polimi.rest.communication.messages.oauth2.*;
+import it.polimi.rest.communication.messages.user.UserMessage;
 import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.exceptions.BadRequestException;
@@ -77,7 +79,7 @@ public class ImageServerAPI {
         Responder.Action<Void> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             UsersList users = dataProvider.users();
-            return new UsersListMessage(users);
+            return UserMessage.list(users);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -95,7 +97,7 @@ public class ImageServerAPI {
             credentialsManager.add(user.id, user.username, user.password);
 
             logger.d("User " + user + " signed up");
-            return new UserCreationMessage(user);
+            return UserMessage.creation(user);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -160,7 +162,7 @@ public class ImageServerAPI {
         Responder.Action<String> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userByUsername(data);
-            return new UserDetailsMessage(user);
+            return UserMessage.details(user);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -175,7 +177,7 @@ public class ImageServerAPI {
         Responder.Action<User.Id> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userById(data);
-            return new UserDetailsMessage(user);
+            return UserMessage.details(user);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -192,7 +194,7 @@ public class ImageServerAPI {
             credentialsManager.remove(user.id);
 
             logger.d("User " + user + " removed");
-            return new UserDeletionMessage();
+            return UserMessage.deletion();
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -205,7 +207,7 @@ public class ImageServerAPI {
             DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userByUsername(data);
             ImagesList images = dataProvider.images(user.id);
-            return new ImagesListMessage(images);
+            return ImageMessage.list(images);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -220,7 +222,7 @@ public class ImageServerAPI {
         Responder.Action<Image.Id> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             Image image = dataProvider.image(data);
-            return new ImageDetailsMessage(image.info);
+            return ImageMessage.details(image.info);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -235,7 +237,7 @@ public class ImageServerAPI {
         Responder.Action<Image.Id> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             Image image = dataProvider.image(data);
-            return new ImageMessage(image);
+            return ImageMessage.raw(image);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -259,7 +261,7 @@ public class ImageServerAPI {
             dataProvider.add(image);
 
             logger.d("Image " + data.info.id + " added");
-            return new ImageCreationMessage(data.info);
+            return ImageMessage.creation(data.info);
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);
@@ -276,7 +278,7 @@ public class ImageServerAPI {
             dataProvider.remove(data);
 
             logger.d("Image " + data + " removed");
-            return new ImageDeletionMessage();
+            return ImageMessage.deletion();
         };
 
         return new Responder<>(bearerAuthentication, deserializer, action);

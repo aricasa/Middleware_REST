@@ -1,10 +1,11 @@
-package it.polimi.rest.communication.messages;
+package it.polimi.rest.communication.messages.user;
 
 import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.communication.messages.Message;
 
 import java.util.Optional;
 
-public class UserDeletionMessage implements Message {
+class Deletion implements Message {
 
     @Override
     public int code() {

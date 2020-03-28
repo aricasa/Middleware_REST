@@ -1,15 +1,16 @@
-package it.polimi.rest.communication.messages;
+package it.polimi.rest.communication.messages.image;
 
 import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.models.ImagesList;
 
 import java.util.Optional;
 
-public class ImagesListMessage implements Message {
+class List implements Message {
 
     private final ImagesList images;
 
-    public ImagesListMessage(ImagesList images) {
+    public List(ImagesList images) {
         this.images = images;
     }
 

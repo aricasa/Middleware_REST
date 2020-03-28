@@ -1,15 +1,16 @@
-package it.polimi.rest.communication.messages;
+package it.polimi.rest.communication.messages.image;
 
 import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.models.ImageMetadata;
 
 import java.util.Optional;
 
-public class ImageDetailsMessage implements Message {
+class Details implements Message {
 
     private final ImageMetadata metadata;
 
-    public ImageDetailsMessage(ImageMetadata metadata) {
+    public Details(ImageMetadata metadata) {
         this.metadata = metadata;
     }
 

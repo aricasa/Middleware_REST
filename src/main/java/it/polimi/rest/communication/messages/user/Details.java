@@ -1,15 +1,16 @@
-package it.polimi.rest.communication.messages;
+package it.polimi.rest.communication.messages.user;
 
 import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.models.User;
 
 import java.util.Optional;
 
-public class UserDetailsMessage implements Message {
+class Details implements Message {
 
     private final User user;
 
-    public UserDetailsMessage(User user) {
+    public Details(User user) {
         this.user = user;
     }
 

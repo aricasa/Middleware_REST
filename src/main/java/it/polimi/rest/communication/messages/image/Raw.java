@@ -1,15 +1,16 @@
-package it.polimi.rest.communication.messages;
+package it.polimi.rest.communication.messages.image;
 
 import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.models.Image;
 
 import java.util.Optional;
 
-public class ImageMessage implements Message {
+class Raw implements Message {
 
     private final Image image;
 
-    public ImageMessage(Image image) {
+    public Raw(Image image) {
         this.image = image;
     }
 
