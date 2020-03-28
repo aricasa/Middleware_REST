@@ -67,13 +67,13 @@ public class ImageServerAPI {
     };
 
     public Route root() {
-        Deserializer<Void> deserializer = (request, token) -> null;
+        Deserializer<Void> deserializer = request -> null;
         Responder.Action<Void> action = (data, token) -> new RootMessage(new Root());
         return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route users() {
-        Deserializer<Void> deserializer = (request, token) -> null;
+        Deserializer<Void> deserializer = request -> null;
 
         Responder.Action<Void> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
@@ -103,7 +103,7 @@ public class ImageServerAPI {
     }
 
     public Route login() {
-        Deserializer<Pair<String, String>> deserializer = (request, token) -> {
+        Deserializer<Pair<String, String>> deserializer = request -> {
             Optional<String> authenticationHeader = Optional.ofNullable(request.headers("Authorization"));
 
             if (!authenticationHeader.isPresent()) {
@@ -137,7 +137,7 @@ public class ImageServerAPI {
     }
 
     public Route logout(String tokenIdParam) {
-        Deserializer<TokenId> deserializer = (request, token) -> {
+        Deserializer<TokenId> deserializer = request -> {
             String id = request.params(tokenIdParam);
             return new TokenId(id);
         };
@@ -156,7 +156,7 @@ public class ImageServerAPI {
     }
 
     public Route userByUsername(String usernameParam) {
-        Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
+        Deserializer<String> deserializer = request -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
@@ -168,7 +168,7 @@ public class ImageServerAPI {
     }
 
     public Route userById(String idParam) {
-        Deserializer<UserId> deserializer = (request, token) -> {
+        Deserializer<UserId> deserializer = request -> {
             String id = request.params(idParam);
             return new UserId(id);
         };
@@ -183,7 +183,7 @@ public class ImageServerAPI {
     }
 
     public Route removeUser(String usernameParam) {
-        Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
+        Deserializer<String> deserializer = request -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
@@ -200,7 +200,7 @@ public class ImageServerAPI {
     }
 
     public Route images(String usernameParam) {
-        Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
+        Deserializer<String> deserializer = request -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
@@ -213,7 +213,7 @@ public class ImageServerAPI {
     }
 
     public Route imageDetails(String imageIdParam) {
-        Deserializer<ImageId> deserializer = (request, token) -> {
+        Deserializer<ImageId> deserializer = request -> {
             String id = request.params(imageIdParam);
             return new ImageId(id);
         };
@@ -228,7 +228,7 @@ public class ImageServerAPI {
     }
 
     public Route imageRaw(String imageIdParam) {
-        Deserializer<ImageId> deserializer = (request, token) -> {
+        Deserializer<ImageId> deserializer = request -> {
             String id = request.params(imageIdParam);
             return new ImageId(id);
         };
@@ -249,7 +249,7 @@ public class ImageServerAPI {
             DataProvider dataProvider = proxy.dataProvider(token);
 
             User user = dataProvider.userByUsername(data.info.owner.username);
-            
+
             ImageMetadata metadata = new ImageMetadata(
                     dataProvider.uniqueId(Id::randomizer, ImageId::new),
                     data.info.title,
@@ -267,7 +267,7 @@ public class ImageServerAPI {
     }
 
     public Route removeImage(String imageIdParam) {
-        Deserializer<ImageId> deserializer = (request, token) -> {
+        Deserializer<ImageId> deserializer = request -> {
             String id = request.params(imageIdParam);
             return new ImageId(id);
         };
@@ -284,7 +284,7 @@ public class ImageServerAPI {
     }
 
     public Route oAuth2Clients(String usernameParam) {
-        Deserializer<String> deserializer = (request, token) -> request.params(usernameParam);
+        Deserializer<String> deserializer = request -> request.params(usernameParam);
 
         Responder.Action<String> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
@@ -297,8 +297,8 @@ public class ImageServerAPI {
     }
 
     public Route addOAuth2Client(String usernameParam) {
-        Deserializer<Pair<String, OAuth2Client>> deserializer = (request, token) -> {
-            OAuth2Client client = new GsonDeserializer<>(OAuth2Client.class).parse(request, token);
+        Deserializer<Pair<String, OAuth2Client>> deserializer = request -> {
+            OAuth2Client client = new GsonDeserializer<>(OAuth2Client.class).parse(request);
             String username = request.params(usernameParam);
             return new Pair<>(username, client);
         };
@@ -321,7 +321,7 @@ public class ImageServerAPI {
     }
 
     public Route removeOAuth2Client(String clientIdParam) {
-        Deserializer<OAuth2ClientId> deserializer = (request, token) -> {
+        Deserializer<OAuth2ClientId> deserializer = request -> {
             String id = request.params(clientIdParam);
             return new OAuth2ClientId(id);
         };
@@ -383,7 +383,7 @@ public class ImageServerAPI {
     public Route oAuth2Token() {
         Deserializer<String> deserializer = new Deserializer<String>() {
             @Override
-            public String parse(Request request, TokenId token) {
+            public String parse(Request request) {
                 return null;
             }
         };

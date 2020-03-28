@@ -36,7 +36,7 @@ public class Responder<T> implements Route {
 
         try {
             TokenId token = tokenExtractor == null ? null : tokenExtractor.extract(request);
-            T data = deserializer.parse(request, token);
+            T data = deserializer.parse(request);
             Message message = action.run(data, token);
 
             response.status(message.code());
