@@ -1,7 +1,6 @@
 package it.polimi.rest.communication;
 
 import it.polimi.rest.adapters.Deserializer;
-import it.polimi.rest.adapters.TokenExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.exceptions.RedirectionException;
 import it.polimi.rest.exceptions.UnauthorizedException;
@@ -18,10 +17,6 @@ public class Responder<T> implements Route {
     private final TokenExtractor tokenExtractor;
     private final Deserializer<T> deserializer;
     private final Action<T> action;
-
-    private Responder(Deserializer<T> deserializer, Action<T> action) {
-        this(null, deserializer, action);
-    }
 
     public Responder(TokenExtractor tokenExtractor, Deserializer<T> deserializer, Action<T> action) {
         this.tokenExtractor = tokenExtractor;

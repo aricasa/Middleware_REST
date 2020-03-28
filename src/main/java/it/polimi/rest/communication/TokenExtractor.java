@@ -1,6 +1,5 @@
-package it.polimi.rest.adapters;
+package it.polimi.rest.communication;
 
-import it.polimi.rest.authorization.Token;
 import it.polimi.rest.models.TokenId;
 import spark.Request;
 

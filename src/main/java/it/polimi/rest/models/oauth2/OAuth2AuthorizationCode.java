@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.SecuredObject;
 import it.polimi.rest.authorization.Token;
+import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
 
 import java.util.ArrayList;

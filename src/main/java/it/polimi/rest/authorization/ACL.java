@@ -18,18 +18,22 @@ public class ACL implements Authorizer {
 
     @Override
     public void revoke(SecuredObject obj, Agent agent) {
-        authorizations.removeIf(auth -> auth.obj.equals(obj) && auth.user.equals(agent));
+        authorizations.removeIf(auth ->
+                auth.obj.equals(obj) &&
+                auth.agent.equals(agent));
     }
 
     @Override
     public void revoke(SecuredObject obj) {
-        authorizations.removeIf(auth -> auth.obj.equals(obj));
+        authorizations.removeIf(auth ->
+                auth.obj.equals(obj));
     }
 
     @Override
     public Permission get(SecuredObject obj, Agent agent) {
         return authorizations.stream()
-                .filter(auth -> auth.obj.equals(obj) && auth.user.equals(agent))
+                .filter(auth -> auth.obj.equals(obj) &&
+                                auth.agent.equals(agent))
                 .findFirst()
                 .orElse(new Authorization(obj, agent, Permission.NONE))
                 .permission;

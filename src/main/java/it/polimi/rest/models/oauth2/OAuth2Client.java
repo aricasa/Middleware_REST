@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
 import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.SecuredObject;
+import it.polimi.rest.models.Id;
 import it.polimi.rest.models.Link;
 import it.polimi.rest.models.Model;
 import it.polimi.rest.models.User;

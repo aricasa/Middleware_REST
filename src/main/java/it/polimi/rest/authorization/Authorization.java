@@ -1,16 +1,14 @@
 package it.polimi.rest.authorization;
 
-import it.polimi.rest.models.Id;
-
 public class Authorization {
 
     public final SecuredObject obj;
-    public final Agent user;
+    public final Agent agent;
     public final Permission permission;
 
-    public Authorization(SecuredObject obj, Agent user, Permission permission) {
+    public Authorization(SecuredObject obj, Agent agent, Permission permission) {
         this.obj = obj;
-        this.user = user;
+        this.agent = agent;
         this.permission = permission;
     }
 

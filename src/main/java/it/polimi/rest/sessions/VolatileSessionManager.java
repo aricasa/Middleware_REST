@@ -8,8 +8,6 @@ import it.polimi.rest.models.TokenId;
 import java.util.*;
 import java.util.function.Supplier;
 
-import static java.util.UUID.randomUUID;
-
 public class VolatileSessionManager implements SessionsManager {
 
     private final HashMap<TokenId, Token> tokens = new HashMap<>();
@@ -56,8 +54,10 @@ public class VolatileSessionManager implements SessionsManager {
 
     @Override
     public synchronized void remove(TokenId id) {
-        tokens.remove(id);
-        reserved.remove(id);
+        Token token = token(id);
+
+        tokens.remove(token.id());
+        reserved.remove(token.id());
     }
 
 }

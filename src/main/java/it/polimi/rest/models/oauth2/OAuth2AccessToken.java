@@ -2,6 +2,7 @@ package it.polimi.rest.models.oauth2;
 
 import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.Token;
+import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
 
 import java.util.Objects;

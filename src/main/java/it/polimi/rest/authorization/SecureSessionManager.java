@@ -34,7 +34,7 @@ class SecureSessionManager implements SessionsManager {
 
         Token result = sessionsManager.token(id);
 
-        if (!authorizer.get(result, agent).read) {
+        if (!authorizer.get(result.id(), agent).read) {
             throw new ForbiddenException();
         }
 
@@ -44,13 +44,14 @@ class SecureSessionManager implements SessionsManager {
     @Override
     public void add(Token token) {
         sessionsManager.add(token);
+        authorizer.grant(token.id(), token.agent(), Permission.WRITE);
     }
 
     @Override
     public void remove(TokenId id) {
         Token token = token(id);
 
-        if (!authorizer.get(id, token.agent()).write) {
+        if (!authorizer.get(token.id(), agent).write) {
             throw new ForbiddenException();
         }
 
