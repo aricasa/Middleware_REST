@@ -4,7 +4,7 @@ import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.exceptions.UnauthorizedException;
-import it.polimi.rest.models.UserId;
+import it.polimi.rest.models.User;
 import it.polimi.rest.utils.Pair;
 
 import java.util.*;
@@ -13,10 +13,10 @@ import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 
 public class VolatileCredentialsManager implements CredentialsManager {
 
-    private final Map<UserId, Pair<String, String>> credentials = new HashMap<>();
+    private final Map<User.Id, Pair<String, String>> credentials = new HashMap<>();
 
     @Override
-    public UserId authenticate(String username, String password) {
+    public User.Id authenticate(String username, String password) {
         if (username == null) {
             throw new BadRequestException("Username not specified");
         } else if (password == null) {
@@ -31,7 +31,7 @@ public class VolatileCredentialsManager implements CredentialsManager {
     }
 
     @Override
-    public void add(UserId id, String username, String password) {
+    public void add(User.Id id, String username, String password) {
         if (username == null) {
             throw new BadRequestException("Username not specified");
         } else if (password == null) {
@@ -46,7 +46,7 @@ public class VolatileCredentialsManager implements CredentialsManager {
     }
 
     @Override
-    public void update(UserId id, String username, String password) {
+    public void update(User.Id id, String username, String password) {
         if (!credentials.containsKey(id)) {
             throw new NotFoundException();
         }
@@ -55,7 +55,7 @@ public class VolatileCredentialsManager implements CredentialsManager {
     }
 
     @Override
-    public void remove(UserId user) {
+    public void remove(User.Id user) {
         if (!credentials.containsKey(user)) {
             throw new NotFoundException();
         }

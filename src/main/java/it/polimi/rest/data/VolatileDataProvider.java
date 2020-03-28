@@ -6,7 +6,6 @@ import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.models.oauth2.OAuth2ClientId;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
 import java.util.*;
@@ -37,7 +36,7 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public User userById(UserId id) {
+    public User userById(User.Id id) {
         return users.stream()
                 .filter(user -> user.id.equals(id))
                 .findFirst()
@@ -87,7 +86,7 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(UserId id) {
+    public void remove(User.Id id) {
         if (users.stream().noneMatch(u -> u.id.equals(id))) {
             throw new NotFoundException();
         }
@@ -95,12 +94,12 @@ public class VolatileDataProvider implements DataProvider {
         users.removeIf(user -> user.id.equals(id));
         ids.remove(id);
 
-        // Remove the images of the user
         images.removeIf(image -> image.info.owner.id.equals(id));
+        oAuth2Clients.removeIf(client -> client.owner.id.equals(id));
     }
 
     @Override
-    public Image image(ImageId id) {
+    public Image image(Image.Id id) {
         return images.stream()
                 .filter(image -> image.info.id.equals(id))
                 .findFirst()
@@ -108,7 +107,7 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public ImagesList images(UserId userId) {
+    public ImagesList images(User.Id userId) {
         User owner = userById(userId);
 
         return new ImagesList(owner, images.stream()
@@ -134,7 +133,7 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(ImageId id) {
+    public void remove(Image.Id id) {
         if (images.stream().noneMatch(i -> i.info.id.equals(id))) {
             throw new NotFoundException();
         }
@@ -144,7 +143,7 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public OAuth2Client oAuth2Client(OAuth2ClientId id) {
+    public OAuth2Client oAuth2Client(OAuth2Client.Id id) {
         return oAuth2Clients.stream()
                 .filter(client -> client.id.equals(id))
                 .findFirst()
@@ -152,7 +151,7 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public OAuth2ClientsList oAuth2Clients(UserId user) {
+    public OAuth2ClientsList oAuth2Clients(User.Id user) {
         User owner = userById(user);
 
         return new OAuth2ClientsList(owner, oAuth2Clients.stream()
@@ -178,7 +177,7 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(OAuth2ClientId id) {
+    public void remove(OAuth2Client.Id id) {
         if (oAuth2Clients.stream().noneMatch(client -> client.id.equals(id))) {
             throw new NotFoundException();
         }
@@ -188,7 +187,7 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id) {
+    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.Id id) {
         return oAuth2AuthCodes.stream()
                 .filter(code -> code.id.equals(id))
                 .findFirst()
@@ -201,7 +200,7 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id) {
+    public void remove(OAuth2AuthorizationCode.Id id) {
         if (oAuth2AuthCodes.stream().noneMatch(code -> code.id.equals(id))) {
             throw new NotFoundException();
         }

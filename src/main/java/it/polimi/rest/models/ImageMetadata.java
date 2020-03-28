@@ -7,14 +7,14 @@ import java.util.*;
 public class ImageMetadata implements Model {
 
     @Expose
-    public final ImageId id;
+    public final Image.Id id;
 
     @Expose
     public final String title;
 
     public final User owner;
 
-    public ImageMetadata(ImageId id, String title, User owner) {
+    public ImageMetadata(Image.Id id, String title, User owner) {
         this.id = id;
         this.title = title;
         this.owner = owner;

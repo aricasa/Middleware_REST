@@ -3,7 +3,6 @@ package it.polimi.rest.data;
 import it.polimi.rest.models.*;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.models.oauth2.OAuth2ClientId;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
 import java.util.function.Function;
@@ -19,25 +18,25 @@ public interface DataProvider {
      */
     <T extends Id> T uniqueId(Supplier<String> randomizer, Function<String, T> supplier);
 
-    User userById(UserId id);
+    User userById(User.Id id);
     User userByUsername(String username);
     UsersList users();
     void add(User user);
     void update(User user);
-    void remove(UserId id);
+    void remove(User.Id id);
 
-    Image image(ImageId id);
-    ImagesList images(UserId user);
+    Image image(Image.Id id);
+    ImagesList images(User.Id user);
     void add(Image image);
-    void remove(ImageId id);
+    void remove(Image.Id id);
 
-    OAuth2Client oAuth2Client(OAuth2ClientId id);
-    OAuth2ClientsList oAuth2Clients(UserId user);
+    OAuth2Client oAuth2Client(OAuth2Client.Id id);
+    OAuth2ClientsList oAuth2Clients(User.Id user);
     void add(OAuth2Client client);
-    void remove(OAuth2ClientId id);
+    void remove(OAuth2Client.Id id);
 
-    OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id);
+    OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.Id id);
     void add(OAuth2AuthorizationCode code);
-    void remove(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id);
+    void remove(OAuth2AuthorizationCode.Id id);
 
 }

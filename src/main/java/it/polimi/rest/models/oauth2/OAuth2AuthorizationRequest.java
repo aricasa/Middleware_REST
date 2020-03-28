@@ -21,7 +21,7 @@ public class OAuth2AuthorizationRequest {
     @Expose
     @SerializedName("client_id")
     @JsonAdapter(ClientIdAdapter.class)
-    public final OAuth2ClientId client;
+    public final OAuth2Client.Id client;
 
     @Expose
     @SerializedName("redirect_uri")
@@ -36,7 +36,7 @@ public class OAuth2AuthorizationRequest {
     @SerializedName("state")
     public final String state;
 
-    public OAuth2AuthorizationRequest(String responseType, OAuth2ClientId client, String callback, Collection<Scope> scopes, String state) {
+    public OAuth2AuthorizationRequest(String responseType, OAuth2Client.Id client, String callback, Collection<Scope> scopes, String state) {
         this.responseType = responseType;
         this.client = client;
         this.callback = callback;
@@ -44,11 +44,11 @@ public class OAuth2AuthorizationRequest {
         this.state = state;
     }
 
-    static class ClientIdAdapter implements JsonDeserializer<OAuth2ClientId> {
+    static class ClientIdAdapter implements JsonDeserializer<OAuth2Client.Id> {
 
         @Override
-        public OAuth2ClientId deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return new OAuth2ClientId(json.getAsString());
+        public OAuth2Client.Id deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return new OAuth2Client.Id(json.getAsString());
         }
 
     }

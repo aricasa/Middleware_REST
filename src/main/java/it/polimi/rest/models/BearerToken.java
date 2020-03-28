@@ -16,11 +16,9 @@ public class BearerToken implements Token, Model {
     @Expose(deserialize = false)
     private final Calendar expiration;
 
-    public final UserId user;
+    public final User.Id user;
 
-    public BearerToken(TokenId id, int lifeTime,
-                       UserId user) {
-
+    public BearerToken(TokenId id, int lifeTime, User.Id user) {
         this.id = id;
 
         this.expiration = Calendar.getInstance();

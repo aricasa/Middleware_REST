@@ -22,7 +22,6 @@ import spark.Route;
 
 import java.util.Base64;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 
@@ -90,7 +89,7 @@ public class ImageServerAPI {
         Responder.Action<User> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
 
-            UserId userId = dataProvider.uniqueId(Id::randomizer, UserId::new);
+            User.Id userId = dataProvider.uniqueId(Id::randomizer, User.Id::new);
             User user = new User(userId, data.username, data.password);
             dataProvider.add(user);
             credentialsManager.add(user.id, user.username, user.password);
@@ -123,7 +122,7 @@ public class ImageServerAPI {
         };
 
         Responder.Action<Pair<String, String>> action = (data, token) -> {
-            UserId user = credentialsManager.authenticate(data.first, data.second);
+            User.Id user = credentialsManager.authenticate(data.first, data.second);
 
             SessionsManager sessionsManager = proxy.sessionsManager(token);
             BearerToken session = new BearerToken(sessionsManager.getUniqueId(Id::randomizer), SESSION_LIFETIME, user);
@@ -168,12 +167,12 @@ public class ImageServerAPI {
     }
 
     public Route userById(String idParam) {
-        Deserializer<UserId> deserializer = request -> {
+        Deserializer<User.Id> deserializer = request -> {
             String id = request.params(idParam);
-            return new UserId(id);
+            return new User.Id(id);
         };
 
-        Responder.Action<UserId> action = (data, token) -> {
+        Responder.Action<User.Id> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userById(data);
             return new UserDetailsMessage(user);
@@ -213,12 +212,12 @@ public class ImageServerAPI {
     }
 
     public Route imageDetails(String imageIdParam) {
-        Deserializer<ImageId> deserializer = request -> {
+        Deserializer<Image.Id> deserializer = request -> {
             String id = request.params(imageIdParam);
-            return new ImageId(id);
+            return new Image.Id(id);
         };
 
-        Responder.Action<ImageId> action = (data, token) -> {
+        Responder.Action<Image.Id> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             Image image = dataProvider.image(data);
             return new ImageDetailsMessage(image.info);
@@ -228,12 +227,12 @@ public class ImageServerAPI {
     }
 
     public Route imageRaw(String imageIdParam) {
-        Deserializer<ImageId> deserializer = request -> {
+        Deserializer<Image.Id> deserializer = request -> {
             String id = request.params(imageIdParam);
-            return new ImageId(id);
+            return new Image.Id(id);
         };
 
-        Responder.Action<ImageId> action = (data, token) -> {
+        Responder.Action<Image.Id> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             Image image = dataProvider.image(data);
             return new ImageMessage(image);
@@ -251,7 +250,7 @@ public class ImageServerAPI {
             User user = dataProvider.userByUsername(data.info.owner.username);
 
             ImageMetadata metadata = new ImageMetadata(
-                    dataProvider.uniqueId(Id::randomizer, ImageId::new),
+                    dataProvider.uniqueId(Id::randomizer, Image.Id::new),
                     data.info.title,
                     user
             );
@@ -267,12 +266,12 @@ public class ImageServerAPI {
     }
 
     public Route removeImage(String imageIdParam) {
-        Deserializer<ImageId> deserializer = request -> {
+        Deserializer<Image.Id> deserializer = request -> {
             String id = request.params(imageIdParam);
-            return new ImageId(id);
+            return new Image.Id(id);
         };
 
-        Responder.Action<ImageId> action = (data, token) -> {
+        Responder.Action<Image.Id> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             dataProvider.remove(data);
 
@@ -307,8 +306,8 @@ public class ImageServerAPI {
             DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userByUsername(data.first);
 
-            OAuth2ClientId id = dataProvider.uniqueId(Id::randomizer, OAuth2ClientId::new);
-            OAuth2ClientSecret secret = dataProvider.uniqueId(Id::randomizer, OAuth2ClientSecret::new);
+            OAuth2Client.Id id = dataProvider.uniqueId(Id::randomizer, OAuth2Client.Id::new);
+            OAuth2Client.Secret secret = dataProvider.uniqueId(Id::randomizer, OAuth2Client.Secret::new);
 
             OAuth2Client oAuthClient = new OAuth2Client(user, id, secret, data.second.name, data.second.callback);
             dataProvider.add(oAuthClient);
@@ -321,12 +320,12 @@ public class ImageServerAPI {
     }
 
     public Route removeOAuth2Client(String clientIdParam) {
-        Deserializer<OAuth2ClientId> deserializer = request -> {
+        Deserializer<OAuth2Client.Id> deserializer = request -> {
             String id = request.params(clientIdParam);
-            return new OAuth2ClientId(id);
+            return new OAuth2Client.Id(id);
         };
 
-        Responder.Action<OAuth2ClientId> action = (data, token) -> {
+        Responder.Action<OAuth2Client.Id> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             dataProvider.remove(data);
             return new OAuth2ClientDeletionMessage();
@@ -370,7 +369,7 @@ public class ImageServerAPI {
             DataProvider dataProvider = proxy.dataProvider(token);
 
             OAuth2AuthorizationCode code = new OAuth2AuthorizationCode(
-                    dataProvider.uniqueId(Id::randomizer, OAuth2AuthorizationCode.idSupplier()),
+                    dataProvider.uniqueId(Id::randomizer, OAuth2AuthorizationCode.Id::new),
                     client.id, data.scopes);
 
             dataProvider.add(code);

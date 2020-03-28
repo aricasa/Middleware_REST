@@ -1,7 +1,7 @@
 package it.polimi.rest.credentials;
 
 import it.polimi.rest.exceptions.UnauthorizedException;
-import it.polimi.rest.models.UserId;
+import it.polimi.rest.models.User;
 
 public interface CredentialsManager {
 
@@ -14,12 +14,12 @@ public interface CredentialsManager {
      * @return user ID
      * @throws UnauthorizedException if the credentials are wrong
      */
-    UserId authenticate(String username, String password);
+    User.Id authenticate(String username, String password);
 
-    void add(UserId user, String username, String password);
+    void add(User.Id user, String username, String password);
 
-    void update(UserId user, String username, String password);
+    void update(User.Id user, String username, String password);
 
-    void remove(UserId user);
+    void remove(User.Id user);
 
 }

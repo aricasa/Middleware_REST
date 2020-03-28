@@ -20,7 +20,7 @@ public class ImageDeserializer implements Deserializer<Image> {
     }
 
     @Override
-    public Image parse(Request request, TokenId token) {
+    public Image parse(Request request) {
         String username = request.params(usernameParam);
         User user = new User(null, username, null);
 

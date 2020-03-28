@@ -1,13 +1,16 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.JsonAdapter;
+import it.polimi.rest.authorization.Agent;
+import it.polimi.rest.authorization.SecuredObject;
 
 import java.util.*;
 
 public class User implements Model {
 
     @Expose(deserialize = false)
-    public final UserId id;
+    public final User.Id id;
 
     @Expose
     public String username;
@@ -15,7 +18,7 @@ public class User implements Model {
     @Expose(serialize = false)
     public String password;
 
-    public User(UserId id, String username, String password) {
+    public User(User.Id id, String username, String password) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -50,6 +53,15 @@ public class User implements Model {
 
     public Optional<String> oAuth2Clients() {
         return self().map(url -> url + "/oauth2/clients");
+    }
+
+    @JsonAdapter(Id.Adapter.class)
+    public static class Id extends it.polimi.rest.models.Id implements Agent, SecuredObject {
+
+        public Id(String id) {
+            super(id);
+        }
+
     }
 
 }

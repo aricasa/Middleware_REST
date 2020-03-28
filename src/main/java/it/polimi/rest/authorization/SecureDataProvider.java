@@ -6,12 +6,12 @@ import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.models.oauth2.OAuth2ClientId;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BEARER;
 
 class SecureDataProvider implements DataProvider {
@@ -32,7 +32,7 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public User userById(UserId id) {
+    public User userById(User.Id id) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
@@ -94,7 +94,7 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(UserId id) {
+    public void remove(User.Id id) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
@@ -106,14 +106,10 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.remove(id);
-
-        // TODO: remove sessions
-        // TODO: remove images
-        // TODO: remove OAuth2 clients
     }
 
     @Override
-    public Image image(ImageId id) {
+    public Image image(Image.Id id) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
@@ -128,7 +124,7 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public ImagesList images(UserId user) {
+    public ImagesList images(User.Id user) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
@@ -158,7 +154,7 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(ImageId id) {
+    public void remove(Image.Id id) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
@@ -174,7 +170,7 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public OAuth2Client oAuth2Client(OAuth2ClientId id) {
+    public OAuth2Client oAuth2Client(OAuth2Client.Id id) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
@@ -189,7 +185,7 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public OAuth2ClientsList oAuth2Clients(UserId user) {
+    public OAuth2ClientsList oAuth2Clients(User.Id user) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
@@ -221,7 +217,7 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(OAuth2ClientId id) {
+    public void remove(OAuth2Client.Id id) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
@@ -237,9 +233,9 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id) {
+    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.Id id) {
         if (agent == null) {
-            throw new ForbiddenException();
+            throw new UnauthorizedException(BASIC);
         }
 
         OAuth2AuthorizationCode code = dataProvider.oAuth2AuthCode(id);
@@ -268,7 +264,7 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id) {
+    public void remove(OAuth2AuthorizationCode.Id id) {
         if (agent == null) {
             throw new ForbiddenException();
         }

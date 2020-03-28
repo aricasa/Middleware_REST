@@ -1,5 +1,6 @@
 package it.polimi.rest.models;
 
+import com.google.gson.annotations.JsonAdapter;
 import it.polimi.rest.authorization.SecuredObject;
 import it.polimi.rest.exceptions.UnsupportedMediaTypeException;
 
@@ -39,6 +40,15 @@ public class Image {
         } catch (IOException e) {
             throw new UnsupportedMediaTypeException("Can't determine the media type");
         }
+    }
+
+    @JsonAdapter(Id.Adapter.class)
+    public static class Id extends it.polimi.rest.models.Id implements SecuredObject {
+
+        public Id(String id) {
+            super(id);
+        }
+
     }
 
 }

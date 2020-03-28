@@ -2,8 +2,7 @@ package it.polimi.rest.adapters;
 
 import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationRequest;
-import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.oauth2.OAuth2ClientId;
+import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.Scope;
 import spark.Request;
 
@@ -16,9 +15,9 @@ import java.util.stream.Stream;
 public class OAuth2AuthorizationRequestDeserializer implements Deserializer<OAuth2AuthorizationRequest> {
 
     @Override
-    public OAuth2AuthorizationRequest parse(Request request, TokenId token) {
+    public OAuth2AuthorizationRequest parse(Request request) {
         String responseType = getResponseType(request);
-        OAuth2ClientId client = getClientId(request);
+        OAuth2Client.Id client = getClientId(request);
         String callback = getRedirectUri(request);
         Collection<Scope> scope = getScope(request);
         String state = getState(request);
@@ -31,9 +30,9 @@ public class OAuth2AuthorizationRequestDeserializer implements Deserializer<OAut
                 .orElseThrow(() -> new BadRequestException("Response type not specified"));
     }
 
-    private OAuth2ClientId getClientId(Request request) {
+    private OAuth2Client.Id getClientId(Request request) {
         return Optional.ofNullable(request.queryParams("client_id"))
-                .map(OAuth2ClientId::new)
+                .map(OAuth2Client.Id::new)
                 .orElseThrow(() -> new BadRequestException("Client ID not specified"));
     }
 

@@ -1,6 +1,9 @@
 package it.polimi.rest.models.oauth2;
 
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.JsonAdapter;
+import it.polimi.rest.authorization.Agent;
+import it.polimi.rest.authorization.SecuredObject;
 import it.polimi.rest.models.Link;
 import it.polimi.rest.models.Model;
 import it.polimi.rest.models.User;
@@ -15,10 +18,10 @@ public class OAuth2Client implements Model {
     public final User owner;
 
     @Expose(deserialize = false)
-    public final OAuth2ClientId id;
+    public final OAuth2Client.Id id;
 
     @Expose(deserialize = false)
-    public final OAuth2ClientSecret secret;
+    public final OAuth2Client.Secret secret;
 
     @Expose
     public final String name;
@@ -27,8 +30,8 @@ public class OAuth2Client implements Model {
     public final String callback;
 
     public OAuth2Client(User owner,
-                        OAuth2ClientId id,
-                        OAuth2ClientSecret secret,
+                        OAuth2Client.Id id,
+                        OAuth2Client.Secret secret,
                         String name,
                         String callback) {
 
@@ -59,6 +62,24 @@ public class OAuth2Client implements Model {
     @Override
     public Map<String, Object> embedded() {
         return Collections.emptyMap();
+    }
+
+    @JsonAdapter(Id.Adapter.class)
+    public static class Id extends it.polimi.rest.models.Id implements Agent, SecuredObject {
+
+        public Id(String id) {
+            super(id);
+        }
+
+    }
+
+    @JsonAdapter(Id.Adapter.class)
+    public static class Secret extends it.polimi.rest.models.Id {
+
+        public Secret(String id) {
+            super(id);
+        }
+
     }
 
 }

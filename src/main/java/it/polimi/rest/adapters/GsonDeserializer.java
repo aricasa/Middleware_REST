@@ -24,7 +24,7 @@ public class GsonDeserializer<T> implements Deserializer<T> {
     }
 
     @Override
-    public T parse(Request request, TokenId token) {
+    public T parse(Request request) {
         String body = request.body();
         return gson.fromJson(body.isEmpty() ? "{}" : body, clazz);
     }
