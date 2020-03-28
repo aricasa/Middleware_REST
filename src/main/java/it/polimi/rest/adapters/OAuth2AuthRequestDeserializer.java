@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class OAuth2AuthorizationRequestDeserializer implements Deserializer<OAuth2AuthorizationRequest> {
+public class OAuth2AuthRequestDeserializer implements Deserializer<OAuth2AuthorizationRequest> {
 
     @Override
     public OAuth2AuthorizationRequest parse(Request request) {

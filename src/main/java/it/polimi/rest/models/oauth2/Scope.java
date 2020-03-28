@@ -6,10 +6,13 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.annotations.JsonAdapter;
 import it.polimi.rest.exceptions.OAuth2Exception;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 
 @JsonAdapter(Scope.Adapter.class)
 public class Scope {
@@ -26,9 +29,9 @@ public class Scope {
 
     public final String scope;
 
-    public Scope(String scope) {
+    public Scope(String scope) throws OAuth2Exception {
         if (!allowedScopes.contains(scope)) {
-            throw new OAuth2Exception(true, OAuth2Exception.INVALID_SCOPE, "Unkown scope \"" + scope + "\"", null);
+            throw new OAuth2Exception(OAuth2Exception.INVALID_SCOPE, "Unknown scope \"" + scope + "\"", null);
         }
 
         this.scope = scope;
@@ -39,10 +42,14 @@ public class Scope {
         return scope;
     }
 
-    public static Collection<Scope> convert(Collection<String> scopes) {
-        return scopes.stream()
-                .map(Scope::new)
-                .collect(Collectors.toList());
+    public static Collection<Scope> convert(Collection<String> scopes) throws OAuth2Exception {
+        Collection<Scope> result = new ArrayList<>();
+
+        for (String scope : scopes) {
+            result.add(new Scope(scope));
+        }
+
+        return result;
     }
 
     public static class Adapter implements JsonSerializer<Scope> {

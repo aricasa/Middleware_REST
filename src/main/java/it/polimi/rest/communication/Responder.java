@@ -3,7 +3,7 @@ package it.polimi.rest.communication;
 import it.polimi.rest.adapters.Deserializer;
 import it.polimi.rest.adapters.TokenExtractor;
 import it.polimi.rest.communication.messages.Message;
-import it.polimi.rest.exceptions.RedirectedException;
+import it.polimi.rest.exceptions.RedirectionException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.TokenId;
 import spark.Request;
@@ -49,7 +49,7 @@ public class Responder<T> implements Route {
             response.header("WWW-Authenticate", e.authentication.toString());
             throw e;
 
-        } catch (RedirectedException e) {
+        } catch (RedirectionException e) {
             response.redirect(e.url);
             return null;
         }

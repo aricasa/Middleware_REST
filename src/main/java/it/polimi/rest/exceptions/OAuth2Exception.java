@@ -1,56 +1,56 @@
 package it.polimi.rest.exceptions;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.JsonAdapter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
-import java.lang.reflect.Type;
-
-@JsonAdapter(OAuth2Exception.Adapter.class)
-public class OAuth2Exception extends BadRequestException {
+public class OAuth2Exception extends Exception {
 
     // TODO: implement remaining errors
-    public static final String INVALID_REQUEST = "invalid_request";
     public static final String ACCESS_DENIED = "access_denied";
     public static final String INVALID_SCOPE = "invalid_scope";
     public static final String SERVER_ERROR = "server_error";
 
     private static final long serialVersionUID = 2675402053550759440L;
 
-    @Expose
-    public final boolean redirect;
+    private final String error;
+    private final String errorDescription;
+    private final String errorUri;
 
-    @Expose
-    public final String errorDescription;
-
-    @Expose
-    public final String errorUri;
-
-    public OAuth2Exception(boolean redirect, String error, String errorDescription, String errorUri) {
+    public OAuth2Exception(String error, String errorDescription, String errorUri) throws OAuth2Exception {
         super(error);
 
-        this.redirect = redirect;
-        this.errorDescription = errorDescription;
-        this.errorUri = errorUri;
+        this.error = encode(error);
+        this.errorDescription = encode(errorDescription);
+        this.errorUri = encode(errorUri);
     }
 
-    public static class Adapter implements JsonSerializer<OAuth2Exception> {
+    private String encode(String value) throws OAuth2Exception {
+        try {
+            return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
 
-        @Override
-        public JsonElement serialize(OAuth2Exception src, Type typeOfSrc, JsonSerializationContext context) {
-            JsonObject json = new JsonObject();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            throw new OAuth2Exception(OAuth2Exception.SERVER_ERROR, null, null);
+        }
+    }
 
-            json.add("redirect", context.serialize(src.redirect));
-            json.add("error", context.serialize(src.error));
-            json.add("error_description", context.serialize(src.errorDescription));
-            json.add("error_uri", context.serialize(src.errorUri));
+    public String url(String redirectUri, String state) {
+        String result = redirectUri + "?error=" + error;
 
-            return json;
+        if (errorDescription != null && !errorDescription.isEmpty()) {
+            result += "&error_description=" + errorDescription;
         }
 
+        if (errorUri != null && !errorUri.isEmpty()) {
+            result += "&error_uri=" + errorUri;
+        }
+
+        if (state != null && !state.isEmpty()) {
+            result += "&state=" + state;
+        }
+
+        return result;
     }
 
 }

@@ -5,6 +5,7 @@ import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.AuthorizationProxy;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.authorization.Token;
+import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.messages.*;
 import it.polimi.rest.communication.messages.image.ImageMessage;
@@ -24,6 +25,7 @@ import spark.Route;
 
 import java.util.Base64;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 
@@ -337,55 +339,27 @@ public class ImageServerAPI {
     }
 
     public Route oAuth2Authorize() {
-        Deserializer<OAuth2AuthorizationRequest> deserializer = new OAuth2AuthorizationRequestDeserializer();
+        Deserializer<OAuth2AuthorizationRequest> deserializer = new OAuth2AuthRequestDeserializer();
         Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> new OAuth2LoginPage(data);
 
         return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
+    TokenExtractor bodyTokenExtractor = request -> Optional.ofNullable(request.body())
+            .map(body -> body.split("&"))
+            .map(Stream::of)
+            .flatMap(stream -> stream
+                    .filter(param -> param.startsWith("token"))
+                    .findFirst()
+                    .map(param -> param.split("=")[1])
+                    .map(TokenId::new))
+            .orElse(null);
+
     public Route oAuth2GrantPermissions() {
-        Deserializer<OAuth2AuthorizationRequest> deserializer = new GsonDeserializer<>(OAuth2AuthorizationRequest.class);
+        Deserializer<OAuth2AuthorizationRequest> deserializer = new OAuth2AuthActionDeserializer();
 
         Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> {
-            OAuth2Client client = getClient(data.client);
-
-            if (!client.callback.equals(data.callback)) {
-                throw new OAuth2Exception(false, OAuth2Exception.INVALID_REQUEST, "Invalid redirect URI", null);
-            }
-
-            DataProvider dataProvider = proxy.dataProvider(token);
-
-            OAuth2AuthorizationCode code = new OAuth2AuthorizationCode(
-                    dataProvider.uniqueId(Id::randomizer, OAuth2AuthorizationCode.Id::new),
-                    client.id, Scope.convert(data.scopes));
-
-            dataProvider.add(code);
-            return new OAuth2AuthorizationCodeCreationMessage(code);
-        };
-
-        // TODO: bearer authentication may cause unauthorized redirection to callback URL
-        return new Responder<>(bearerAuthentication, deserializer, action);
-    }
-
-    public Route oAuth2DenyPermissions() {
-        Deserializer<OAuth2AuthorizationRequest> deserializer = new GsonDeserializer<>(OAuth2AuthorizationRequest.class);
-
-        Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> {
-            OAuth2Client client = getClient(data.client);
-
-            if (!client.callback.equals(data.callback)) {
-                throw new OAuth2Exception(false, OAuth2Exception.INVALID_REQUEST, "Invalid redirect URI", null);
-            }
-
-            throw new OAuth2Exception(true, OAuth2Exception.ACCESS_DENIED, null, null);
-        };
-
-        return new Responder<>(bearerAuthentication, deserializer, action);
-    }
-
-    private OAuth2Client getClient(OAuth2Client.Id id) {
-        try {
-            return proxy.dataProvider(new Token() {
+            OAuth2Client client = proxy.dataProvider(new Token() {
                 @Override
                 public TokenId id() {
                     return null;
@@ -393,24 +367,80 @@ public class ImageServerAPI {
 
                 @Override
                 public Agent agent() {
-                    return id;
+                    return data.client;
                 }
 
                 @Override
                 public boolean isValid() {
                     return true;
                 }
-            }).oAuth2Client(id);
+            }).oAuth2Client(data.client);
 
-        } catch (NotFoundException e) {
-            throw new OAuth2Exception(false, OAuth2Exception.INVALID_REQUEST, "Client not found", null);
+            if (!client.callback.equals(data.callback)) {
+                throw new BadRequestException("Redirect URI mismatch");
+            }
 
-        } catch (RestException e) {
-            throw new OAuth2Exception(false, OAuth2Exception.INVALID_REQUEST, e.getMessage(), null);
+            DataProvider dataProvider = proxy.dataProvider(token);
 
-        } catch (Exception e) {
-            throw new OAuth2Exception(false, OAuth2Exception.SERVER_ERROR, e.getMessage(), null);
-        }
+            try {
+                OAuth2AuthorizationCode code = new OAuth2AuthorizationCode(
+                        dataProvider.uniqueId(Id::randomizer, OAuth2AuthorizationCode.Id::new),
+                        client.id, Scope.convert(data.scopes));
+
+                dataProvider.add(code);
+
+                String url = client.callback + "?code=" + code.id;
+
+                if (data.state != null) {
+                    url += "&state=" + data.state;
+                }
+
+                throw new RedirectionException(HttpStatus.CREATED, url);
+
+            } catch (OAuth2Exception e) {
+                String url = e.url(client.callback, data.state);
+                throw new RedirectionException(HttpStatus.BAD_REQUEST, url);
+            }
+        };
+
+        return new Responder<>(bodyTokenExtractor, deserializer, action);
+    }
+
+    public Route oAuth2DenyPermissions() {
+        Deserializer<OAuth2AuthorizationRequest> deserializer = new OAuth2AuthActionDeserializer();
+
+        Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> {
+            OAuth2Client client = proxy.dataProvider(new Token() {
+                @Override
+                public TokenId id() {
+                    return null;
+                }
+
+                @Override
+                public Agent agent() {
+                    return data.client;
+                }
+
+                @Override
+                public boolean isValid() {
+                    return true;
+                }
+            }).oAuth2Client(data.client);
+
+            if (!client.callback.equals(data.callback)) {
+                throw new BadRequestException("Redirect URI mismatch");
+            }
+
+            try {
+                throw new  OAuth2Exception(OAuth2Exception.ACCESS_DENIED, null, null);
+
+            } catch (OAuth2Exception e) {
+                String url = e.url(client.callback, data.state);
+                throw new RedirectionException(HttpStatus.FOUND, url);
+            }
+        };
+
+        return new Responder<>(bearerAuthentication, deserializer, action);
     }
 
     public Route oAuth2Token() {
