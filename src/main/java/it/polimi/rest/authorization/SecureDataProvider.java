@@ -237,14 +237,14 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode id) {
+    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id) {
         if (agent == null) {
             throw new ForbiddenException();
         }
 
         OAuth2AuthorizationCode code = dataProvider.oAuth2AuthCode(id);
 
-        if (!authorizer.get(code, agent).read) {
+        if (!authorizer.get(code.id, agent).read) {
             throw new ForbiddenException();
         }
 
@@ -264,23 +264,23 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.add(code);
-        authorizer.grant(code, code.client, Permission.WRITE);
+        authorizer.grant(code.id, code.client, Permission.WRITE);
     }
 
     @Override
-    public void remove(OAuth2AuthorizationCode code) {
+    public void remove(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id) {
         if (agent == null) {
             throw new ForbiddenException();
         }
 
-        code = oAuth2AuthCode(code);
+        OAuth2AuthorizationCode code = oAuth2AuthCode(id);
 
-        if (!authorizer.get(code, agent).write) {
+        if (!authorizer.get(code.id, agent).write) {
             throw new ForbiddenException();
         }
 
-        dataProvider.remove(code);
-        authorizer.revoke(code);
+        dataProvider.remove(code.id);
+        authorizer.revoke(code.id);
     }
 
 }

@@ -22,6 +22,7 @@ import spark.Route;
 
 import java.util.Base64;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 
@@ -125,7 +126,7 @@ public class ImageServerAPI {
             UserId user = credentialsManager.authenticate(data.first, data.second);
 
             SessionsManager sessionsManager = proxy.sessionsManager(token);
-            BearerToken session = new BearerToken(sessionsManager.getUniqueId(), SESSION_LIFETIME, user);
+            BearerToken session = new BearerToken(sessionsManager.getUniqueId(Id::randomizer), SESSION_LIFETIME, user);
             sessionsManager.add(session);
 
             logger.d("User " + user + " logged in with session " + session);
@@ -242,15 +243,21 @@ public class ImageServerAPI {
     }
 
     public Route addImage(String usernameParam) {
-        Deserializer<Image> deserializer = (request, token) -> {
-            DataProvider dataProvider = proxy.dataProvider(token);
-            ImageDeserializer imageDeserializer = new ImageDeserializer(usernameParam, dataProvider);
-            return imageDeserializer.parse(request, token);
-        };
+        Deserializer<Image> deserializer = new ImageDeserializer(usernameParam);
 
         Responder.Action<Image> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
-            dataProvider.add(data);
+
+            User user = dataProvider.userByUsername(data.info.owner.username);
+            
+            ImageMetadata metadata = new ImageMetadata(
+                    dataProvider.uniqueId(Id::randomizer, ImageId::new),
+                    data.info.title,
+                    user
+            );
+
+            Image image = new Image(metadata, data.data);
+            dataProvider.add(image);
 
             logger.d("Image " + data.info.id + " added");
             return new ImageCreationMessage(data.info);
@@ -361,7 +368,11 @@ public class ImageServerAPI {
             }
 
             DataProvider dataProvider = proxy.dataProvider(token);
-            OAuth2AuthorizationCode code = dataProvider.uniqueId(Id::randomizer, id -> new OAuth2AuthorizationCode(id, client.id, data.scopes));
+
+            OAuth2AuthorizationCode code = new OAuth2AuthorizationCode(
+                    dataProvider.uniqueId(Id::randomizer, OAuth2AuthorizationCode.idSupplier()),
+                    client.id, data.scopes);
+
             dataProvider.add(code);
             return new OAuth2AuthorizationCodeCreationMessage(code);
         };

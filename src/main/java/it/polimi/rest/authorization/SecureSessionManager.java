@@ -5,6 +5,8 @@ import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.sessions.SessionsManager;
 
+import java.util.function.Supplier;
+
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BEARER;
 
 class SecureSessionManager implements SessionsManager {
@@ -20,8 +22,8 @@ class SecureSessionManager implements SessionsManager {
     }
 
     @Override
-    public TokenId getUniqueId() {
-        return sessionsManager.getUniqueId();
+    public TokenId getUniqueId(Supplier<String> randomizer) {
+        return sessionsManager.getUniqueId(randomizer);
     }
 
     @Override

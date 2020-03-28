@@ -1,37 +1,40 @@
 package it.polimi.rest.models.oauth2;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
 import it.polimi.rest.authorization.SecuredObject;
 import it.polimi.rest.models.Id;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Function;
 
-@JsonAdapter(OAuth2AuthorizationCode.Adapter.class)
-public class OAuth2AuthorizationCode extends Id implements SecuredObject {
+public class OAuth2AuthorizationCode {
+
+    @Expose
+    @SerializedName("code")
+    public final OAuth2AuthorizationCodeId id;
 
     public final OAuth2ClientId client;
     public final Collection<Scope> scope;
 
-    public OAuth2AuthorizationCode(String id, OAuth2ClientId client, Collection<Scope> scope) {
-        super(id);
+    public OAuth2AuthorizationCode(OAuth2AuthorizationCodeId id, OAuth2ClientId client, Collection<Scope> scope) {
+        this.id = id;
         this.client = client;
         this.scope = Collections.unmodifiableCollection(new ArrayList<>(scope));
     }
 
-    static class Adapter implements JsonSerializer<OAuth2AuthorizationCode> {
+    public static Function<String, OAuth2AuthorizationCodeId> idSupplier() {
+        return OAuth2AuthorizationCodeId::new;
+    }
 
-        @Override
-        public JsonElement serialize(OAuth2AuthorizationCode src, Type typeOfSrc, JsonSerializationContext context) {
-            JsonObject json = new JsonObject();
-            json.add("code", context.serialize(src.id));
-            return json;
+    @JsonAdapter(Id.Adapter.class)
+    public static class OAuth2AuthorizationCodeId extends Id implements SecuredObject {
+
+        public OAuth2AuthorizationCodeId(String id) {
+            super(id);
         }
 
     }

@@ -1,6 +1,5 @@
 package it.polimi.rest.adapters;
 
-import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.models.*;
 import org.apache.commons.io.IOUtils;
@@ -15,19 +14,15 @@ import java.nio.charset.Charset;
 public class ImageDeserializer implements Deserializer<Image> {
 
     private final String usernameParam;
-    private final DataProvider dataProvider;
 
-    public ImageDeserializer(String usernameParam, DataProvider dataProvider) {
+    public ImageDeserializer(String usernameParam) {
         this.usernameParam = usernameParam;
-        this.dataProvider = dataProvider;
     }
 
     @Override
     public Image parse(Request request, TokenId token) {
         String username = request.params(usernameParam);
-        User user = dataProvider.userByUsername(username);
-
-        ImageId id = dataProvider.uniqueId(Id::randomizer, ImageId::new);
+        User user = new User(null, username, null);
 
         try {
             Part titlePart = request.raw().getPart("title");
@@ -36,7 +31,7 @@ public class ImageDeserializer implements Deserializer<Image> {
             Part filePart = request.raw().getPart("file");
             InputStream stream = filePart.getInputStream();
 
-            ImageMetadata metadata = new ImageMetadata(id, title, user);
+            ImageMetadata metadata = new ImageMetadata(null, title, user);
             return new Image(metadata, IOUtils.toByteArray(stream));
 
         } catch (IOException | ServletException e) {

@@ -14,8 +14,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static java.util.UUID.randomUUID;
-
 public class VolatileDataProvider implements DataProvider {
 
     private final Collection<Id> ids = new HashSet<>();
@@ -190,9 +188,9 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode id) {
+    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id) {
         return oAuth2AuthCodes.stream()
-                .filter(code -> code.equals(id))
+                .filter(code -> code.id.equals(id))
                 .findFirst()
                 .orElseThrow(NotFoundException::new);
     }
@@ -203,13 +201,13 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public void remove(OAuth2AuthorizationCode code) {
-        if (!oAuth2AuthCodes.contains(code)) {
+    public void remove(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id) {
+        if (oAuth2AuthCodes.stream().noneMatch(code -> code.id.equals(id))) {
             throw new NotFoundException();
         }
 
-        oAuth2AuthCodes.remove(code);
-        ids.remove(code);
+        oAuth2AuthCodes.removeIf(code -> code.id.equals(id));
+        ids.remove(id);
     }
 
 }

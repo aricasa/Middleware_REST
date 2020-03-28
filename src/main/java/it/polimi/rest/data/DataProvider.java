@@ -36,8 +36,8 @@ public interface DataProvider {
     void add(OAuth2Client client);
     void remove(OAuth2ClientId id);
 
-    OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode id);
+    OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id);
     void add(OAuth2AuthorizationCode code);
-    void remove(OAuth2AuthorizationCode code);
+    void remove(OAuth2AuthorizationCode.OAuth2AuthorizationCodeId id);
 
 }
