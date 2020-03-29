@@ -4,6 +4,7 @@ import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
+import it.polimi.rest.models.oauth2.OAuth2AccessToken;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
@@ -20,6 +21,7 @@ public class VolatileDataProvider implements DataProvider {
     private final Collection<Image> images = new HashSet<>();
     private final Collection<OAuth2Client> oAuth2Clients = new HashSet<>();
     private final Collection<OAuth2AuthorizationCode> oAuth2AuthCodes = new HashSet<>();
+    private final Collection<OAuth2AccessToken> oAuth2AccessTokens = new HashSet<>();
 
     @Override
     public synchronized <T extends Id> T uniqueId(Supplier<String> randomizer, Function<String, T> supplier) {
@@ -206,6 +208,25 @@ public class VolatileDataProvider implements DataProvider {
         }
 
         oAuth2AuthCodes.removeIf(code -> code.id.equals(id));
+        ids.remove(id);
+    }
+
+    @Override
+    public OAuth2AccessToken oAuth2AccessToken(OAuth2AccessToken.Id id) {
+        return oAuth2AccessTokens.stream()
+                .filter(token -> token.id.equals(id))
+                .findFirst()
+                .orElseThrow(NotFoundException::new);
+    }
+
+    @Override
+    public void add(OAuth2AccessToken token) {
+        oAuth2AccessTokens.add(token);
+    }
+
+    @Override
+    public void remove(OAuth2AccessToken.Id id) {
+        oAuth2AccessTokens.removeIf(token -> token.id.equals(id));
         ids.remove(id);
     }
 

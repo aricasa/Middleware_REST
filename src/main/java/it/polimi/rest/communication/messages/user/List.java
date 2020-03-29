@@ -21,7 +21,7 @@ class List implements Message {
 
     @Override
     public String type() {
-        return "application/hal+json";
+        return APPLICATION_HAL_JSON;
     }
 
     @Override

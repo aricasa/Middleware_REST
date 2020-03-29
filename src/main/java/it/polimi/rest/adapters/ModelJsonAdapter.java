@@ -7,6 +7,14 @@ import it.polimi.rest.models.Link;
 import java.lang.reflect.Type;
 import java.util.*;
 
+/**
+ * Create a JSON and hypermedia compliant representation of a {@link Model}.
+ *
+ * See https://tools.ietf.org/html/draft-kelly-json-hal-06 for details
+ * about JSON HAL (JSON Hypertext Application Language).
+ *
+ * See https://tools.ietf.org/html/rfc5988 for details about the linking standard.
+ */
 public class ModelJsonAdapter implements JsonSerializer<Model> {
 
     private final boolean embed;

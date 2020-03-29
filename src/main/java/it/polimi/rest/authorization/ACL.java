@@ -12,21 +12,27 @@ public class ACL implements Authorizer {
 
     @Override
     public void grant(SecuredObject obj, Agent agent, Permission permission) {
-        revoke(obj, agent);
+        removeObject(obj, agent);
         authorizations.add(new Authorization(obj, agent, permission));
     }
 
     @Override
-    public void revoke(SecuredObject obj, Agent agent) {
+    public void removeObject(SecuredObject obj, Agent agent) {
         authorizations.removeIf(auth ->
                 auth.obj.equals(obj) &&
                 auth.agent.equals(agent));
     }
 
     @Override
-    public void revoke(SecuredObject obj) {
+    public void removeObject(SecuredObject obj) {
         authorizations.removeIf(auth ->
                 auth.obj.equals(obj));
+    }
+
+    @Override
+    public void removeAgent(Agent agent) {
+        authorizations.removeIf(auth ->
+                auth.agent.equals(agent));
     }
 
     @Override

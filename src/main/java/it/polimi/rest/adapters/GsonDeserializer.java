@@ -3,7 +3,6 @@ package it.polimi.rest.adapters;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
-import it.polimi.rest.models.TokenId;
 import spark.Request;
 
 /**

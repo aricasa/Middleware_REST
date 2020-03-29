@@ -4,6 +4,7 @@ import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
+import it.polimi.rest.models.oauth2.OAuth2AccessToken;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
@@ -166,7 +167,7 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.remove(id);
-        authorizer.revoke(id);
+        authorizer.removeObject(id);
     }
 
     @Override
@@ -229,7 +230,7 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.remove(id);
-        authorizer.revoke(id);
+        authorizer.removeObject(id);
     }
 
     @Override
@@ -276,7 +277,39 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.remove(code.id);
-        authorizer.revoke(code.id);
+        authorizer.removeObject(code.id);
+    }
+
+    @Override
+    public OAuth2AccessToken oAuth2AccessToken(OAuth2AccessToken.Id id) {
+        return dataProvider.oAuth2AccessToken(id);
+    }
+
+    @Override
+    public void add(OAuth2AccessToken token) {
+        dataProvider.add(token);
+
+        token.scope.forEach(scope -> {
+            if (scope.scope.equals("read_user")) {
+                authorizer.grant(token.user, token, Permission.READ);
+            } else if (scope.scope.equals("read_images")) {
+                User user = dataProvider.userById(token.user);
+
+                authorizer.grant(ImagesList.placeholder(user), token, Permission.READ);
+
+                dataProvider.images(token.user).forEach(image -> {
+                    authorizer.grant(image.id, token, Permission.READ);
+                });
+            }
+        });
+    }
+
+    @Override
+    public void remove(OAuth2AccessToken.Id id) {
+        OAuth2AccessToken token = oAuth2AccessToken(id);
+        
+        dataProvider.remove(id);
+        authorizer.removeAgent(token);
     }
 
 }

@@ -6,13 +6,13 @@ import it.polimi.rest.authorization.AuthorizationProxy;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.*;
-import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.oauth2.OAuth2LoginPage;
+import it.polimi.rest.communication.messages.oauth2.accesstoken.OAuth2AccessTokenMessage;
 import it.polimi.rest.communication.messages.oauth2.client.OAuth2ClientMessage;
 import it.polimi.rest.data.DataProvider;
-import it.polimi.rest.exceptions.BadRequestException;
-import it.polimi.rest.exceptions.OAuth2Exception;
-import it.polimi.rest.exceptions.RedirectionException;
+import it.polimi.rest.exceptions.*;
+import it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException;
+import it.polimi.rest.exceptions.oauth2.OAuth2UnauthorizedException;
 import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
@@ -20,8 +20,10 @@ import it.polimi.rest.models.oauth2.*;
 import it.polimi.rest.sessions.SessionsManager;
 import it.polimi.rest.utils.Logger;
 import it.polimi.rest.utils.Pair;
-import spark.Request;
 import spark.Route;
+
+import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
+import static it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException.*;
 
 public class OAuth2Api {
 
@@ -31,6 +33,8 @@ public class OAuth2Api {
 
     private final TokenExtractor tokenHeaderExtractor = new TokenHeaderExtractor();
     private final TokenExtractor tokenBodyExtractor = new TokenBodyExtractor();
+
+    private static final int ACCESS_TOKEN_LIFETIME = 3600;
 
     public OAuth2Api(Authorizer authorizer,
                           SessionsManager sessionsManager,
@@ -91,15 +95,17 @@ public class OAuth2Api {
         return new Responder<>(tokenHeaderExtractor, deserializer, action);
     }
 
+    /**
+     * Show the authentication & authorization page.
+     */
     public Route authorize() {
-        Deserializer<OAuth2AuthorizationRequest> deserializer = new OAuth2AuthRequestDeserializer();
-        Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> new OAuth2LoginPage(data);
-
-        return new Responder<>(tokenHeaderExtractor, deserializer, action);
+        return new Responder<>(null,
+                new OAuth2AuthorizationRequestDeserializer(),
+                (data, token) -> new OAuth2LoginPage(data));
     }
 
     public Route grant() {
-        Deserializer<OAuth2AuthorizationRequest> deserializer = new OAuth2AuthActionDeserializer();
+        Deserializer<OAuth2AuthorizationRequest> deserializer = new OAuth2AuthorizationRequestDeserializer();
 
         Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> {
             OAuth2Client client = proxy.dataProvider(new Token() {
@@ -120,7 +126,9 @@ public class OAuth2Api {
             }).oAuth2Client(data.client);
 
             if (!client.callback.equals(data.callback)) {
-                throw new BadRequestException("Redirect URI mismatch");
+                // Invalid redirect URI.
+                // As stated in the RFC, the user agent must not be redirected to it.
+                throw new OAuth2BadRequestException(INVALID_REQUEST, "Redirect URI mismatch", null);
             }
 
             DataProvider dataProvider = proxy.dataProvider(token);
@@ -128,22 +136,23 @@ public class OAuth2Api {
             try {
                 OAuth2AuthorizationCode code = new OAuth2AuthorizationCode(
                         dataProvider.uniqueId(Id::randomizer, OAuth2AuthorizationCode.Id::new),
-                        client.id, Scope.convert(data.scopes));
+                        client.id, data.callback, Scope.convert(data.scopes));
 
+                // Store the new authorization token and logout the user
                 dataProvider.add(code);
                 proxy.sessionsManager(token).remove(token);
 
+                // Redirect to the client callback URL
                 String url = client.callback + "?code=" + code.id;
 
                 if (data.state != null) {
                     url += "&state=" + data.state;
                 }
 
-                throw new RedirectionException(HttpStatus.CREATED, url);
+                throw new RedirectionException(url);
 
-            } catch (OAuth2Exception e) {
-                String url = e.url(client.callback, data.state);
-                throw new RedirectionException(HttpStatus.BAD_REQUEST, url);
+            } catch (OAuth2BadRequestException e) {
+                throw e.redirect(client.callback, data.state);
             }
         };
 
@@ -151,7 +160,7 @@ public class OAuth2Api {
     }
 
     public Route deny() {
-        Deserializer<OAuth2AuthorizationRequest> deserializer = new OAuth2AuthActionDeserializer();
+        Deserializer<OAuth2AuthorizationRequest> deserializer = new OAuth2AuthorizationRequestDeserializer();
 
         Responder.Action<OAuth2AuthorizationRequest> action = (data, token) -> {
             OAuth2Client client = proxy.dataProvider(new Token() {
@@ -172,38 +181,88 @@ public class OAuth2Api {
             }).oAuth2Client(data.client);
 
             if (!client.callback.equals(data.callback)) {
-                throw new BadRequestException("Redirect URI mismatch");
+                // Invalid redirect URI.
+                // As stated in the RFC, the user agent must not be redirected to it.
+                throw new OAuth2BadRequestException(INVALID_REQUEST, "Redirect URI mismatch", null);
             }
 
-            try {
-                throw new  OAuth2Exception(OAuth2Exception.ACCESS_DENIED, null, null);
-
-            } catch (OAuth2Exception e) {
-                String url = e.url(client.callback, data.state);
-                throw new RedirectionException(HttpStatus.FOUND, url);
-            }
+            throw new OAuth2BadRequestException(ACCESS_DENIED, null, null).redirect(client.callback, data.state);
         };
 
         return new Responder<>(tokenBodyExtractor, deserializer, action);
     }
 
     public Route token() {
-        Deserializer<String> deserializer = new Deserializer<String>() {
-            @Override
-            public String parse(Request request) {
-                String body = request.body();
-                return null;
+        Deserializer<OAuth2AccessTokenRequest> deserializer = new OAuth2AccessTokenRequestDeserializer();
+
+        Responder.Action<OAuth2AccessTokenRequest> action = (data, token) -> {
+            Token fakeToken = new Token() {
+                @Override
+                public TokenId id() {
+                    return null;
+                }
+
+                @Override
+                public Agent agent() {
+                    return data.clientId;
+                }
+
+                @Override
+                public boolean isValid() {
+                    return true;
+                }
+            };
+
+            DataProvider dataProvider = proxy.dataProvider(fakeToken);
+            OAuth2Client client;
+
+            try {
+                client = dataProvider.oAuth2Client(data.clientId);
+
+                if (!client.secret.equals(data.clientSecret)) {
+                    // Wrong secret
+                    throw new OAuth2UnauthorizedException(BASIC, INVALID_CLIENT, null, null);
+                }
+
+            } catch (NotFoundException | ForbiddenException e) {
+                // Client doesn't exist
+                throw new OAuth2UnauthorizedException(BASIC, INVALID_CLIENT, null, null);
+            }
+
+            try {
+                OAuth2AuthorizationCode code = dataProvider.oAuth2AuthCode(data.code);
+
+                if (!code.isValid()) {
+                    // The authorization code has expired
+                    dataProvider.remove(code.id);
+                    throw new OAuth2BadRequestException(INVALID_GRANT, null, null);
+                }
+
+                if (!code.redirectUri.equals(data.redirectUri)) {
+                    // The redirect URI must match the one the authorization code was issued to
+                    throw new OAuth2BadRequestException(INVALID_GRANT, null, null);
+                }
+
+                dataProvider.remove(code.id);
+
+                OAuth2AccessToken accessToken = new OAuth2AccessToken(
+                        dataProvider.uniqueId(Id::randomizer, OAuth2AccessToken.Id::new),
+                        ACCESS_TOKEN_LIFETIME,
+                        client.owner.id
+                );
+
+                proxy.sessionsManager(accessToken).add(accessToken);
+                dataProvider.add(accessToken);
+
+                return OAuth2AccessTokenMessage.creation(accessToken);
+
+            } catch (NotFoundException | ForbiddenException e) {
+                // Authorization code doesn't exist or was issued to another client
+                throw new OAuth2BadRequestException(INVALID_GRANT, null, null);
             }
         };
 
-        Responder.Action<String> action = new Responder.Action<String>() {
-            @Override
-            public Message run(String data, TokenId token) {
-                return null;
-            }
-        };
-
-        return new Responder<>(tokenHeaderExtractor, deserializer, action);
+        return new Responder<>(null, deserializer, action);
     }
 
 }

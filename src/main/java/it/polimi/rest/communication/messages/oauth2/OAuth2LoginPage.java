@@ -39,7 +39,7 @@ public class OAuth2LoginPage implements Message {
 
     @Override
     public String type() {
-        return "text/html";
+        return TEXT_HTML;
     }
 
     @Override

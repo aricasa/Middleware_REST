@@ -96,8 +96,8 @@ public class App {
 
         path("/oauth2", () -> {
             get("/authorize", "application/x-www-form-urlencoded", oAuth2Api.authorize());
-            post("/grant", oAuth2Api.grant(), jsonTransformer);
-            post("/deny", oAuth2Api.deny(), jsonTransformer);
+            post("/grant", "application/x-www-form-urlencoded", oAuth2Api.grant(), jsonTransformer);
+            post("/deny", "application/x-www-form-urlencoded", oAuth2Api.deny(), jsonTransformer);
             post("/token", oAuth2Api.token(), jsonTransformer);
         });
     }

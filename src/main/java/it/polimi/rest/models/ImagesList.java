@@ -4,8 +4,9 @@ import com.google.gson.annotations.Expose;
 import it.polimi.rest.authorization.SecuredObject;
 
 import java.util.*;
+import java.util.function.Consumer;
 
-public class ImagesList implements Model, SecuredObject {
+public class ImagesList implements Model, SecuredObject, Iterable<ImageMetadata> {
 
     public final User owner;
     private final Collection<ImageMetadata> images;
@@ -51,6 +52,21 @@ public class ImagesList implements Model, SecuredObject {
     @Override
     public Map<String, Object> embedded() {
         return Collections.singletonMap("item", images);
+    }
+
+    @Override
+    public Iterator<ImageMetadata> iterator() {
+        return images.iterator();
+    }
+
+    @Override
+    public void forEach(Consumer<? super ImageMetadata> action) {
+        images.forEach(action);
+    }
+
+    @Override
+    public Spliterator<ImageMetadata> spliterator() {
+        return images.spliterator();
     }
 
 }

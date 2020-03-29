@@ -21,12 +21,14 @@ public class OAuth2AuthorizationCode {
     public final Id id;
 
     public final OAuth2Client.Id client;
+    public final String redirectUri;
     public final Collection<Scope> scope;
     public final Calendar expiration;
 
-    public OAuth2AuthorizationCode(Id id, OAuth2Client.Id client, Collection<Scope> scope) {
+    public OAuth2AuthorizationCode(Id id, OAuth2Client.Id client, String redirectUri, Collection<Scope> scope) {
         this.id = id;
         this.client = client;
+        this.redirectUri = redirectUri;
         this.scope = Collections.unmodifiableCollection(new ArrayList<>(scope));
 
         this.expiration = Calendar.getInstance();

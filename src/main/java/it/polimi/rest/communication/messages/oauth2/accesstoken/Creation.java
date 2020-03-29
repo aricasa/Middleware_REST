@@ -1,16 +1,16 @@
-package it.polimi.rest.communication.messages.session;
+package it.polimi.rest.communication.messages.oauth2.accesstoken;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.communication.messages.Message;
-import it.polimi.rest.models.BearerToken;
+import it.polimi.rest.models.oauth2.OAuth2AccessToken;
 
 import java.util.Optional;
 
 class Creation implements Message {
 
-    private final BearerToken token;
+    private final OAuth2AccessToken token;
 
-    public Creation(BearerToken token) {
+    public Creation(OAuth2AccessToken token) {
         this.token = token;
     }
 
@@ -21,7 +21,7 @@ class Creation implements Message {
 
     @Override
     public String type() {
-        return APPLICATION_HAL_JSON;
+        return APPLICATION_JSON;
     }
 
     @Override

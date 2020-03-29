@@ -4,12 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.annotations.JsonAdapter;
-import it.polimi.rest.exceptions.OAuth2Exception;
+import it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,9 +26,9 @@ public class Scope {
 
     public final String scope;
 
-    public Scope(String scope) throws OAuth2Exception {
+    public Scope(String scope) {
         if (!allowedScopes.contains(scope)) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_SCOPE, "Unknown scope \"" + scope + "\"", null);
+            throw new OAuth2BadRequestException(OAuth2BadRequestException.INVALID_SCOPE, "Unknown scope \"" + scope + "\"", null);
         }
 
         this.scope = scope;
@@ -42,7 +39,7 @@ public class Scope {
         return scope;
     }
 
-    public static Collection<Scope> convert(Collection<String> scopes) throws OAuth2Exception {
+    public static Collection<Scope> convert(Collection<String> scopes) throws OAuth2BadRequestException {
         Collection<Scope> result = new ArrayList<>();
 
         for (String scope : scopes) {
