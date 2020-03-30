@@ -2,8 +2,6 @@ package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
 import it.polimi.rest.authorization.Agent;
-import it.polimi.rest.authorization.Permission;
-import it.polimi.rest.authorization.SecuredObject;
 import it.polimi.rest.authorization.Token;
 
 import java.util.*;
@@ -40,6 +38,11 @@ public class BearerToken implements Token, Model {
     @Override
     public Agent agent() {
         return user;
+    }
+
+    @Override
+    public Optional<User.Id> user() {
+        return Optional.ofNullable(user);
     }
 
     @Override

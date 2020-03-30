@@ -17,10 +17,13 @@ import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
 import it.polimi.rest.models.oauth2.*;
+import it.polimi.rest.models.oauth2.scope.Scope;
 import it.polimi.rest.sessions.SessionsManager;
 import it.polimi.rest.utils.Logger;
 import it.polimi.rest.utils.Pair;
 import spark.Route;
+
+import java.util.Optional;
 
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 import static it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException.*;
@@ -120,6 +123,11 @@ public class OAuth2Api {
                 }
 
                 @Override
+                public Optional<User.Id> user() {
+                    return Optional.empty();
+                }
+
+                @Override
                 public boolean isValid() {
                     return true;
                 }
@@ -132,11 +140,26 @@ public class OAuth2Api {
             }
 
             DataProvider dataProvider = proxy.dataProvider(token);
+            User.Id user;
+
+            try {
+                Token userToken = proxy.sessionsManager(token).token(token);
+                user = userToken.user().orElseThrow(
+                        () -> new OAuth2BadRequestException(INVALID_REQUEST, "Invalid session token", null).redirect(client.callback, data.state)
+                );
+
+            } catch (NotFoundException | ForbiddenException e) {
+                throw new OAuth2BadRequestException(INVALID_REQUEST, "Invalid session token", null).redirect(client.callback, data.state);
+            }
 
             try {
                 OAuth2AuthorizationCode code = new OAuth2AuthorizationCode(
                         dataProvider.uniqueId(Id::randomizer, OAuth2AuthorizationCode.Id::new),
-                        client.id, data.callback, Scope.convert(data.scopes));
+                        client.id,
+                        data.callback,
+                        Scope.convert(data.scopes),
+                        user
+                        );
 
                 // Store the new authorization token and logout the user
                 dataProvider.add(code);
@@ -175,6 +198,11 @@ public class OAuth2Api {
                 }
 
                 @Override
+                public Optional<User.Id> user() {
+                    return Optional.empty();
+                }
+
+                @Override
                 public boolean isValid() {
                     return true;
                 }
@@ -208,16 +236,20 @@ public class OAuth2Api {
                 }
 
                 @Override
+                public Optional<User.Id> user() {
+                    return Optional.empty();
+                }
+
+                @Override
                 public boolean isValid() {
                     return true;
                 }
             };
 
             DataProvider dataProvider = proxy.dataProvider(fakeToken);
-            OAuth2Client client;
 
             try {
-                client = dataProvider.oAuth2Client(data.clientId);
+                OAuth2Client client = dataProvider.oAuth2Client(data.clientId);
 
                 if (!client.secret.equals(data.clientSecret)) {
                     // Wrong secret
@@ -248,7 +280,7 @@ public class OAuth2Api {
                 OAuth2AccessToken accessToken = new OAuth2AccessToken(
                         dataProvider.uniqueId(Id::randomizer, OAuth2AccessToken.Id::new),
                         ACCESS_TOKEN_LIFETIME,
-                        client.owner.id,
+                        code.user,
                         code.scope
                 );
 

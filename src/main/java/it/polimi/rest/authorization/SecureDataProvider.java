@@ -288,20 +288,7 @@ class SecureDataProvider implements DataProvider {
     @Override
     public void add(OAuth2AccessToken token) {
         dataProvider.add(token);
-
-        token.scope.forEach(scope -> {
-            if (scope.scope.equals("read_user")) {
-                authorizer.grant(token.user, token, Permission.READ);
-            } else if (scope.scope.equals("read_images")) {
-                User user = dataProvider.userById(token.user);
-
-                authorizer.grant(ImagesList.placeholder(user), token, Permission.READ);
-
-                dataProvider.images(user.username).forEach(image -> {
-                    authorizer.grant(image.id, token, Permission.READ);
-                });
-            }
-        });
+        token.scope.forEach(scope -> scope.addPermissions(authorizer, dataProvider, token));
     }
 
     @Override

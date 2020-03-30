@@ -10,6 +10,7 @@ import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
+import it.polimi.rest.models.oauth2.scope.Scope;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -56,6 +57,11 @@ public class OAuth2AccessToken implements Token, Agent {
     @Override
     public Agent agent() {
         return this;
+    }
+
+    @Override
+    public Optional<User.Id> user() {
+        return Optional.empty();
     }
 
     @Override

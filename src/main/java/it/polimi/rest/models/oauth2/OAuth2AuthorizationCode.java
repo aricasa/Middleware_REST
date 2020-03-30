@@ -3,11 +3,9 @@ package it.polimi.rest.models.oauth2;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
-import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.SecuredObject;
-import it.polimi.rest.authorization.Token;
-import it.polimi.rest.models.Id;
-import it.polimi.rest.models.TokenId;
+import it.polimi.rest.models.User;
+import it.polimi.rest.models.oauth2.scope.Scope;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -24,8 +22,14 @@ public class OAuth2AuthorizationCode {
     public final String redirectUri;
     public final Collection<Scope> scope;
     public final Calendar expiration;
+    public final User.Id user;
 
-    public OAuth2AuthorizationCode(Id id, OAuth2Client.Id client, String redirectUri, Collection<Scope> scope) {
+    public OAuth2AuthorizationCode(Id id,
+                                   OAuth2Client.Id client,
+                                   String redirectUri,
+                                   Collection<Scope> scope,
+                                   User.Id user) {
+
         this.id = id;
         this.client = client;
         this.redirectUri = redirectUri;
@@ -33,6 +37,8 @@ public class OAuth2AuthorizationCode {
 
         this.expiration = Calendar.getInstance();
         this.expiration.add(Calendar.MINUTE, 10);
+
+        this.user = user;
     }
 
     public boolean isValid() {
