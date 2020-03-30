@@ -188,8 +188,7 @@ public class MainApi {
 
         Responder.Action<String> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
-            User user = dataProvider.userByUsername(data);
-            ImagesList images = dataProvider.images(user.id);
+            ImagesList images = dataProvider.images(data);
             return ImageMessage.list(images);
         };
 

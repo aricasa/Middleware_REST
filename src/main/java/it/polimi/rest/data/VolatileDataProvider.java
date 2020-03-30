@@ -109,8 +109,8 @@ public class VolatileDataProvider implements DataProvider {
     }
 
     @Override
-    public ImagesList images(User.Id userId) {
-        User owner = userById(userId);
+    public ImagesList images(String username) {
+        User owner = userByUsername(username);
 
         return new ImagesList(owner, images.stream()
                 .filter(image -> image.info.owner.id.equals(owner.id))

@@ -125,12 +125,12 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
-    public ImagesList images(User.Id user) {
+    public ImagesList images(String username) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
-        ImagesList images = dataProvider.images(user);
+        ImagesList images = dataProvider.images(username);
 
         if (!authorizer.get(images, agent).read) {
             throw new ForbiddenException();
@@ -297,7 +297,7 @@ class SecureDataProvider implements DataProvider {
 
                 authorizer.grant(ImagesList.placeholder(user), token, Permission.READ);
 
-                dataProvider.images(token.user).forEach(image -> {
+                dataProvider.images(user.username).forEach(image -> {
                     authorizer.grant(image.id, token, Permission.READ);
                 });
             }
@@ -307,7 +307,7 @@ class SecureDataProvider implements DataProvider {
     @Override
     public void remove(OAuth2AccessToken.Id id) {
         OAuth2AccessToken token = oAuth2AccessToken(id);
-        
+
         dataProvider.remove(id);
         authorizer.removeAgent(token);
     }

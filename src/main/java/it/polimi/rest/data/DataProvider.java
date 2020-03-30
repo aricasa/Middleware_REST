@@ -27,7 +27,7 @@ public interface DataProvider {
     void remove(User.Id id);
 
     Image image(Image.Id id);
-    ImagesList images(User.Id user);
+    ImagesList images(String username);
     void add(Image image);
     void remove(Image.Id id);
 

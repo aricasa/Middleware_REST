@@ -248,7 +248,8 @@ public class OAuth2Api {
                 OAuth2AccessToken accessToken = new OAuth2AccessToken(
                         dataProvider.uniqueId(Id::randomizer, OAuth2AccessToken.Id::new),
                         ACCESS_TOKEN_LIFETIME,
-                        client.owner.id
+                        client.owner.id,
+                        code.scope
                 );
 
                 proxy.sessionsManager(accessToken).add(accessToken);
