@@ -10,6 +10,7 @@ public interface Message {
 
     /**
      * Get the HTTP status code.
+     * See https://tools.ietf.org/html/rfc2616#section-6.1.1 for more details
      *
      * @return status code
      */
@@ -17,6 +18,7 @@ public interface Message {
 
     /**
      * Get the value to be used for the Content-Type header.
+     * See https://tools.ietf.org/html/rfc2616#section-14.17 for more details.
      *
      * @return type
      */
@@ -28,5 +30,25 @@ public interface Message {
      * @return body
      */
     Optional<Object> payload();
+
+    /**
+     * Get the cache control policy the receiver has to follow.
+     * See https://tools.ietf.org/html/rfc2616#section-13.1.3 for more details.
+     *
+     * @return cache control header
+     */
+    default Optional<String> cacheControl() {
+        return Optional.empty();
+    }
+
+    /**
+     * Get the Pragma header to be set.
+     * See https://tools.ietf.org/html/rfc2616#section-14.32 for more details.
+     *
+     * @return pragma header
+     */
+    default Optional<String> pragma() {
+        return Optional.empty();
+    }
 
 }

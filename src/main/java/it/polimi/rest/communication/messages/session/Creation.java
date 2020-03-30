@@ -29,4 +29,14 @@ class Creation implements Message {
         return Optional.ofNullable(token);
     }
 
+    @Override
+    public Optional<String> cacheControl() {
+        return Optional.of("no-store");
+    }
+
+    @Override
+    public Optional<String> pragma() {
+        return Optional.of("no-cache");
+    }
+
 }

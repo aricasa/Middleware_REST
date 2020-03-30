@@ -29,4 +29,14 @@ class Details implements Message {
         return Optional.ofNullable(client);
     }
 
+    @Override
+    public Optional<String> cacheControl() {
+        return Optional.of("no-store");
+    }
+
+    @Override
+    public Optional<String> pragma() {
+        return Optional.of("no-cache");
+    }
+
 }

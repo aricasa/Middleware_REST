@@ -37,6 +37,12 @@ public class Responder<T> implements Route {
             response.status(message.code());
             response.type(message.type());
 
+            message.cacheControl().ifPresent(policy ->
+                    response.header("Cache-Control", policy));
+
+            message.pragma().ifPresent(value ->
+                    response.header("Pragma", value));
+
             Optional<Object> payload = message.payload();
             return payload.orElse("");
 

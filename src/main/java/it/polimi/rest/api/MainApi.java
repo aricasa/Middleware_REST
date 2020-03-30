@@ -3,7 +3,6 @@ package it.polimi.rest.api;
 import it.polimi.rest.adapters.*;
 import it.polimi.rest.authorization.AuthorizationProxy;
 import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.TokenHeaderExtractor;
@@ -145,21 +144,6 @@ public class MainApi {
         Responder.Action<String> action = (data, token) -> {
             DataProvider dataProvider = proxy.dataProvider(token);
             User user = dataProvider.userByUsername(data);
-            return UserMessage.details(user);
-        };
-
-        return new Responder<>(tokenHeaderExtractor, deserializer, action);
-    }
-
-    public Route userById(String idParam) {
-        Deserializer<User.Id> deserializer = request -> {
-            String id = request.params(idParam);
-            return new User.Id(id);
-        };
-
-        Responder.Action<User.Id> action = (data, token) -> {
-            DataProvider dataProvider = proxy.dataProvider(token);
-            User user = dataProvider.userById(data);
             return UserMessage.details(user);
         };
 

@@ -7,6 +7,7 @@ import it.polimi.rest.api.OAuth2Api;
 import it.polimi.rest.authorization.ACL;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.credentials.VolatileCredentialsManager;
 import it.polimi.rest.data.DataProvider;
@@ -41,18 +42,27 @@ public class App {
                     .excludeFieldsWithoutExposeAnnotation()
                     .create();
 
+            // Errors should not be cached
+            response.header("Cache-Control", "no-store");
+            response.header("Pragma", "no-cache");
+
+            // The error message is returned in JSON format
             String body = gson.toJson(exception);
 
             if (body.isEmpty() || body.equals("{}")) {
                 response.body("");
             } else {
-                response.type("application/json");
+                response.type(Message.APPLICATION_JSON);
                 response.body(body);
             }
         });
 
         exception(Exception.class, (exception, request, response) -> {
             exception.printStackTrace();
+
+            // Errors should not be cached
+            response.header("Cache-Control", "no-store");
+            response.header("Pragma", "no-cache");
 
             response.status(HttpStatus.INTERNAL_SERVER_ERROR);
             response.body("");
