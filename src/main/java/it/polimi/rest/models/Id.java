@@ -20,7 +20,7 @@ public abstract class Id {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public final boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || !Id.class.isAssignableFrom(o.getClass())) return false;
         Id id1 = (Id) o;
@@ -28,7 +28,7 @@ public abstract class Id {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hash(id);
     }
 

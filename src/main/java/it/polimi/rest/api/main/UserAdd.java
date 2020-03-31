@@ -11,11 +11,13 @@ import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
-import it.polimi.rest.utils.Logger;
 import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Add a new user.
+ */
 class UserAdd extends Responder<TokenId, User> {
 
     private final AuthorizationProxy proxy;

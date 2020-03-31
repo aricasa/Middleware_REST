@@ -14,6 +14,9 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Get the OAuth2 clients registered by a user.
+ */
 class Clients extends Responder<TokenId, String> {
 
     private final AuthorizationProxy proxy;

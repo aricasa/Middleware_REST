@@ -12,6 +12,9 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * The the details of a user.
+ */
 class UserDetails extends Responder<TokenId, String> {
 
     private final AuthorizationProxy proxy;

@@ -13,6 +13,9 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Remove an image.
+ */
 class ImageRemove extends Responder<TokenId, Image.Id> {
 
     private final AuthorizationProxy proxy;

@@ -14,6 +14,9 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Remove an OAuth2 client.
+ */
 class ClientRemove extends Responder<TokenId, OAuth2Client.Id> {
 
     private final Logger logger = new Logger(getClass());

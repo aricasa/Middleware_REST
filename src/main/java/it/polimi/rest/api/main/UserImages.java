@@ -1,6 +1,5 @@
 package it.polimi.rest.api.main;
 
-import it.polimi.rest.authorization.Authorization;
 import it.polimi.rest.authorization.AuthorizationProxy;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
@@ -14,6 +13,9 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Get the user images list (metadata only).
+ */
 public class UserImages extends Responder<TokenId, String> {
 
     private final AuthorizationProxy proxy;

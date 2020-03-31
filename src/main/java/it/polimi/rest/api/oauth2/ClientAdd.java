@@ -17,6 +17,9 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Add a new OAuth2 client.
+ */
 class ClientAdd extends Responder<TokenId, ClientAdd.Data> {
 
     private final Logger logger = new Logger(getClass());

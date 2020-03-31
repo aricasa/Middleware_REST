@@ -10,11 +10,13 @@ import it.polimi.rest.credentials.CredentialsManager;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
-import it.polimi.rest.utils.Logger;
 import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Remove a user.
+ */
 class UserRemove extends Responder<TokenId, String> {
 
     private final AuthorizationProxy proxy;

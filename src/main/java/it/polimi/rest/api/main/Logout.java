@@ -12,6 +12,9 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Remove a session.
+ */
 public class Logout extends Responder<TokenId, BasicToken.Id> {
 
     private final AuthorizationProxy proxy;

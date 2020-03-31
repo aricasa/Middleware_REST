@@ -13,6 +13,9 @@ import it.polimi.rest.models.oauth2.OAuth2Client;
 import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.ACCESS_DENIED;
 import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.INVALID_REQUEST;
 
+/**
+ * Deny the access to the resources.
+ */
 public class Deny extends Grant {
 
     public Deny(AuthorizationProxy proxy) {

@@ -13,6 +13,9 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Get the metadata of an image.
+ */
 class ImageDetails extends Responder<TokenId, Image.Id> {
 
     private final AuthorizationProxy proxy;

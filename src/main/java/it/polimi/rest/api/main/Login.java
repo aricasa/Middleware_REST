@@ -20,6 +20,9 @@ import java.util.Optional;
 
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 
+/**
+ * Create a session
+ */
 public class Login extends Responder<TokenId, Login.Data> {
 
     /** Session lifetime (in seconds) */

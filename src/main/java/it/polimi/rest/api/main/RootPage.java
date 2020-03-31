@@ -2,6 +2,7 @@ package it.polimi.rest.api.main;
 
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
+import it.polimi.rest.communication.TokenHeaderExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.RootMessage;
 import it.polimi.rest.models.Root;
@@ -10,11 +11,14 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Root page of the REST service.
+ */
 class RootPage extends Responder<TokenId, Void> {
 
     @Override
     protected Optional<TokenExtractor<TokenId>> tokenExtractor() {
-        return Optional.empty();
+        return Optional.of(new TokenHeaderExtractor<>(TokenId::new));
     }
 
     @Override

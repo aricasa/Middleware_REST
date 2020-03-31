@@ -19,6 +19,9 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Optional;
 
+/**
+ * Add a new image.
+ */
 class ImageAdd extends Responder<TokenId, ImageAdd.Data> {
 
     private final AuthorizationProxy proxy;

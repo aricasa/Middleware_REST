@@ -13,6 +13,9 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Get the users list.
+ */
 class Users extends Responder<TokenId, Void> {
 
     private final AuthorizationProxy proxy;

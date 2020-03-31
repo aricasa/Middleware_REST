@@ -30,6 +30,9 @@ import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.INVALID_CLIENT;
 import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.INVALID_GRANT;
 
+/**
+ * Convert an authorization token into an access token.
+ */
 class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
 
     private final AuthorizationProxy proxy;

@@ -13,6 +13,9 @@ import spark.Request;
 
 import java.util.Optional;
 
+/**
+ * Get the raw data of an image.
+ */
 class ImageRaw extends Responder<TokenId, Image.Id> {
 
     private final AuthorizationProxy proxy;

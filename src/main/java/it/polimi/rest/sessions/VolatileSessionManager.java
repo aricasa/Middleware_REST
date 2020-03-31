@@ -11,21 +11,6 @@ import java.util.function.Supplier;
 public class VolatileSessionManager implements SessionsManager {
 
     private final HashMap<TokenId, Token> tokens = new HashMap<>();
-    private final Collection<TokenId> reserved = new HashSet<>();
-
-    @Override
-    public synchronized TokenId getUniqueId(Supplier<String> randomizer) {
-        TokenId id;
-
-        do {
-            id = new TokenId(randomizer.get());
-        } while (tokens.containsKey(id) || reserved.contains(id));
-
-        // Reserve the ID
-        reserved.add(id);
-
-        return id;
-    }
 
     @Override
     public synchronized Token token(TokenId id) {
@@ -49,7 +34,6 @@ public class VolatileSessionManager implements SessionsManager {
         }
 
         tokens.put(token.id(), token);
-        reserved.remove(token.id());
     }
 
     @Override
@@ -57,7 +41,6 @@ public class VolatileSessionManager implements SessionsManager {
         Token token = token(id);
 
         tokens.remove(token.id());
-        reserved.remove(token.id());
     }
 
 }

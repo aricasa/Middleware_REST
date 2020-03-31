@@ -8,13 +8,6 @@ import java.util.function.Supplier;
 public interface SessionsManager {
 
     /**
-     * Get a new ID that is guaranteed not to be used by any other token.
-     *
-     * @return ID
-     */
-    TokenId getUniqueId(Supplier<String> randomizer);
-
-    /**
      * Get a token by its ID.
      *
      * @param id    token ID
