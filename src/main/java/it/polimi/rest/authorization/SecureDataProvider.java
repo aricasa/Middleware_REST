@@ -110,6 +110,42 @@ class SecureDataProvider implements DataProvider {
     }
 
     @Override
+    public BasicToken basicToken(BasicToken.Id id) {
+        if (agent == null) {
+            throw new UnauthorizedException(BEARER);
+        }
+
+        BasicToken token = dataProvider.basicToken(id);
+
+        if (!authorizer.get(token.id, agent).read) {
+            throw new ForbiddenException();
+        }
+
+        return token;
+    }
+
+    @Override
+    public void add(BasicToken token) {
+        dataProvider.add(token);
+        authorizer.grant(token.id, token.user, Permission.WRITE);
+    }
+
+    @Override
+    public void remove(BasicToken.Id id) {
+        if (agent == null) {
+            throw new UnauthorizedException(BEARER);
+        }
+
+        BasicToken token = basicToken(id);
+
+        if (!authorizer.get(token.id, agent).write) {
+            throw new ForbiddenException();
+        }
+
+        dataProvider.remove(id);
+    }
+
+    @Override
     public Image image(Image.Id id) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);

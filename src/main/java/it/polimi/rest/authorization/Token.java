@@ -1,9 +1,6 @@
 package it.polimi.rest.authorization;
 
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.User;
-
-import java.util.Optional;
 
 public interface Token {
 
@@ -20,14 +17,6 @@ public interface Token {
      * @return agent
      */
     Agent agent();
-
-    /**
-     * If the token is issued to a user, returns that user.
-     *
-     * @return user the token was issued to
-     */
-
-    Optional<User.Id> user();
 
     /**
      * Check whether the token is valid.

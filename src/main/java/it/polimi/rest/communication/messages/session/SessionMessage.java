@@ -1,7 +1,7 @@
 package it.polimi.rest.communication.messages.session;
 
 import it.polimi.rest.communication.messages.Message;
-import it.polimi.rest.models.BearerToken;
+import it.polimi.rest.models.BasicToken;
 
 public final class SessionMessage {
 
@@ -9,7 +9,7 @@ public final class SessionMessage {
 
     }
 
-    public static Message creation(BearerToken token) {
+    public static Message creation(BasicToken token) {
         return new Creation(token);
     }
 

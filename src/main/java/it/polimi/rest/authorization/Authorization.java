@@ -12,4 +12,9 @@ public class Authorization {
         this.permission = permission;
     }
 
+    @Override
+    public String toString() {
+        return "{obj: " + obj + ", agent: " + agent + ": permission: " + permission + "}";
+    }
+
 }

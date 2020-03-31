@@ -18,6 +18,7 @@ public class VolatileDataProvider implements DataProvider {
 
     private final Collection<Id> ids = new HashSet<>();
     private final Collection<User> users = new HashSet<>();
+    private final Collection<BasicToken> basicTokens = new HashSet<>();
     private final Collection<Image> images = new HashSet<>();
     private final Collection<OAuth2Client> oAuth2Clients = new HashSet<>();
     private final Collection<OAuth2AuthorizationCode> oAuth2AuthCodes = new HashSet<>();
@@ -98,6 +99,29 @@ public class VolatileDataProvider implements DataProvider {
 
         images.removeIf(image -> image.info.owner.id.equals(id));
         oAuth2Clients.removeIf(client -> client.owner.id.equals(id));
+    }
+
+    @Override
+    public BasicToken basicToken(BasicToken.Id id) {
+        return basicTokens.stream()
+                .filter(token -> token.id.equals(id))
+                .findFirst()
+                .orElseThrow(NotFoundException::new);
+    }
+
+    @Override
+    public void add(BasicToken token) {
+        basicTokens.add(token);
+    }
+
+    @Override
+    public void remove(BasicToken.Id id) {
+        if (basicTokens.stream().noneMatch(token -> token.id.equals(id))) {
+            throw new NotFoundException();
+        }
+
+        basicTokens.removeIf(token -> token.id.equals(id));
+        ids.remove(id);
     }
 
     @Override

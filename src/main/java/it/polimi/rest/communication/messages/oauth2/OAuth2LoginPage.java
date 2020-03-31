@@ -4,11 +4,13 @@ import com.google.common.io.Resources;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.exceptions.InternalErrorException;
-import it.polimi.rest.models.oauth2.OAuth2AuthorizationRequest;
+import it.polimi.rest.models.oauth2.OAuth2Client;
+import it.polimi.rest.models.oauth2.scope.Scope;
 
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -17,15 +19,15 @@ public class OAuth2LoginPage implements Message {
     public final String html;
 
     @SuppressWarnings("UnstableApiUsage")
-    public OAuth2LoginPage(OAuth2AuthorizationRequest request) {
+    public OAuth2LoginPage(String clientId, String redirectUri, Collection<String> scope, String state) {
         try {
             URL url = Resources.getResource("authorize.html");
 
             this.html = Resources.toString(url, StandardCharsets.UTF_8)
-                    .replace("{:clientId}", request.client.toString())
-                    .replace("{:callback}", request.callback)
-                    .replace("{:scopes}", request.scopes.stream().map(Object::toString).collect(Collectors.joining(" ")))
-                    .replace("{:state}", request.state);
+                    .replace("{:clientId}", clientId)
+                    .replace("{:callback}", redirectUri)
+                    .replace("{:scopes}", scope.stream().map(Object::toString).collect(Collectors.joining(" ")))
+                    .replace("{:state}", state);
 
         } catch (IOException e) {
             throw new InternalErrorException();

@@ -26,6 +26,10 @@ public interface DataProvider {
     void update(User user);
     void remove(User.Id id);
 
+    BasicToken basicToken(BasicToken.Id id);
+    void add(BasicToken token);
+    void remove(BasicToken.Id id);
+
     Image image(Image.Id id);
     ImagesList images(String username);
     void add(Image image);

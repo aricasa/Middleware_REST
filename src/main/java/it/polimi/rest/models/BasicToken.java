@@ -1,22 +1,23 @@
 package it.polimi.rest.models;
 
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.JsonAdapter;
 import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.Token;
 
 import java.util.*;
 
-public class BearerToken implements Token, Model {
+public class BasicToken implements Token, Model {
 
     @Expose
-    public final TokenId id;
+    public final Id id;
 
     @Expose(deserialize = false)
     private final Calendar expiration;
 
     public final User.Id user;
 
-    public BearerToken(TokenId id, int lifeTime, User.Id user) {
+    public BasicToken(Id id, int lifeTime, User.Id user) {
         this.id = id;
 
         this.expiration = Calendar.getInstance();
@@ -41,11 +42,6 @@ public class BearerToken implements Token, Model {
     }
 
     @Override
-    public Optional<User.Id> user() {
-        return Optional.ofNullable(user);
-    }
-
-    @Override
     public boolean isValid() {
         Calendar now = Calendar.getInstance();
         return now.before(expiration);
@@ -64,6 +60,15 @@ public class BearerToken implements Token, Model {
     @Override
     public Map<String, Object> embedded() {
         return Collections.emptyMap();
+    }
+
+    @JsonAdapter(Id.Adapter.class)
+    public static class Id extends TokenId {
+
+        public Id(String id) {
+            super(id);
+        }
+
     }
 
 }

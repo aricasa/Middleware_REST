@@ -2,8 +2,8 @@ package it.polimi.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import it.polimi.rest.api.MainApi;
-import it.polimi.rest.api.OAuth2Api;
+import it.polimi.rest.api.main.ResourcesServer;
+import it.polimi.rest.api.oauth2.OAuth2Server;
 import it.polimi.rest.authorization.ACL;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.communication.HttpStatus;
@@ -22,12 +22,12 @@ import static spark.Spark.*;
 
 public class App {
 
-    private final MainApi mainApi;
-    private final OAuth2Api oAuth2Api;
+    private final ResourcesServer resourcesServer;
+    private final OAuth2Server oAuth2Server;
 
-    public App(MainApi mainApi, OAuth2Api oAuth2Api) {
-        this.mainApi = mainApi;
-        this.oAuth2Api = oAuth2Api;
+    public App(ResourcesServer resourcesServer, OAuth2Server oAuth2Server) {
+        this.resourcesServer = resourcesServer;
+        this.oAuth2Server = oAuth2Server;
     }
 
     public void start() {
@@ -68,47 +68,47 @@ public class App {
             response.body("");
         });
 
-        get("/", mainApi.root(), jsonTransformer);
+        get("/", resourcesServer.root, jsonTransformer);
 
         path("/users", () -> {
-            get("", mainApi.users(), jsonTransformer);
-            post("", mainApi.signup(), jsonTransformer);
+            get("", resourcesServer.users, jsonTransformer);
+            post("", resourcesServer.userAdd, jsonTransformer);
 
             path("/:username", () -> {
-                get("", mainApi.userByUsername(":username"), jsonTransformer);
+                get("", resourcesServer.userDetails, jsonTransformer);
                 // TODO: update user data
-                delete("", mainApi.removeUser(":username"));
+                delete("", resourcesServer.userRemove);
             });
         });
 
         path("/sessions", () -> {
-            post("", mainApi.login(), jsonTransformer);
+            post("", resourcesServer.login, jsonTransformer);
             // TODO: get session details
-            delete("/:tokenId", mainApi.logout(":tokenId"), jsonTransformer);
+            delete("/:tokenId", resourcesServer.logout, jsonTransformer);
         });
 
         path("/users/:username/images", () -> {
-            get("", mainApi.images(":username"), jsonTransformer);
-            post("", mainApi.addImage(":username"), jsonTransformer);
+            get("", resourcesServer.userImages, jsonTransformer);
+            post("", resourcesServer.imageAdd, jsonTransformer);
 
             path("/:imageId", () -> {
-                get("", mainApi.imageDetails(":imageId"), jsonTransformer);
-                get("/raw", mainApi.imageRaw(":imageId"));
-                delete("", mainApi.removeImage(":imageId"));
+                get("", resourcesServer.imageDetails, jsonTransformer);
+                get("/raw", resourcesServer.imageRaw);
+                delete("", resourcesServer.imageRemove);
             });
         });
 
         path("/users/:username/oauth2/clients", () -> {
-            get("", oAuth2Api.clients(":username"), jsonTransformer);
-            post("", oAuth2Api.addClient(":username"), jsonTransformer);
-            delete("/:clientId", oAuth2Api.removeClient(":clientId"));
+            get("", oAuth2Server.clients, jsonTransformer);
+            post("", oAuth2Server.clientAdd, jsonTransformer);
+            delete("/:clientId", oAuth2Server.clientRemove);
         });
 
         path("/oauth2", () -> {
-            get("/authorize", "application/x-www-form-urlencoded", oAuth2Api.authorize());
-            post("/grant", "application/x-www-form-urlencoded", oAuth2Api.grant(), jsonTransformer);
-            post("/deny", "application/x-www-form-urlencoded", oAuth2Api.deny(), jsonTransformer);
-            post("/token", oAuth2Api.token(), jsonTransformer);
+            get("/authorize", "application/x-www-form-urlencoded", oAuth2Server.authorize);
+            post("/grant", "application/x-www-form-urlencoded", oAuth2Server.grant, jsonTransformer);
+            post("/deny", "application/x-www-form-urlencoded", oAuth2Server.deny, jsonTransformer);
+            post("/token", oAuth2Server.token, jsonTransformer);
         });
     }
 
@@ -118,10 +118,10 @@ public class App {
         SessionsManager sessionsManager = new VolatileSessionManager();
         DataProvider dataProvider = new VolatileDataProvider();
 
-        MainApi mainApi = new MainApi(authorizer, credentialsManager, sessionsManager, dataProvider);
-        OAuth2Api oAuth2Api = new OAuth2Api(authorizer, sessionsManager, dataProvider);
+        ResourcesServer resourcesServer = new ResourcesServer(authorizer, sessionsManager, dataProvider, credentialsManager);
+        OAuth2Server oAuth2Server = new OAuth2Server(authorizer, sessionsManager, dataProvider);
 
-        App app = new App(mainApi, oAuth2Api);
+        App app = new App(resourcesServer, oAuth2Server);
         app.start();
     }
 

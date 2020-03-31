@@ -60,11 +60,6 @@ public class OAuth2AccessToken implements Token, Agent {
     }
 
     @Override
-    public Optional<User.Id> user() {
-        return Optional.empty();
-    }
-
-    @Override
     public boolean isValid() {
         Calendar now = Calendar.getInstance();
         return now.before(expiration);
