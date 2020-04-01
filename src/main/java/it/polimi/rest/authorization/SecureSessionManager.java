@@ -1,9 +1,9 @@
 package it.polimi.rest.authorization;
 
+import it.polimi.rest.data.SessionsManager;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.sessions.SessionsManager;
 
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BEARER;
 

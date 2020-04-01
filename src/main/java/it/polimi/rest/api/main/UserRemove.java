@@ -6,7 +6,8 @@ import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.TokenHeaderExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.user.UserMessage;
-import it.polimi.rest.credentials.CredentialsManager;
+import it.polimi.rest.authentication.CredentialsManager;
+import it.polimi.rest.data.BaseDataProvider;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
@@ -43,7 +44,6 @@ class UserRemove extends Responder<TokenId, String> {
 
         User user = dataProvider.userByUsername(username);
         dataProvider.remove(user.id);
-        credentialsManager.remove(user.id);
 
         logger.d("User " + user + " removed");
         return UserMessage.deletion();

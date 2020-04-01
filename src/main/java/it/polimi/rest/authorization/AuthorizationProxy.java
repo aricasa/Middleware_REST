@@ -1,9 +1,9 @@
 package it.polimi.rest.authorization;
 
 import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.data.SessionsManager;
 import it.polimi.rest.exceptions.RestException;
 import it.polimi.rest.models.*;
-import it.polimi.rest.sessions.SessionsManager;
 
 public class AuthorizationProxy {
 

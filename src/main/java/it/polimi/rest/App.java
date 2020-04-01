@@ -8,14 +8,9 @@ import it.polimi.rest.authorization.ACL;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.communication.messages.Message;
-import it.polimi.rest.credentials.CredentialsManager;
-import it.polimi.rest.credentials.VolatileCredentialsManager;
-import it.polimi.rest.data.DataProvider;
-import it.polimi.rest.data.VolatileDataProvider;
+import it.polimi.rest.data.*;
 import it.polimi.rest.exceptions.RestException;
 import it.polimi.rest.adapters.JsonTransformer;
-import it.polimi.rest.sessions.SessionsManager;
-import it.polimi.rest.sessions.VolatileSessionManager;
 import spark.ResponseTransformer;
 
 import static spark.Spark.*;
@@ -114,12 +109,12 @@ public class App {
 
     public static void main(String[] args) {
         Authorizer authorizer = new ACL();
-        CredentialsManager credentialsManager = new VolatileCredentialsManager();
-        SessionsManager sessionsManager = new VolatileSessionManager();
-        DataProvider dataProvider = new VolatileDataProvider();
 
-        ResourcesServer resourcesServer = new ResourcesServer(authorizer, sessionsManager, dataProvider, credentialsManager);
-        OAuth2Server oAuth2Server = new OAuth2Server(authorizer, sessionsManager, dataProvider);
+        Storage storage = new VolatileStorage();
+        SessionsManager sessionsManager = new VolatileSessionsManager();
+
+        ResourcesServer resourcesServer = new ResourcesServer(authorizer, sessionsManager, storage);
+        OAuth2Server oAuth2Server = new OAuth2Server(authorizer, sessionsManager, storage);
 
         App app = new App(resourcesServer, oAuth2Server);
         app.start();

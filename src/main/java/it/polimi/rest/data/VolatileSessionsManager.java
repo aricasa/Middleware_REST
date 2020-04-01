@@ -1,4 +1,4 @@
-package it.polimi.rest.sessions;
+package it.polimi.rest.data;
 
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.NotFoundException;
@@ -6,15 +6,14 @@ import it.polimi.rest.authorization.Token;
 import it.polimi.rest.models.TokenId;
 
 import java.util.*;
-import java.util.function.Supplier;
 
-public class VolatileSessionManager implements SessionsManager {
+public class VolatileSessionsManager implements SessionsManager {
 
-    private final HashMap<TokenId, Token> tokens = new HashMap<>();
+    private final Collection<Token> tokens = new HashSet<>();
 
     @Override
-    public synchronized Token token(TokenId id) {
-        Token result = tokens.values().stream()
+    public Token token(TokenId id) {
+        Token result = tokens.stream()
                 .filter(token -> token.id().equals(id))
                 .findFirst()
                 .orElseThrow(NotFoundException::new);
@@ -28,19 +27,18 @@ public class VolatileSessionManager implements SessionsManager {
     }
 
     @Override
-    public synchronized void add(Token token) {
-        if (tokens.containsKey(token.id())) {
+    public void add(Token token) {
+        if (tokens.stream().anyMatch(t -> t.id().equals(token.id()))) {
             throw new ForbiddenException();
         }
 
-        tokens.put(token.id(), token);
+        tokens.add(token);
     }
 
     @Override
-    public synchronized void remove(TokenId id) {
+    public void remove(TokenId id) {
         Token token = token(id);
-
-        tokens.remove(token.id());
+        tokens.removeIf(t -> t.id().equals(token.id()));
     }
 
 }

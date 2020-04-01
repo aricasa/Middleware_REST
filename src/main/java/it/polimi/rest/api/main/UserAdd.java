@@ -6,7 +6,7 @@ import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.user.UserMessage;
-import it.polimi.rest.credentials.CredentialsManager;
+import it.polimi.rest.data.BaseDataProvider;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
@@ -21,11 +21,9 @@ import java.util.Optional;
 class UserAdd extends Responder<TokenId, User> {
 
     private final AuthorizationProxy proxy;
-    private final CredentialsManager credentialsManager;
 
-    public UserAdd(AuthorizationProxy proxy, CredentialsManager credentialsManager) {
+    public UserAdd(AuthorizationProxy proxy) {
         this.proxy = proxy;
-        this.credentialsManager = credentialsManager;
     }
 
     @Override
@@ -45,7 +43,6 @@ class UserAdd extends Responder<TokenId, User> {
         User.Id userId = dataProvider.uniqueId(Id::randomizer, User.Id::new);
         User user = new User(userId, data.username, data.password);
         dataProvider.add(user);
-        credentialsManager.add(user.id, user.username, user.password);
 
         logger.d("User " + user + " created");
         return UserMessage.creation(user);

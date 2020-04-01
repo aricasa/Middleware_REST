@@ -1,7 +1,5 @@
 package it.polimi.rest.data;
 
-import it.polimi.rest.exceptions.BadRequestException;
-import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
 import it.polimi.rest.models.oauth2.OAuth2AccessToken;
@@ -14,9 +12,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class VolatileDataProvider implements DataProvider {
+public class VolatileStorage implements Storage {
 
     private final Collection<Id> ids = new HashSet<>();
+
     private final Collection<User> users = new HashSet<>();
     private final Collection<BasicToken> basicTokens = new HashSet<>();
     private final Collection<Image> images = new HashSet<>();
@@ -25,7 +24,7 @@ public class VolatileDataProvider implements DataProvider {
     private final Collection<OAuth2AccessToken> oAuth2AccessTokens = new HashSet<>();
 
     @Override
-    public synchronized <T extends Id> T uniqueId(Supplier<String> randomizer, Function<String, T> supplier) {
+    public <T extends Id> T uniqueId(Supplier<String> randomizer, Function<String, T> supplier) {
         T id;
 
         do {
@@ -43,7 +42,7 @@ public class VolatileDataProvider implements DataProvider {
         return users.stream()
                 .filter(user -> user.id.equals(id))
                 .findFirst()
-                .orElseThrow(NotFoundException::new);
+                .orElse(null);
     }
 
     @Override
@@ -51,7 +50,7 @@ public class VolatileDataProvider implements DataProvider {
         return users.stream()
                 .filter(user -> user.username.equals(username))
                 .findFirst()
-                .orElseThrow(NotFoundException::new);
+                .orElse(null);
     }
 
     @Override
@@ -61,24 +60,7 @@ public class VolatileDataProvider implements DataProvider {
 
     @Override
     public void add(User user) {
-        if (user.username == null) {
-            throw new BadRequestException("Username not specified");
-        } else if (user.password == null) {
-            throw new BadRequestException("Password not specified");
-        }
-
-        // ID must be unique
-        if (users.stream().anyMatch(u -> u.id.equals(user.id))) {
-            throw new ForbiddenException("ID '" + user.id + "' already in use");
-        }
-
-        // Username must be unique
-        if (users.stream().anyMatch(u -> u.username.equals(user.username))) {
-            throw new ForbiddenException("Username '" + user.username + "' already in use");
-        }
-
         users.add(user);
-        ids.add(user.id);
     }
 
     @Override
@@ -90,15 +72,7 @@ public class VolatileDataProvider implements DataProvider {
 
     @Override
     public void remove(User.Id id) {
-        if (users.stream().noneMatch(u -> u.id.equals(id))) {
-            throw new NotFoundException();
-        }
-
         users.removeIf(user -> user.id.equals(id));
-        ids.remove(id);
-
-        images.removeIf(image -> image.info.owner.id.equals(id));
-        oAuth2Clients.removeIf(client -> client.owner.id.equals(id));
     }
 
     @Override
@@ -106,7 +80,7 @@ public class VolatileDataProvider implements DataProvider {
         return basicTokens.stream()
                 .filter(token -> token.id.equals(id))
                 .findFirst()
-                .orElseThrow(NotFoundException::new);
+                .orElse(null);
     }
 
     @Override
@@ -116,10 +90,6 @@ public class VolatileDataProvider implements DataProvider {
 
     @Override
     public void remove(BasicToken.Id id) {
-        if (basicTokens.stream().noneMatch(token -> token.id.equals(id))) {
-            throw new NotFoundException();
-        }
-
         basicTokens.removeIf(token -> token.id.equals(id));
         ids.remove(id);
     }
@@ -129,7 +99,7 @@ public class VolatileDataProvider implements DataProvider {
         return images.stream()
                 .filter(image -> image.info.id.equals(id))
                 .findFirst()
-                .orElseThrow(NotFoundException::new);
+                .orElse(null);
     }
 
     @Override
@@ -145,25 +115,12 @@ public class VolatileDataProvider implements DataProvider {
 
     @Override
     public void add(Image image) {
-        if (image.info.title == null) {
-            throw new BadRequestException("Title not specified");
-        }
-
-        // ID must be unique
-        if (images.stream().anyMatch(i -> i.info.id.equals(image.info.id))) {
-            throw new ForbiddenException("ID '" + image.info.id + "' already in use");
-        }
-
         images.add(image);
         ids.add(image.info.id);
     }
 
     @Override
     public void remove(Image.Id id) {
-        if (images.stream().noneMatch(i -> i.info.id.equals(id))) {
-            throw new NotFoundException();
-        }
-
         images.removeIf(image -> image.info.id.equals(id));
         ids.remove(id);
     }
@@ -173,7 +130,7 @@ public class VolatileDataProvider implements DataProvider {
         return oAuth2Clients.stream()
                 .filter(client -> client.id.equals(id))
                 .findFirst()
-                .orElseThrow(NotFoundException::new);
+                .orElse(null);
     }
 
     @Override
@@ -188,26 +145,11 @@ public class VolatileDataProvider implements DataProvider {
 
     @Override
     public void add(OAuth2Client client) {
-        if (client.name == null) {
-            throw new BadRequestException("Name not specified");
-        } else if (client.callback == null) {
-            throw new BadRequestException("Callback URL not specified");
-        }
-
-        // Name must be unique
-        if (oAuth2Clients.stream().anyMatch(c -> c.name.equals(client.name))) {
-            throw new ForbiddenException("Name '" + client.name + "'already in use");
-        }
-
         oAuth2Clients.add(client);
     }
 
     @Override
     public void remove(OAuth2Client.Id id) {
-        if (oAuth2Clients.stream().noneMatch(client -> client.id.equals(id))) {
-            throw new NotFoundException();
-        }
-
         oAuth2Clients.removeIf(client -> client.id.equals(id));
         ids.remove(id);
     }
@@ -217,7 +159,7 @@ public class VolatileDataProvider implements DataProvider {
         return oAuth2AuthCodes.stream()
                 .filter(code -> code.id.equals(id))
                 .findFirst()
-                .orElseThrow(NotFoundException::new);
+                .orElse(null);
     }
 
     @Override
@@ -227,10 +169,6 @@ public class VolatileDataProvider implements DataProvider {
 
     @Override
     public void remove(OAuth2AuthorizationCode.Id id) {
-        if (oAuth2AuthCodes.stream().noneMatch(code -> code.id.equals(id))) {
-            throw new NotFoundException();
-        }
-
         oAuth2AuthCodes.removeIf(code -> code.id.equals(id));
         ids.remove(id);
     }

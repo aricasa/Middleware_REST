@@ -3,16 +3,17 @@ package it.polimi.rest.api.oauth2;
 import it.polimi.rest.api.Api;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.data.DataProvider;
-import it.polimi.rest.sessions.SessionsManager;
+import it.polimi.rest.data.SessionsManager;
+import it.polimi.rest.data.Storage;
 import spark.Route;
 
 public final class OAuth2Server extends Api {
 
     public OAuth2Server(Authorizer authorizer,
                         SessionsManager sessionsManager,
-                        DataProvider dataProvider) {
+                        Storage storage) {
 
-        super(authorizer, sessionsManager, dataProvider, null);
+        super(authorizer, sessionsManager, storage);
     }
 
     public final Route clients = new Clients(proxy);

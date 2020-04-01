@@ -5,14 +5,14 @@ import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.session.SessionMessage;
-import it.polimi.rest.credentials.CredentialsManager;
+import it.polimi.rest.authentication.CredentialsManager;
 import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.data.SessionsManager;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.BasicToken;
 import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
-import it.polimi.rest.sessions.SessionsManager;
 import spark.Request;
 
 import java.util.Base64;
