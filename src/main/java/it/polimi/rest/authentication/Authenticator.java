@@ -38,7 +38,7 @@ public final class Authenticator {
             throw new BadRequestException("Password not specified");
         }
 
-        return Optional.of(storage.userByUsername(username))
+        return Optional.ofNullable(storage.userByUsername(username))
                 .filter(user -> user.username.equals(username) && user.password.equals(password))
                 .orElseThrow( () -> new UnauthorizedException(BASIC, "Wrong credentials"))
                 .id;
