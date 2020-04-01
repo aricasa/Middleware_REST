@@ -1,6 +1,6 @@
 package it.polimi.rest.api.oauth2;
 
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.TokenHeaderExtractor;
@@ -20,10 +20,10 @@ import java.util.Optional;
 class ClientRemove extends Responder<TokenId, OAuth2Client.Id> {
 
     private final Logger logger = new Logger(getClass());
-    private final AuthorizationProxy proxy;
+    private final SessionManager sessionManager;
 
-    public ClientRemove(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public ClientRemove(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -38,7 +38,7 @@ class ClientRemove extends Responder<TokenId, OAuth2Client.Id> {
 
     @Override
     protected Message process(TokenId token, OAuth2Client.Id clientId) {
-        DataProvider dataProvider = proxy.dataProvider(token);
+        DataProvider dataProvider = sessionManager.dataProvider(token);
         OAuth2Client client = dataProvider.oAuth2Client(clientId);
         dataProvider.remove(client.id);
 

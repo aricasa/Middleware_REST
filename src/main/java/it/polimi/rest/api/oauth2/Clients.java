@@ -1,6 +1,6 @@
 package it.polimi.rest.api.oauth2;
 
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.TokenHeaderExtractor;
@@ -19,10 +19,10 @@ import java.util.Optional;
  */
 class Clients extends Responder<TokenId, String> {
 
-    private final AuthorizationProxy proxy;
+    private final SessionManager sessionManager;
 
-    public Clients(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public Clients(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -37,7 +37,7 @@ class Clients extends Responder<TokenId, String> {
 
     @Override
     protected Message process(TokenId token, String username) {
-        DataProvider dataProvider = proxy.dataProvider(token);
+        DataProvider dataProvider = sessionManager.dataProvider(token);
         User user = dataProvider.userByUsername(username);
         // TODO: get directly via username (permissions issues)
         OAuth2ClientsList clients = dataProvider.oAuth2Clients(user.id);

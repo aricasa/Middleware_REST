@@ -1,7 +1,7 @@
 package it.polimi.rest.api.oauth2;
 
 import it.polimi.rest.adapters.GsonDeserializer;
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.TokenHeaderExtractor;
@@ -23,10 +23,10 @@ import java.util.Optional;
 class ClientAdd extends Responder<TokenId, ClientAdd.Data> {
 
     private final Logger logger = new Logger(getClass());
-    private final AuthorizationProxy proxy;
+    private final SessionManager sessionManager;
 
-    public ClientAdd(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public ClientAdd(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -44,7 +44,7 @@ class ClientAdd extends Responder<TokenId, ClientAdd.Data> {
 
     @Override
     protected Message process(TokenId token, ClientAdd.Data data) {
-        DataProvider dataProvider = proxy.dataProvider(token);
+        DataProvider dataProvider = sessionManager.dataProvider(token);
         User user = dataProvider.userByUsername(data.username);
 
         OAuth2Client.Id id = dataProvider.uniqueId(Id::randomizer, OAuth2Client.Id::new);

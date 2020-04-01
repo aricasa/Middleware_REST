@@ -1,27 +1,29 @@
 package it.polimi.rest.authentication;
 
-import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.data.Storage;
 import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.User;
 
+import java.util.Optional;
+
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 
-public final class CredentialsManager {
+public final class Authenticator {
 
-    private final DataProvider dataProvider;
+    private final Storage storage;
 
     /**
      * Constructor.
      *
-     * @param dataProvider  unsecured data provider
+     * @param storage   storage
      */
-    public CredentialsManager(DataProvider dataProvider) {
-        this.dataProvider = dataProvider;
+    public Authenticator(Storage storage) {
+        this.storage = storage;
     }
 
     /**
-     * Check if the password is correct.
+     * Check if the credentials are valid.
      *
      * @param username  username
      * @param password  password
@@ -36,9 +38,8 @@ public final class CredentialsManager {
             throw new BadRequestException("Password not specified");
         }
 
-        return dataProvider.users().stream()
+        return Optional.of(storage.userByUsername(username))
                 .filter(user -> user.username.equals(username) && user.password.equals(password))
-                .findFirst()
                 .orElseThrow( () -> new UnauthorizedException(BASIC, "Wrong credentials"))
                 .id;
     }

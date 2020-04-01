@@ -1,7 +1,7 @@
 package it.polimi.rest.api.oauth2;
 
 import it.polimi.rest.authorization.Agent;
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenBodyExtractor;
@@ -38,10 +38,10 @@ import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.INVALID_REQUEST;
  */
 public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> {
 
-    protected final AuthorizationProxy proxy;
+    protected final SessionManager sessionManager;
 
-    public Grant(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public Grant(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> 
 
     @Override
     protected Message process(BasicToken.Id token, OAuth2AuthorizationRequest data) {
-        OAuth2Client client = proxy.dataProvider(new Token() {
+        OAuth2Client client = sessionManager.dataProvider(new Token() {
             @Override
             public TokenId id() {
                 return null;
@@ -98,7 +98,7 @@ public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> 
             throw new OAuth2BadRequestException(INVALID_REQUEST, "Redirect URI mismatch", null);
         }
 
-        DataProvider dataProvider = proxy.dataProvider(token);
+        DataProvider dataProvider = sessionManager.dataProvider(token);
         User.Id user;
 
         try {
@@ -120,7 +120,7 @@ public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> 
 
             // Store the new authorization token and logout the user
             dataProvider.add(code);
-            proxy.sessionsManager(token).remove(token);
+            sessionManager.remove(token);
 
             // Redirect to the client callback URL
             String url = client.callback + "?code=" + code.id;

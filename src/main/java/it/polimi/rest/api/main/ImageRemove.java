@@ -1,12 +1,11 @@
 package it.polimi.rest.api.main;
 
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.TokenHeaderExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.image.ImageMessage;
-import it.polimi.rest.data.BaseDataProvider;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
@@ -19,10 +18,10 @@ import java.util.Optional;
  */
 class ImageRemove extends Responder<TokenId, Image.Id> {
 
-    private final AuthorizationProxy proxy;
+    private final SessionManager sessionManager;
 
-    public ImageRemove(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public ImageRemove(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -38,7 +37,7 @@ class ImageRemove extends Responder<TokenId, Image.Id> {
 
     @Override
     protected Message process(TokenId token, Image.Id data) {
-        DataProvider dataProvider = proxy.dataProvider(token);
+        DataProvider dataProvider = sessionManager.dataProvider(token);
         dataProvider.remove(data);
 
         logger.d("Image " + data + " removed");

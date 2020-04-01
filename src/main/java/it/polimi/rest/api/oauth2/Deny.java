@@ -1,7 +1,7 @@
 package it.polimi.rest.api.oauth2;
 
 import it.polimi.rest.authorization.Agent;
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException;
@@ -18,13 +18,13 @@ import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.INVALID_REQUEST;
  */
 public class Deny extends Grant {
 
-    public Deny(AuthorizationProxy proxy) {
-        super(proxy);
+    public Deny(SessionManager sessionManager) {
+        super(sessionManager);
     }
 
     @Override
     protected Message process(BasicToken.Id token, OAuth2AuthorizationRequest data) {
-        OAuth2Client client = proxy.dataProvider(new Token() {
+        OAuth2Client client = sessionManager.dataProvider(new Token() {
             @Override
             public TokenId id() {
                 return null;

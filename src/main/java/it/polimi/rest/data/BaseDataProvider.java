@@ -1,5 +1,6 @@
 package it.polimi.rest.data;
 
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.NotFoundException;
@@ -16,14 +17,16 @@ import java.util.function.Supplier;
 public class BaseDataProvider implements DataProvider {
 
     private final Storage storage;
+    private final SessionManager sessionManager;
 
     /**
      * Constructor.
      *
      * @param storage   storage
      */
-    public BaseDataProvider(Storage storage) {
+    public BaseDataProvider(Storage storage, SessionManager sessionManager) {
         this.storage = storage;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -57,7 +60,7 @@ public class BaseDataProvider implements DataProvider {
         }
 
         // Username must be unique
-        if (userByUsername(user.username) != null) {
+        if (storage.userByUsername(user.username) != null) {
             throw new ForbiddenException("Username '" + user.username + "' already in use");
         }
 
@@ -88,12 +91,14 @@ public class BaseDataProvider implements DataProvider {
     @Override
     public void add(BasicToken token) {
         storage.add(token);
+        sessionManager.add(token);
     }
 
     @Override
     public void remove(BasicToken.Id id) {
         BasicToken basicToken = basicToken(id);
         storage.remove(basicToken.id);
+        sessionManager.remove(basicToken.id);
     }
 
     @Override
@@ -176,12 +181,14 @@ public class BaseDataProvider implements DataProvider {
     @Override
     public void add(OAuth2AccessToken token) {
         storage.add(token);
+        sessionManager.add(token);
     }
 
     @Override
     public void remove(OAuth2AccessToken.Id id) {
         OAuth2AccessToken token = oAuth2AccessToken(id);
         storage.remove(token.id);
+        sessionManager.remove(token.id);
     }
 
 }

@@ -1,12 +1,11 @@
 package it.polimi.rest.api.main;
 
 import it.polimi.rest.adapters.GsonDeserializer;
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.user.UserMessage;
-import it.polimi.rest.data.BaseDataProvider;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
@@ -20,10 +19,10 @@ import java.util.Optional;
  */
 class UserAdd extends Responder<TokenId, User> {
 
-    private final AuthorizationProxy proxy;
+    private final SessionManager sessionManager;
 
-    public UserAdd(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public UserAdd(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -38,7 +37,7 @@ class UserAdd extends Responder<TokenId, User> {
 
     @Override
     protected Message process(TokenId token, User data) {
-        DataProvider dataProvider = proxy.dataProvider(token);
+        DataProvider dataProvider = sessionManager.dataProvider(token);
 
         User.Id userId = dataProvider.uniqueId(Id::randomizer, User.Id::new);
         User user = new User(userId, data.username, data.password);

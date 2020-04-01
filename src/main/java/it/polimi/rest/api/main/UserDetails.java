@@ -1,8 +1,9 @@
 package it.polimi.rest.api.main;
 
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
+import it.polimi.rest.communication.TokenHeaderExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.user.UserMessage;
 import it.polimi.rest.data.DataProvider;
@@ -13,19 +14,19 @@ import spark.Request;
 import java.util.Optional;
 
 /**
- * The the details of a user.
+ * Get the details of a user.
  */
 class UserDetails extends Responder<TokenId, String> {
 
-    private final AuthorizationProxy proxy;
+    private final SessionManager sessionManager;
 
-    public UserDetails(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public UserDetails(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
     protected Optional<TokenExtractor<TokenId>> tokenExtractor() {
-        return Optional.empty();
+        return Optional.of(new TokenHeaderExtractor<>(TokenId::new));
     }
 
     @Override
@@ -35,7 +36,7 @@ class UserDetails extends Responder<TokenId, String> {
 
     @Override
     protected Message process(TokenId token, String username) {
-        DataProvider dataProvider = proxy.dataProvider(token);
+        DataProvider dataProvider = sessionManager.dataProvider(token);
         User user = dataProvider.userByUsername(username);
         return UserMessage.details(user);
     }

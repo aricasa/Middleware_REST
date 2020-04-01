@@ -1,6 +1,6 @@
 package it.polimi.rest.api.main;
 
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.TokenHeaderExtractor;
@@ -17,10 +17,10 @@ import java.util.Optional;
  */
 public class Logout extends Responder<TokenId, BasicToken.Id> {
 
-    private final AuthorizationProxy proxy;
+    private final SessionManager sessionManager;
 
-    public Logout(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public Logout(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -36,8 +36,8 @@ public class Logout extends Responder<TokenId, BasicToken.Id> {
 
     @Override
     protected Message process(TokenId token, BasicToken.Id data) {
-        proxy.sessionsManager(token).remove(data);
-        proxy.dataProvider(token).remove(data);
+        sessionManager.dataProvider(token).remove(data);
+        sessionManager.remove(data);
 
         logger.d("Session " + data + " terminated");
         return SessionMessage.deletion();

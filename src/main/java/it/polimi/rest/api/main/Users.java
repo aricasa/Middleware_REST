@@ -1,6 +1,6 @@
 package it.polimi.rest.api.main;
 
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.TokenHeaderExtractor;
@@ -18,10 +18,10 @@ import java.util.Optional;
  */
 class Users extends Responder<TokenId, Void> {
 
-    private final AuthorizationProxy proxy;
+    private final SessionManager sessionManager;
 
-    public Users(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public Users(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -36,7 +36,7 @@ class Users extends Responder<TokenId, Void> {
 
     @Override
     protected Message process(TokenId token, Void data) {
-        DataProvider dataProvider = proxy.dataProvider(token);
+        DataProvider dataProvider = sessionManager.dataProvider(token);
         UsersList users = dataProvider.users();
         return UserMessage.list(users);
     }

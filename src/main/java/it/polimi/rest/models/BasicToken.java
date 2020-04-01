@@ -4,6 +4,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
 import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.Token;
+import it.polimi.rest.data.DataProvider;
 
 import java.util.*;
 
@@ -45,6 +46,11 @@ public class BasicToken implements Token, Model {
     public boolean isValid() {
         Calendar now = Calendar.getInstance();
         return now.before(expiration);
+    }
+
+    @Override
+    public void onExpiration(DataProvider dataProvider) {
+        dataProvider.remove(id);
     }
 
     @Override

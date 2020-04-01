@@ -18,7 +18,7 @@ class RootPage extends Responder<TokenId, Void> {
 
     @Override
     protected Optional<TokenExtractor<TokenId>> tokenExtractor() {
-        return Optional.of(new TokenHeaderExtractor<>(TokenId::new));
+        return Optional.empty();
     }
 
     @Override

@@ -187,7 +187,7 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.add(image);
-        authorizer.grant(image.info.id, agent, Permission.WRITE);
+        authorizer.grant(image.info.id, image.info.owner.id, Permission.WRITE);
     }
 
     @Override

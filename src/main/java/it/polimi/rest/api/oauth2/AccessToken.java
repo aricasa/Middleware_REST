@@ -1,7 +1,7 @@
 package it.polimi.rest.api.oauth2;
 
 import it.polimi.rest.authorization.Agent;
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
@@ -35,13 +35,13 @@ import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.INVALID_GRANT;
  */
 class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
 
-    private final AuthorizationProxy proxy;
+    private final SessionManager sessionManager;
 
     /** OAuth2 access token lifetime (in seconds) */
     private static final int ACCESS_TOKEN_LIFETIME = 3600;
 
-    public AccessToken(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public AccessToken(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -131,7 +131,7 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
             }
         };
 
-        DataProvider dataProvider = proxy.dataProvider(fakeToken);
+        DataProvider dataProvider = sessionManager.dataProvider(fakeToken);
 
         try {
             OAuth2Client client = dataProvider.oAuth2Client(data.clientId);
@@ -169,7 +169,6 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
                     code.scope
             );
 
-            proxy.sessionsManager(accessToken).add(accessToken);
             dataProvider.add(accessToken);
 
             return OAuth2AccessTokenMessage.creation(accessToken);

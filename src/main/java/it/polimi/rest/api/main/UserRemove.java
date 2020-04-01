@@ -1,13 +1,11 @@
 package it.polimi.rest.api.main;
 
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.TokenHeaderExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.user.UserMessage;
-import it.polimi.rest.authentication.CredentialsManager;
-import it.polimi.rest.data.BaseDataProvider;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
@@ -20,12 +18,10 @@ import java.util.Optional;
  */
 class UserRemove extends Responder<TokenId, String> {
 
-    private final AuthorizationProxy proxy;
-    private final CredentialsManager credentialsManager;
+    private final SessionManager sessionManager;
 
-    public UserRemove(AuthorizationProxy proxy, CredentialsManager credentialsManager) {
-        this.proxy = proxy;
-        this.credentialsManager = credentialsManager;
+    public UserRemove(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -40,7 +36,7 @@ class UserRemove extends Responder<TokenId, String> {
 
     @Override
     protected Message process(TokenId token, String username) {
-        DataProvider dataProvider = proxy.dataProvider(token);
+        DataProvider dataProvider = sessionManager.dataProvider(token);
 
         User user = dataProvider.userByUsername(username);
         dataProvider.remove(user.id);

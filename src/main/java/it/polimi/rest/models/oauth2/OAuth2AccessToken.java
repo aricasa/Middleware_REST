@@ -8,6 +8,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
 import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.Token;
+import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
 import it.polimi.rest.models.oauth2.scope.Scope;
@@ -63,6 +64,11 @@ public class OAuth2AccessToken implements Token, Agent {
     public boolean isValid() {
         Calendar now = Calendar.getInstance();
         return now.before(expiration);
+    }
+
+    @Override
+    public void onExpiration(DataProvider dataProvider) {
+        dataProvider.remove(id);
     }
 
     @JsonAdapter(Id.Adapter.class)

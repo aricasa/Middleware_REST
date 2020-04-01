@@ -6,6 +6,7 @@ import it.polimi.rest.api.main.ResourcesServer;
 import it.polimi.rest.api.oauth2.OAuth2Server;
 import it.polimi.rest.authorization.ACL;
 import it.polimi.rest.authorization.Authorizer;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.data.*;
@@ -109,12 +110,11 @@ public class App {
 
     public static void main(String[] args) {
         Authorizer authorizer = new ACL();
-
         Storage storage = new VolatileStorage();
-        SessionsManager sessionsManager = new VolatileSessionsManager();
+        SessionManager sessionManager = new SessionManager(authorizer, storage);
 
-        ResourcesServer resourcesServer = new ResourcesServer(authorizer, sessionsManager, storage);
-        OAuth2Server oAuth2Server = new OAuth2Server(authorizer, sessionsManager, storage);
+        ResourcesServer resourcesServer = new ResourcesServer(storage, sessionManager);
+        OAuth2Server oAuth2Server = new OAuth2Server(storage, sessionManager);
 
         App app = new App(resourcesServer, oAuth2Server);
         app.start();

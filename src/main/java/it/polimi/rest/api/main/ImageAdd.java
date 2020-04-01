@@ -1,6 +1,6 @@
 package it.polimi.rest.api.main;
 
-import it.polimi.rest.authorization.AuthorizationProxy;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.TokenHeaderExtractor;
@@ -24,10 +24,10 @@ import java.util.Optional;
  */
 class ImageAdd extends Responder<TokenId, ImageAdd.Data> {
 
-    private final AuthorizationProxy proxy;
+    private final SessionManager sessionManager;
 
-    public ImageAdd(AuthorizationProxy proxy) {
-        this.proxy = proxy;
+    public ImageAdd(SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -57,7 +57,7 @@ class ImageAdd extends Responder<TokenId, ImageAdd.Data> {
 
     @Override
     protected Message process(TokenId token, Data data) {
-        DataProvider dataProvider = proxy.dataProvider(token);
+        DataProvider dataProvider = sessionManager.dataProvider(token);
 
         User user = dataProvider.userByUsername(data.username);
 

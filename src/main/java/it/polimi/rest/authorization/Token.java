@@ -1,5 +1,6 @@
 package it.polimi.rest.authorization;
 
+import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.TokenId;
 
 public interface Token {
@@ -25,5 +26,15 @@ public interface Token {
      * @return validity
      */
     boolean isValid();
+
+    /**
+     * Called when the token has been recognized as no more valid.
+     * The method should leverage the given data provider to remove itself.
+     *
+     * @param dataProvider  data provider
+     */
+    default void onExpiration(DataProvider dataProvider) {
+
+    }
 
 }
