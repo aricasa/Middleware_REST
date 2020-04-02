@@ -1,8 +1,6 @@
 package it.polimi.rest.api.oauth2;
 
-import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.SessionManager;
-import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.messages.Message;
@@ -114,29 +112,7 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
 
     @Override
     protected Message process(TokenId token, OAuth2AccessTokenRequest data) {
-        Token fakeToken = new Token() {
-            @Override
-            public TokenId id() {
-                return null;
-            }
-
-            @Override
-            public Agent agent() {
-                return data.clientId;
-            }
-
-            @Override
-            public boolean isValid() {
-                return true;
-            }
-
-            @Override
-            public void onExpiration(DataProvider dataProvider, SessionManager sessionManager) {
-
-            }
-        };
-
-        DataProvider dataProvider = sessionManager.dataProvider(fakeToken);
+        DataProvider dataProvider = sessionManager.dataProvider(data.clientId);
 
         try {
             OAuth2Client client = dataProvider.oAuth2Client(data.clientId);
@@ -153,6 +129,11 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
 
         try {
             OAuth2AuthorizationCode code = dataProvider.oAuth2AuthCode(data.code);
+
+            if (!code.client.equals(data.clientId)) {
+                // The authorization code was issued to another client
+                throw new OAuth2BadRequestException(INVALID_GRANT, null, null);
+            }
 
             if (!code.isValid()) {
                 // The authorization code has expired
@@ -173,15 +154,15 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
                     code.client,
                     code.user,
                     code.scope,
-                    null
+                    null // TODO: refresh token
             );
 
             dataProvider.add(accessToken);
 
             return OAuth2AccessTokenMessage.creation(accessToken);
 
-        } catch (NotFoundException | ForbiddenException e) {
-            // Authorization code doesn't exist or was issued to another client
+        } catch (NotFoundException e) {
+            // Authorization code doesn't exist
             throw new OAuth2BadRequestException(INVALID_GRANT, null, null);
         }
     }

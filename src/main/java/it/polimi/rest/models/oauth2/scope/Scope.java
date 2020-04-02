@@ -6,6 +6,7 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.annotations.JsonAdapter;
 import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.Authorizer;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException;
 import it.polimi.rest.exceptions.oauth2.OAuth2Exception;
@@ -50,10 +51,10 @@ public abstract class Scope {
                 .collect(Collectors.toList());
     }
 
-    protected abstract void addPermissions(Authorizer authorizer, DataProvider dataProvider, User.Id user, Agent agent);
+    protected abstract void addPermissions(Authorizer authorizer, SessionManager sessionManager, User.Id user, Agent agent);
 
-    public final void addPermissions(Authorizer authorizer, DataProvider dataProvider, OAuth2AccessToken token) {
-        addPermissions(authorizer, dataProvider, token.user, token.id);
+    public final void addPermissions(Authorizer authorizer, SessionManager sessionManager, OAuth2AccessToken token) {
+        addPermissions(authorizer, sessionManager, token.user, token.id);
     }
 
     public static class Adapter implements JsonSerializer<Scope> {

@@ -1,13 +1,9 @@
 package it.polimi.rest.api.oauth2;
 
-import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.SessionManager;
-import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.messages.Message;
-import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException;
 import it.polimi.rest.models.BasicToken;
-import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationRequest;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 
@@ -25,27 +21,7 @@ public class Deny extends Grant {
 
     @Override
     protected Message process(BasicToken.Id token, OAuth2AuthorizationRequest data) {
-        OAuth2Client client = sessionManager.dataProvider(new Token() {
-            @Override
-            public TokenId id() {
-                return null;
-            }
-
-            @Override
-            public Agent agent() {
-                return data.client;
-            }
-
-            @Override
-            public boolean isValid() {
-                return true;
-            }
-
-            @Override
-            public void onExpiration(DataProvider dataProvider, SessionManager sessionManager) {
-
-            }
-        }).oAuth2Client(data.client);
+        OAuth2Client client = sessionManager.dataProvider(data.client).oAuth2Client(data.client);
 
         if (!client.callback.equals(data.callback)) {
             // Invalid redirect URI.

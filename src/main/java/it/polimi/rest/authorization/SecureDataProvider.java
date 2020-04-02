@@ -10,18 +10,19 @@ import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
-import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BEARER;
 
 class SecureDataProvider extends DataProvider {
 
     private final Authorizer authorizer;
+    private final SessionManager sessionManager;
     private final Agent agent;
 
     public SecureDataProvider(Storage storage, SessionManager sessionManager, Authorizer authorizer, Agent agent) {
         super(storage, sessionManager);
 
         this.authorizer = authorizer;
+        this.sessionManager = sessionManager;
         this.agent = agent;
     }
 
@@ -67,6 +68,7 @@ class SecureDataProvider extends DataProvider {
     @Override
     public void add(User user) {
         super.add(user);
+
         authorizer.grant(user.id, user.id, Permission.WRITE);
         authorizer.grant(ImagesList.placeholder(user), user.id, Permission.WRITE);
         authorizer.grant(OAuth2ClientsList.placeholder(user), user.id, Permission.WRITE);
@@ -100,7 +102,8 @@ class SecureDataProvider extends DataProvider {
         }
 
         super.remove(id);
-        authorizer.removeObject(id);
+
+        authorizer.remove(id);
     }
 
     @Override
@@ -137,7 +140,8 @@ class SecureDataProvider extends DataProvider {
         }
 
         super.remove(id);
-        authorizer.removeObject(id);
+
+        authorizer.remove(id);
     }
 
     @Override
@@ -198,7 +202,8 @@ class SecureDataProvider extends DataProvider {
         }
 
         super.remove(id);
-        authorizer.removeObject(id);
+
+        authorizer.remove(id);
     }
 
     @Override
@@ -244,6 +249,7 @@ class SecureDataProvider extends DataProvider {
         }
 
         super.add(client);
+
         authorizer.grant(client.id, owner.id, Permission.WRITE);
         authorizer.grant(client.id, client.id, Permission.READ);
     }
@@ -261,54 +267,24 @@ class SecureDataProvider extends DataProvider {
         }
 
         super.remove(id);
-        authorizer.removeObject(id);
+
+        authorizer.remove(id);
     }
 
     @Override
     public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.Id id) {
-        if (agent == null) {
-            throw new UnauthorizedException(BASIC);
-        }
-
-        OAuth2AuthorizationCode code = super.oAuth2AuthCode(id);
-
-        if (!authorizer.get(code.id, agent).read) {
-            throw new ForbiddenException();
-        }
-
-        return code;
+        return super.oAuth2AuthCode(id);
     }
 
     @Override
     public void add(OAuth2AuthorizationCode code) {
-        if (agent == null) {
-            throw new UnauthorizedException(BEARER);
-        }
-
-        OAuth2Client client = oAuth2Client(code.client);
-
-        if (!authorizer.get(client.id, agent).write) {
-            throw new ForbiddenException();
-        }
-
         super.add(code);
-        authorizer.grant(code.id, code.client, Permission.WRITE);
     }
 
     @Override
     public void remove(OAuth2AuthorizationCode.Id id) {
-        if (agent == null) {
-            throw new ForbiddenException();
-        }
-
-        OAuth2AuthorizationCode code = oAuth2AuthCode(id);
-
-        if (!authorizer.get(code.id, agent).write) {
-            throw new ForbiddenException();
-        }
-
-        super.remove(code.id);
-        authorizer.removeObject(code.id);
+        super.remove(id);
+        authorizer.remove(id);
     }
 
     @Override
@@ -319,15 +295,13 @@ class SecureDataProvider extends DataProvider {
     @Override
     public void add(OAuth2AccessToken token) {
         super.add(token);
-        token.scope.forEach(scope -> scope.addPermissions(authorizer, this, token));
+        token.scope.forEach(scope -> scope.addPermissions(authorizer, sessionManager, token));
     }
 
     @Override
     public void remove(OAuth2AccessToken.Id id) {
-        OAuth2AccessToken token = oAuth2AccessToken(id);
-
         super.remove(id);
-        authorizer.removeObject(token.id);
+        authorizer.remove(id);
     }
 
 }

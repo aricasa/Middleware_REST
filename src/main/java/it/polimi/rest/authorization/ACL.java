@@ -11,24 +11,20 @@ public class ACL implements Authorizer {
     private final Collection<Authorization> authorizations = new HashSet<>();
 
     public void grant(SecuredObject obj, Agent agent, Permission permission) {
-        removeObject(obj, agent);
+        remove(obj, agent);
         authorizations.add(new Authorization(obj, agent, permission));
     }
 
-    public void removeObject(SecuredObject obj, Agent agent) {
+    public void remove(SecuredObject obj, Agent agent) {
         authorizations.removeIf(auth ->
                 auth.obj.equals(obj) &&
                 auth.agent.equals(agent));
     }
 
-    public void removeObject(SecuredObject obj) {
+    public void remove(Object object) {
         authorizations.removeIf(auth ->
-                auth.obj.equals(obj));
-    }
-
-    public void removeAgent(Agent agent) {
-        authorizations.removeIf(auth ->
-                auth.agent.equals(agent));
+                auth.obj.equals(object) ||
+                auth.agent.equals(object));
     }
 
     public Permission get(SecuredObject obj, Agent agent) {

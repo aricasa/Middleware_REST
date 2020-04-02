@@ -1,8 +1,6 @@
 package it.polimi.rest.models.oauth2.scope;
 
-import it.polimi.rest.authorization.Agent;
-import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.Permission;
+import it.polimi.rest.authorization.*;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.ImagesList;
 import it.polimi.rest.models.User;
@@ -14,7 +12,9 @@ class ReadImages extends Scope {
     }
 
     @Override
-    protected void addPermissions(Authorizer authorizer, DataProvider dataProvider, User.Id user, Agent agent) {
+    protected void addPermissions(Authorizer authorizer, SessionManager sessionManager, User.Id user, Agent agent) {
+        DataProvider dataProvider = sessionManager.dataProvider(user);
+
         User u = dataProvider.userById(user);
 
         ImagesList images = dataProvider.images(u.username);

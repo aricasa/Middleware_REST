@@ -38,6 +38,10 @@ public class SessionManager {
 
     public DataProvider dataProvider(Token token) {
         Agent agent = token == null || !token.isValid() ? null : token.agent();
+        return dataProvider(agent);
+    }
+
+    public DataProvider dataProvider(Agent agent) {
         return new SecureDataProvider(storage, this, authorizer, agent);
     }
 

@@ -73,14 +73,14 @@ public class DataProvider {
     public void remove(User.Id id) {
         User user = userById(id);
 
-        storage.images(user.username).forEach(image -> remove(image.id));
-        storage.oAuth2Clients(user.id).forEach(client -> remove(client.id));
-
         storage.basicTokens().forEach(token -> {
             if (token.user.equals(user.id)) {
                 remove(token.id);
             }
         });
+
+        storage.images(user.username).forEach(image -> remove(image.id));
+        storage.oAuth2Clients(user.id).forEach(client -> remove(client.id));
 
         storage.oAuth2AuthorizationCodes().forEach(code -> {
             if (code.user.equals(user.id)) {

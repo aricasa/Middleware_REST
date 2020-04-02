@@ -75,27 +75,7 @@ public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> 
 
     @Override
     protected Message process(BasicToken.Id token, OAuth2AuthorizationRequest data) {
-        OAuth2Client client = sessionManager.dataProvider(new Token() {
-            @Override
-            public TokenId id() {
-                return null;
-            }
-
-            @Override
-            public Agent agent() {
-                return data.client;
-            }
-
-            @Override
-            public boolean isValid() {
-                return true;
-            }
-
-            @Override
-            public void onExpiration(DataProvider dataProvider, SessionManager sessionManager) {
-
-            }
-        }).oAuth2Client(data.client);
+        OAuth2Client client = sessionManager.dataProvider(data.client).oAuth2Client(data.client);
 
         if (!client.callback.equals(data.callback)) {
             // Invalid redirect URI.
