@@ -22,6 +22,8 @@ public class OAuth2AuthorizationCode {
     public final String redirectUri;
     public final Collection<Scope> scope;
     public final Calendar expiration;
+
+    /** User who granted the access to his account. */
     public final User.Id user;
 
     public OAuth2AuthorizationCode(Id id,

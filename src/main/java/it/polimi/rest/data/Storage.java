@@ -7,6 +7,7 @@ import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
+import java.util.Collection;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -22,30 +23,33 @@ public interface Storage {
 
     User userById(User.Id id);
     User userByUsername(String username);
-    UsersList users();
+    Collection<User> users();
     void add(User user);
     void update(User user);
     void remove(User.Id id);
 
+    Collection<BasicToken> basicTokens();
     BasicToken basicToken(BasicToken.Id id);
     void add(BasicToken token);
     void remove(BasicToken.Id id);
 
     Image image(Image.Id id);
-    ImagesList images(String username);
+    Collection<ImageMetadata> images(String username);
     void add(Image image);
     void remove(Image.Id id);
 
     OAuth2Client oAuth2Client(OAuth2Client.Id id);
-    OAuth2ClientsList oAuth2Clients(User.Id user);
+    Collection<OAuth2Client> oAuth2Clients(User.Id user);
     void add(OAuth2Client client);
     void remove(OAuth2Client.Id id);
 
     OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.Id id);
+    Collection<OAuth2AuthorizationCode> oAuth2AuthorizationCodes();
     void add(OAuth2AuthorizationCode code);
     void remove(OAuth2AuthorizationCode.Id id);
 
     OAuth2AccessToken oAuth2AccessToken(OAuth2AccessToken.Id id);
+    Collection<OAuth2AccessToken> oAuth2AccessTokens();
     void add(OAuth2AccessToken token);
     void remove(OAuth2AccessToken.Id id);
 

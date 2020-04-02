@@ -5,7 +5,6 @@ import it.polimi.rest.models.*;
 import it.polimi.rest.models.oauth2.OAuth2AccessToken;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
 import java.util.*;
 import java.util.function.Function;
@@ -54,8 +53,8 @@ public class VolatileStorage implements Storage {
     }
 
     @Override
-    public UsersList users() {
-        return new UsersList(users);
+    public Collection<User> users() {
+        return Collections.unmodifiableCollection(users);
     }
 
     @Override
@@ -73,6 +72,11 @@ public class VolatileStorage implements Storage {
     @Override
     public void remove(User.Id id) {
         users.removeIf(user -> user.id.equals(id));
+    }
+
+    @Override
+    public Collection<BasicToken> basicTokens() {
+        return Collections.unmodifiableCollection(basicTokens);
     }
 
     @Override
@@ -103,14 +107,14 @@ public class VolatileStorage implements Storage {
     }
 
     @Override
-    public ImagesList images(String username) {
+    public Collection<ImageMetadata> images(String username) {
         User owner = userByUsername(username);
 
-        return new ImagesList(owner, images.stream()
+        return images.stream()
                 .filter(image -> image.info.owner.id.equals(owner.id))
                 .map(image -> image.info)
                 .sorted(Comparator.comparing(o -> o.title))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -134,13 +138,13 @@ public class VolatileStorage implements Storage {
     }
 
     @Override
-    public OAuth2ClientsList oAuth2Clients(User.Id user) {
+    public Collection<OAuth2Client> oAuth2Clients(User.Id user) {
         User owner = userById(user);
 
-        return new OAuth2ClientsList(owner, oAuth2Clients.stream()
+        return oAuth2Clients.stream()
                 .filter(client -> client.owner.id.equals(owner.id))
                 .sorted(Comparator.comparing(client -> client.name))
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -163,6 +167,11 @@ public class VolatileStorage implements Storage {
     }
 
     @Override
+    public Collection<OAuth2AuthorizationCode> oAuth2AuthorizationCodes() {
+        return Collections.unmodifiableCollection(oAuth2AuthCodes);
+    }
+
+    @Override
     public void add(OAuth2AuthorizationCode code) {
         oAuth2AuthCodes.add(code);
     }
@@ -179,6 +188,11 @@ public class VolatileStorage implements Storage {
                 .filter(token -> token.id.equals(id))
                 .findFirst()
                 .orElseThrow(NotFoundException::new);
+    }
+
+    @Override
+    public Collection<OAuth2AccessToken> oAuth2AccessTokens() {
+        return Collections.unmodifiableCollection(oAuth2AccessTokens);
     }
 
     @Override

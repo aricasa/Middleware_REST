@@ -170,8 +170,10 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
             OAuth2AccessToken accessToken = new OAuth2AccessToken(
                     dataProvider.uniqueId(Id::randomizer, OAuth2AccessToken.Id::new),
                     ACCESS_TOKEN_LIFETIME,
+                    code.client,
                     code.user,
-                    code.scope
+                    code.scope,
+                    null
             );
 
             dataProvider.add(accessToken);

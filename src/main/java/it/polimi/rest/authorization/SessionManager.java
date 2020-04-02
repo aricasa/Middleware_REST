@@ -1,6 +1,5 @@
 package it.polimi.rest.authorization;
 
-import it.polimi.rest.data.BaseDataProvider;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.data.Storage;
 import it.polimi.rest.exceptions.ForbiddenException;
@@ -14,13 +13,13 @@ import java.util.HashSet;
 public class SessionManager {
 
     private final Authorizer authorizer;
-    private final DataProvider dataProvider;
+    private final Storage storage;
 
     private final Collection<Token> tokens = new HashSet<>();
 
     public SessionManager(Authorizer authorizer, Storage storage) {
         this.authorizer = authorizer;
-        this.dataProvider = new BaseDataProvider(storage, this);
+        this.storage = storage;
     }
 
     public DataProvider dataProvider(TokenId tokenId) {
@@ -39,7 +38,7 @@ public class SessionManager {
 
     public DataProvider dataProvider(Token token) {
         Agent agent = token == null || !token.isValid() ? null : token.agent();
-        return new SecureDataProvider(dataProvider, authorizer, agent);
+        return new SecureDataProvider(storage, this, authorizer, agent);
     }
 
     public Token token(TokenId id) {
@@ -49,6 +48,7 @@ public class SessionManager {
                 .orElseThrow(NotFoundException::new);
 
         if (!result.isValid()) {
+            DataProvider dataProvider = new DataProvider(storage, this);
             result.onExpiration(dataProvider, this);
             throw new NotFoundException();
         }
