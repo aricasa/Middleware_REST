@@ -16,6 +16,7 @@ public interface OAuth2Exception {
     String INVALID_REQUEST = "invalid_request";
     String INVALID_SCOPE = "invalid_scope";
     String SERVER_ERROR = "server_error";
+    String UNSUPPORTED_GRANT_TYPE = "unsupported_grant_type";
 
     String error();
     String errorDescription();

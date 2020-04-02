@@ -7,21 +7,34 @@ import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.TokenId;
+import it.polimi.rest.models.User;
+import it.polimi.rest.models.oauth2.scope.Scope;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 
 public class OAuth2RefreshToken implements Token {
 
     @Expose
     public final Id id;
 
-    private final Calendar expiration;
+    public final OAuth2AccessToken.Id accessToken;
+    public final OAuth2Client.Id client;
+    public final User.Id user;
+    public final Collection<Scope> scope;
 
-    public OAuth2RefreshToken(OAuth2RefreshToken.Id id, int lifeTime) {
+    public OAuth2RefreshToken(OAuth2RefreshToken.Id id,
+                              OAuth2AccessToken.Id accessToken,
+                              OAuth2Client.Id client,
+                              User.Id user,
+                              Collection<Scope> scope) {
+
         this.id = id;
-
-        this.expiration = Calendar.getInstance();
-        this.expiration.add(Calendar.SECOND, lifeTime);
+        this.accessToken = accessToken;
+        this.client = client;
+        this.user = user;
+        this.scope = new ArrayList<>(scope);
     }
 
     @Override
@@ -36,13 +49,12 @@ public class OAuth2RefreshToken implements Token {
 
     @Override
     public boolean isValid() {
-        Calendar now = Calendar.getInstance();
-        return now.before(expiration);
+        return true;
     }
 
     @Override
     public void onExpiration(DataProvider dataProvider, SessionManager sessionManager) {
-        //dataProvider.remove(id);
+
     }
 
     @JsonAdapter(Id.Adapter.class)

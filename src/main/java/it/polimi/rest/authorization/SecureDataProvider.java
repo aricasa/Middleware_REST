@@ -6,7 +6,6 @@ import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
 import it.polimi.rest.models.oauth2.OAuth2AccessToken;
-import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.OAuth2ClientsList;
 
@@ -269,27 +268,6 @@ class SecureDataProvider extends DataProvider {
         super.remove(id);
 
         authorizer.remove(id);
-    }
-
-    @Override
-    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.Id id) {
-        return super.oAuth2AuthCode(id);
-    }
-
-    @Override
-    public void add(OAuth2AuthorizationCode code) {
-        super.add(code);
-    }
-
-    @Override
-    public void remove(OAuth2AuthorizationCode.Id id) {
-        super.remove(id);
-        authorizer.remove(id);
-    }
-
-    @Override
-    public OAuth2AccessToken oAuth2AccessToken(OAuth2AccessToken.Id id) {
-        return super.oAuth2AccessToken(id);
     }
 
     @Override

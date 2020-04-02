@@ -1,8 +1,6 @@
 package it.polimi.rest.api.oauth2;
 
-import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.SessionManager;
-import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.Responder;
 import it.polimi.rest.communication.TokenBodyExtractor;
 import it.polimi.rest.communication.TokenExtractor;
@@ -15,19 +13,14 @@ import it.polimi.rest.exceptions.RedirectionException;
 import it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException;
 import it.polimi.rest.models.BasicToken;
 import it.polimi.rest.models.Id;
-import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
-import it.polimi.rest.models.oauth2.OAuth2AuthorizationRequest;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
 import it.polimi.rest.utils.RequestUtils;
 import spark.Request;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,7 +29,7 @@ import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.INVALID_REQUEST;
 /**
  * Grant the access to the resources.
  */
-public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> {
+public class Grant extends Responder<BasicToken.Id, Grant.Data> {
 
     protected final SessionManager sessionManager;
 
@@ -50,7 +43,7 @@ public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> 
     }
 
     @Override
-    protected OAuth2AuthorizationRequest deserialize(Request request) {
+    protected Data deserialize(Request request) {
         Map<String, String> params = RequestUtils.bodyParams(request);
 
         String responseType = params.get("response_type");
@@ -70,11 +63,11 @@ public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> 
 
         String state = params.get("state");
 
-        return new OAuth2AuthorizationRequest(responseType, clientId, redirectUri, scope, state);
+        return new Data(responseType, clientId, redirectUri, scope, state);
     }
 
     @Override
-    protected Message process(BasicToken.Id token, OAuth2AuthorizationRequest data) {
+    protected Message process(BasicToken.Id token, Data data) {
         OAuth2Client client = sessionManager.dataProvider(data.client).oAuth2Client(data.client);
 
         if (!client.callback.equals(data.callback)) {
@@ -119,5 +112,24 @@ public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> 
             throw e.redirect(client.callback, data.state);
         }
     }
+
+    protected static class Data {
+
+        public final String responseType;
+        public final OAuth2Client.Id client;
+        public final String callback;
+        public final Collection<String> scopes;
+        public final String state;
+
+        public Data(String responseType, OAuth2Client.Id client, String callback, Collection<String> scopes, String state) {
+            this.responseType = responseType;
+            this.client = client;
+            this.callback = callback;
+            this.scopes = Collections.unmodifiableCollection(new ArrayList<>(scopes));
+            this.state = state;
+        }
+
+    }
+
 
 }

@@ -4,7 +4,6 @@ import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException;
 import it.polimi.rest.models.BasicToken;
-import it.polimi.rest.models.oauth2.OAuth2AuthorizationRequest;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 
 import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.ACCESS_DENIED;
@@ -20,7 +19,7 @@ public class Deny extends Grant {
     }
 
     @Override
-    protected Message process(BasicToken.Id token, OAuth2AuthorizationRequest data) {
+    protected Message process(BasicToken.Id token, Data data) {
         OAuth2Client client = sessionManager.dataProvider(data.client).oAuth2Client(data.client);
 
         if (!client.callback.equals(data.callback)) {

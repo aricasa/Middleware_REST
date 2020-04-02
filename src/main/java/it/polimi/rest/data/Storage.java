@@ -2,10 +2,7 @@ package it.polimi.rest.data;
 
 import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
-import it.polimi.rest.models.oauth2.OAuth2AccessToken;
-import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
-import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.models.oauth2.OAuth2ClientsList;
+import it.polimi.rest.models.oauth2.*;
 
 import java.util.Collection;
 import java.util.function.Function;
@@ -52,5 +49,10 @@ public interface Storage {
     Collection<OAuth2AccessToken> oAuth2AccessTokens();
     void add(OAuth2AccessToken token);
     void remove(OAuth2AccessToken.Id id);
+
+    OAuth2RefreshToken oAuth2RefreshToken(OAuth2RefreshToken.Id id);
+    Collection<OAuth2RefreshToken> oAuth2RefreshTokens();
+    void add(OAuth2RefreshToken token);
+    void remove(OAuth2RefreshToken.Id id);
 
 }

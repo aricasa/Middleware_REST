@@ -5,10 +5,7 @@ import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
-import it.polimi.rest.models.oauth2.OAuth2AccessToken;
-import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
-import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.models.oauth2.OAuth2ClientsList;
+import it.polimi.rest.models.oauth2.*;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -202,6 +199,20 @@ public class DataProvider {
         OAuth2AccessToken token = oAuth2AccessToken(id);
         storage.remove(token.id);
         sessionManager.remove(token.id);
+    }
+
+    public OAuth2RefreshToken oAuth2RefreshToken(OAuth2RefreshToken.Id id) {
+        return Optional.ofNullable(storage.oAuth2RefreshToken(id))
+                .orElseThrow(NotFoundException::new);
+    }
+
+    public void add(OAuth2RefreshToken token) {
+        storage.add(token);
+    }
+
+    public void remove(OAuth2RefreshToken.Id id) {
+        OAuth2RefreshToken token = oAuth2RefreshToken(id);
+        storage.remove(token.id);
     }
 
 }

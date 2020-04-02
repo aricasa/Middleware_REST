@@ -14,9 +14,9 @@ import it.polimi.rest.exceptions.oauth2.OAuth2UnauthorizedException;
 import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2AccessToken;
-import it.polimi.rest.models.oauth2.OAuth2AccessTokenRequest;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
+import it.polimi.rest.models.oauth2.OAuth2RefreshToken;
 import it.polimi.rest.utils.RequestUtils;
 import spark.Request;
 
@@ -25,13 +25,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BASIC;
-import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.INVALID_CLIENT;
-import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.INVALID_GRANT;
+import static it.polimi.rest.exceptions.oauth2.OAuth2Exception.*;
 
 /**
  * Convert an authorization token into an access token.
  */
-class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
+class AccessToken extends Responder<TokenId, AccessToken.Data> {
 
     private final SessionManager sessionManager;
 
@@ -48,7 +47,7 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
     }
 
     @Override
-    protected OAuth2AccessTokenRequest deserialize(Request request) {
+    protected Data deserialize(Request request) {
         Map<String, String> bodyParams = RequestUtils.bodyParams(request);
 
         String grantType = bodyParams.get("grant_type");
@@ -65,10 +64,14 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
 
         OAuth2Client.Id clientIdBody = Optional.ofNullable(bodyParams.get("client_id"))
                 .map(OAuth2Client.Id::new)
-                .orElseThrow(() -> new OAuth2BadRequestException(OAuth2Exception.INVALID_REQUEST, null, null));
+                .orElse(null);
 
-        if (clientIdHeader != null && !clientIdHeader.equals(clientIdBody)) {
-            // Client ID used in basic authentication doesn't match with the one specified in the request body
+        if (clientIdHeader == null && clientIdBody == null) {
+            // Client ID missing
+            throw new OAuth2BadRequestException(INVALID_REQUEST, null, null);
+
+        } else if (clientIdHeader != null && clientIdBody != null && !clientIdHeader.equals(clientIdBody)) {
+            // Multiple and different client IDs specified
             throw new OAuth2BadRequestException(OAuth2Exception.INVALID_REQUEST, null, null);
         }
 
@@ -89,32 +92,35 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
         if (clientSecretHeader == null && clientSecretBody == null) {
             // Client secret missing
             throw new OAuth2BadRequestException(OAuth2Exception.INVALID_CLIENT, null, null);
-        }
 
-        if (clientSecretHeader != null && clientSecretBody != null) {
-            // Multiple client secrets specified
+        } else if (clientSecretHeader != null && clientSecretBody != null && !clientSecretHeader.equals(clientSecretBody)) {
+            // Multiple and different client secrets specified
             throw new OAuth2BadRequestException(OAuth2Exception.INVALID_REQUEST, null, null);
         }
 
         boolean basicAuthentication = clientSecretHeader != null;
 
+        OAuth2Client.Id clientId = basicAuthentication ? clientIdHeader : clientIdBody;
         OAuth2Client.Secret clientSecret = basicAuthentication ? clientSecretHeader : clientSecretBody;
 
         String redirectUri = Optional.ofNullable(bodyParams.get("redirect_uri"))
-                .orElseThrow(() -> new OAuth2BadRequestException(OAuth2BadRequestException.INVALID_REQUEST, null, null));
+                .orElse(null);
 
         OAuth2AuthorizationCode.Id code = Optional.ofNullable(bodyParams.get("code"))
                 .map(OAuth2AuthorizationCode.Id::new)
-                .orElseThrow(() -> new OAuth2BadRequestException(OAuth2BadRequestException.INVALID_REQUEST, null, null));
+                .orElse(null);
 
-        return new OAuth2AccessTokenRequest(grantType, clientIdBody, clientSecret, basicAuthentication, redirectUri, code);
+        OAuth2RefreshToken.Id refreshToken = Optional.ofNullable(bodyParams.get("refresh_token"))
+                .map(OAuth2RefreshToken.Id::new)
+                .orElse(null);
+
+        return new Data(grantType, clientId, clientSecret, basicAuthentication, redirectUri, code, refreshToken);
     }
 
     @Override
-    protected Message process(TokenId token, OAuth2AccessTokenRequest data) {
-        DataProvider dataProvider = sessionManager.dataProvider(data.clientId);
-
+    protected Message process(TokenId token, Data data) {
         try {
+            DataProvider dataProvider = sessionManager.dataProvider(data.clientId);
             OAuth2Client client = dataProvider.oAuth2Client(data.clientId);
 
             if (!client.secret.equals(data.clientSecret)) {
@@ -126,6 +132,28 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
             // Client doesn't exist
             throw new OAuth2UnauthorizedException(BASIC, INVALID_CLIENT, null, null);
         }
+
+        if (data.grantType.equals("authorization_code")) {
+            return authorizationCode(data);
+
+        } else if (data.grantType.equals("refresh_token")) {
+            return refreshToken(data);
+
+        } else {
+            throw new OAuth2BadRequestException(UNSUPPORTED_GRANT_TYPE, null, null);
+        }
+    }
+
+    private Message authorizationCode(Data data) {
+        if (data.redirectUri == null) {
+            throw new OAuth2BadRequestException(INVALID_REQUEST, null, null);
+        }
+
+        if (data.code == null) {
+            throw new OAuth2BadRequestException(INVALID_REQUEST, null, null);
+        }
+
+        DataProvider dataProvider = sessionManager.dataProvider(data.clientId);
 
         try {
             OAuth2AuthorizationCode code = dataProvider.oAuth2AuthCode(data.code);
@@ -153,11 +181,21 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
                     ACCESS_TOKEN_LIFETIME,
                     code.client,
                     code.user,
-                    code.scope,
-                    null // TODO: refresh token
+                    code.scope
             );
 
+            OAuth2RefreshToken refreshToken = new OAuth2RefreshToken(
+                    dataProvider.uniqueId(Id::randomizer, OAuth2RefreshToken.Id::new),
+                    accessToken.id,
+                    code.client,
+                    code.user,
+                    code.scope
+            );
+
+            accessToken.attach(refreshToken.id);
+
             dataProvider.add(accessToken);
+            dataProvider.add(refreshToken);
 
             return OAuth2AccessTokenMessage.creation(accessToken);
 
@@ -165,6 +203,84 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
             // Authorization code doesn't exist
             throw new OAuth2BadRequestException(INVALID_GRANT, null, null);
         }
+    }
+
+    private Message refreshToken(Data data) {
+        if (data.refreshToken == null) {
+            throw new OAuth2BadRequestException(INVALID_REQUEST, null, null);
+        }
+
+        DataProvider dataProvider = sessionManager.dataProvider(data.clientId);
+        OAuth2RefreshToken refreshToken;
+
+        try {
+            refreshToken = dataProvider.oAuth2RefreshToken(data.refreshToken);
+
+        } catch (NotFoundException e) {
+            throw new OAuth2BadRequestException(INVALID_REQUEST, null, null);
+        }
+
+        try {
+            dataProvider.remove(refreshToken.accessToken);
+            logger.d("Previous access token " + refreshToken.accessToken + " removed");
+
+        } catch (NotFoundException e) {
+            logger.d("Previous access token " + refreshToken.accessToken + " not found. Probably already expired");
+        }
+
+        dataProvider.remove(refreshToken.id);
+
+        OAuth2AccessToken accessToken = new OAuth2AccessToken(
+                dataProvider.uniqueId(Id::randomizer, OAuth2AccessToken.Id::new),
+                ACCESS_TOKEN_LIFETIME,
+                refreshToken.client,
+                refreshToken.user,
+                refreshToken.scope
+        );
+
+        OAuth2RefreshToken newRefreshToken = new OAuth2RefreshToken(
+                dataProvider.uniqueId(Id::randomizer, OAuth2RefreshToken.Id::new),
+                accessToken.id,
+                refreshToken.client,
+                refreshToken.user,
+                refreshToken.scope
+        );
+
+        accessToken.attach(newRefreshToken.id);
+
+        dataProvider.add(accessToken);
+        dataProvider.add(newRefreshToken);
+
+        return OAuth2AccessTokenMessage.creation(accessToken);
+    }
+
+    protected static class Data {
+
+        public final String grantType;
+        public final OAuth2Client.Id clientId;
+        public final OAuth2Client.Secret clientSecret;
+        public final boolean basicAuthentication;
+        public final String redirectUri;
+        public final OAuth2AuthorizationCode.Id code;
+        public final OAuth2RefreshToken.Id refreshToken;
+
+        public Data(String grantType,
+                    OAuth2Client.Id clientId,
+                    OAuth2Client.Secret clientSecret,
+                    boolean basicAuthentication,
+                    String redirectUri,
+                    OAuth2AuthorizationCode.Id code,
+                    OAuth2RefreshToken.Id refreshToken) {
+
+            this.grantType = grantType;
+            this.clientId = clientId;
+            this.clientSecret = clientSecret;
+            this.basicAuthentication = basicAuthentication;
+            this.redirectUri = redirectUri;
+            this.code = code;
+            this.refreshToken = refreshToken;
+        }
+
     }
 
 }

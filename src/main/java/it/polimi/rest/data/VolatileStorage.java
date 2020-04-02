@@ -1,10 +1,10 @@
 package it.polimi.rest.data;
 
-import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.*;
 import it.polimi.rest.models.oauth2.OAuth2AccessToken;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
+import it.polimi.rest.models.oauth2.OAuth2RefreshToken;
 
 import java.util.*;
 import java.util.function.Function;
@@ -21,6 +21,7 @@ public class VolatileStorage implements Storage {
     private final Collection<OAuth2Client> oAuth2Clients = new HashSet<>();
     private final Collection<OAuth2AuthorizationCode> oAuth2AuthCodes = new HashSet<>();
     private final Collection<OAuth2AccessToken> oAuth2AccessTokens = new HashSet<>();
+    private final Collection<OAuth2RefreshToken> oAuth2RefreshTokens = new HashSet<>();
 
     @Override
     public <T extends Id> T uniqueId(Supplier<String> randomizer, Function<String, T> supplier) {
@@ -187,7 +188,7 @@ public class VolatileStorage implements Storage {
         return oAuth2AccessTokens.stream()
                 .filter(token -> token.id.equals(id))
                 .findFirst()
-                .orElseThrow(NotFoundException::new);
+                .orElse(null);
     }
 
     @Override
@@ -204,6 +205,29 @@ public class VolatileStorage implements Storage {
     public void remove(OAuth2AccessToken.Id id) {
         oAuth2AccessTokens.removeIf(token -> token.id.equals(id));
         ids.remove(id);
+    }
+
+    @Override
+    public OAuth2RefreshToken oAuth2RefreshToken(OAuth2RefreshToken.Id id) {
+        return oAuth2RefreshTokens.stream()
+                .filter(token -> token.id.equals(id))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public Collection<OAuth2RefreshToken> oAuth2RefreshTokens() {
+        return Collections.unmodifiableCollection(oAuth2RefreshTokens);
+    }
+
+    @Override
+    public void add(OAuth2RefreshToken token) {
+        oAuth2RefreshTokens.add(token);
+    }
+
+    @Override
+    public void remove(OAuth2RefreshToken.Id id) {
+        oAuth2RefreshTokens.removeIf(token -> token.id.equals(id));
     }
 
 }

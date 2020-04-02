@@ -30,14 +30,13 @@ public class OAuth2AccessToken implements Token {
     public final User.Id user;
 
     public final Collection<Scope> scope;
-    public final OAuth2RefreshToken.Id refreshToken;
+    public OAuth2RefreshToken.Id refreshToken;
 
     public OAuth2AccessToken(Id id,
                              int lifeTime,
                              OAuth2Client.Id client,
                              User.Id user,
-                             Collection<Scope> scope,
-                             OAuth2RefreshToken.Id refreshToken) {
+                             Collection<Scope> scope) {
         this.id = id;
 
         this.expiration = Calendar.getInstance();
@@ -46,6 +45,9 @@ public class OAuth2AccessToken implements Token {
         this.client = client;
         this.user = user;
         this.scope = Collections.unmodifiableCollection(new ArrayList<>(scope));
+    }
+
+    public void attach(OAuth2RefreshToken.Id refreshToken) {
         this.refreshToken = refreshToken;
     }
 
