@@ -31,10 +31,9 @@ public interface Token {
      * Called when the token has been recognized as no more valid.
      * The method should leverage the given data provider to remove itself.
      *
-     * @param dataProvider  data provider
+     * @param dataProvider      data provider
+     * @param sessionManager    session manager
      */
-    default void onExpiration(DataProvider dataProvider) {
-
-    }
+    void onExpiration(DataProvider dataProvider, SessionManager sessionManager);
 
 }

@@ -49,7 +49,7 @@ public class SessionManager {
                 .orElseThrow(NotFoundException::new);
 
         if (!result.isValid()) {
-            result.onExpiration(dataProvider);
+            result.onExpiration(dataProvider, this);
             throw new NotFoundException();
         }
 

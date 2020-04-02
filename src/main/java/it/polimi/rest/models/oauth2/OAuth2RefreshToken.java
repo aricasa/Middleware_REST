@@ -1,4 +1,4 @@
-package it.polimi.rest.models;
+package it.polimi.rest.models.oauth2;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
@@ -6,31 +6,22 @@ import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.models.TokenId;
 
-import java.util.*;
+import java.util.Calendar;
 
-public class BasicToken implements Token, Model {
+public class OAuth2RefreshToken implements Token {
 
     @Expose
     public final Id id;
 
-    @Expose(deserialize = false)
     private final Calendar expiration;
 
-    public final User.Id user;
-
-    public BasicToken(Id id, int lifeTime, User.Id user) {
+    public OAuth2RefreshToken(OAuth2RefreshToken.Id id, int lifeTime) {
         this.id = id;
 
         this.expiration = Calendar.getInstance();
         this.expiration.add(Calendar.SECOND, lifeTime);
-
-        this.user = user;
-    }
-
-    @Override
-    public String toString() {
-        return id.toString();
     }
 
     @Override
@@ -40,7 +31,7 @@ public class BasicToken implements Token, Model {
 
     @Override
     public Agent agent() {
-        return user;
+        return id;
     }
 
     @Override
@@ -51,26 +42,11 @@ public class BasicToken implements Token, Model {
 
     @Override
     public void onExpiration(DataProvider dataProvider, SessionManager sessionManager) {
-        dataProvider.remove(id);
-    }
-
-    @Override
-    public Optional<String> self() {
-        return Optional.of("/sessions/" + id);
-    }
-
-    @Override
-    public Map<String, Link> links() {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public Map<String, Object> embedded() {
-        return Collections.emptyMap();
+        //dataProvider.remove(id);
     }
 
     @JsonAdapter(Id.Adapter.class)
-    public static class Id extends TokenId {
+    public static class Id extends TokenId implements Agent {
 
         public Id(String id) {
             super(id);

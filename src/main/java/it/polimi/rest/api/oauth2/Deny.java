@@ -4,6 +4,7 @@ import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.communication.messages.Message;
+import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException;
 import it.polimi.rest.models.BasicToken;
 import it.polimi.rest.models.TokenId;
@@ -38,6 +39,11 @@ public class Deny extends Grant {
             @Override
             public boolean isValid() {
                 return true;
+            }
+
+            @Override
+            public void onExpiration(DataProvider dataProvider, SessionManager sessionManager) {
+
             }
         }).oAuth2Client(data.client);
 

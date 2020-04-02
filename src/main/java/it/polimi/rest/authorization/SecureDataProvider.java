@@ -107,6 +107,7 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.remove(id);
+        authorizer.removeObject(id);
     }
 
     @Override
@@ -143,6 +144,7 @@ class SecureDataProvider implements DataProvider {
         }
 
         dataProvider.remove(id);
+        authorizer.removeObject(id);
     }
 
     @Override
@@ -332,7 +334,7 @@ class SecureDataProvider implements DataProvider {
         OAuth2AccessToken token = oAuth2AccessToken(id);
 
         dataProvider.remove(id);
-        authorizer.removeAgent(token);
+        authorizer.removeObject(token.id);
     }
 
 }

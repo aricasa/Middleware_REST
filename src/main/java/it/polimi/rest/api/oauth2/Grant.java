@@ -90,6 +90,11 @@ public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> 
             public boolean isValid() {
                 return true;
             }
+
+            @Override
+            public void onExpiration(DataProvider dataProvider, SessionManager sessionManager) {
+
+            }
         }).oAuth2Client(data.client);
 
         if (!client.callback.equals(data.callback)) {
@@ -120,7 +125,6 @@ public class Grant extends Responder<BasicToken.Id, OAuth2AuthorizationRequest> 
 
             // Store the new authorization token and logout the user
             dataProvider.add(code);
-            sessionManager.remove(token);
 
             // Redirect to the client callback URL
             String url = client.callback + "?code=" + code.id;

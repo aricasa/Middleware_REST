@@ -7,6 +7,7 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.JsonAdapter;
 import it.polimi.rest.authorization.Agent;
+import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.authorization.Token;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.TokenId;
@@ -17,17 +18,15 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 @JsonAdapter(OAuth2AccessToken.Adapter.class)
-public class OAuth2AccessToken implements Token, Agent {
+public class OAuth2AccessToken implements Token {
 
-    @Expose
     public final Id id;
-
     private final Calendar expiration;
-
     public final User.Id user;
     public final Collection<Scope> scope;
+    public final OAuth2RefreshToken.Id refreshToken;
 
-    public OAuth2AccessToken(Id id, int lifeTime, User.Id user, Collection<Scope> scope) {
+    public OAuth2AccessToken(Id id, int lifeTime, User.Id user, Collection<Scope> scope, OAuth2RefreshToken.Id refreshToken) {
         this.id = id;
 
         this.expiration = Calendar.getInstance();
@@ -35,6 +34,7 @@ public class OAuth2AccessToken implements Token, Agent {
 
         this.user = user;
         this.scope = Collections.unmodifiableCollection(new ArrayList<>(scope));
+        this.refreshToken = refreshToken;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class OAuth2AccessToken implements Token, Agent {
 
     @Override
     public Agent agent() {
-        return this;
+        return id;
     }
 
     @Override
@@ -67,12 +67,12 @@ public class OAuth2AccessToken implements Token, Agent {
     }
 
     @Override
-    public void onExpiration(DataProvider dataProvider) {
+    public void onExpiration(DataProvider dataProvider, SessionManager sessionManager) {
         dataProvider.remove(id);
     }
 
     @JsonAdapter(Id.Adapter.class)
-    public static class Id extends TokenId {
+    public static class Id extends TokenId implements Agent {
 
         public Id(String id) {
             super(id);
@@ -92,6 +92,8 @@ public class OAuth2AccessToken implements Token, Agent {
             Calendar now = Calendar.getInstance();
             int expiration = (int) ((src.expiration.getTimeInMillis() - now.getTimeInMillis()) / 1000);
             json.add("expires_in", context.serialize(expiration));
+
+            json.add("refresh_token", context.serialize(src.refreshToken));
 
             return json;
         }

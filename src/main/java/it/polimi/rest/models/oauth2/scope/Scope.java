@@ -53,7 +53,7 @@ public abstract class Scope {
     protected abstract void addPermissions(Authorizer authorizer, DataProvider dataProvider, User.Id user, Agent agent);
 
     public final void addPermissions(Authorizer authorizer, DataProvider dataProvider, OAuth2AccessToken token) {
-        addPermissions(authorizer, dataProvider, token.user, token);
+        addPermissions(authorizer, dataProvider, token.user, token.id);
     }
 
     public static class Adapter implements JsonSerializer<Scope> {

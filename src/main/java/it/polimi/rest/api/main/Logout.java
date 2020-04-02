@@ -37,7 +37,6 @@ public class Logout extends Responder<TokenId, BasicToken.Id> {
     @Override
     protected Message process(TokenId token, BasicToken.Id data) {
         sessionManager.dataProvider(token).remove(data);
-        sessionManager.remove(data);
 
         logger.d("Session " + data + " terminated");
         return SessionMessage.deletion();

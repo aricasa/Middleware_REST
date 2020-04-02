@@ -129,6 +129,11 @@ class AccessToken extends Responder<TokenId, OAuth2AccessTokenRequest> {
             public boolean isValid() {
                 return true;
             }
+
+            @Override
+            public void onExpiration(DataProvider dataProvider, SessionManager sessionManager) {
+
+            }
         };
 
         DataProvider dataProvider = sessionManager.dataProvider(fakeToken);
