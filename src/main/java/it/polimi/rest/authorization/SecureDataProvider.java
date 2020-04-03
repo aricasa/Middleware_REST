@@ -74,21 +74,6 @@ class SecureDataProvider extends DataProvider {
     }
 
     @Override
-    public void update(User user) {
-        if (agent == null) {
-            throw new UnauthorizedException(BEARER);
-        }
-
-        User u = userById(user.id);
-
-        if (!authorizer.get(u.id, agent).write) {
-            throw new ForbiddenException();
-        }
-
-        super.update(user);
-    }
-
-    @Override
     public void remove(User.Id id) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);

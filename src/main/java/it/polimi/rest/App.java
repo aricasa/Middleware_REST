@@ -72,14 +72,12 @@ public class App {
 
             path("/:username", () -> {
                 get("", resourcesServer.userDetails, jsonTransformer);
-                // TODO: update user data
                 delete("", resourcesServer.userRemove);
             });
         });
 
         path("/sessions", () -> {
             post("", resourcesServer.login, jsonTransformer);
-            // TODO: get session details
             delete("/:tokenId", resourcesServer.logout, jsonTransformer);
         });
 

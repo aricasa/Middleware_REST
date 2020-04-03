@@ -22,7 +22,6 @@ public interface Storage {
     User userByUsername(String username);
     Collection<User> users();
     void add(User user);
-    void update(User user);
     void remove(User.Id id);
 
     Collection<BasicToken> basicTokens();

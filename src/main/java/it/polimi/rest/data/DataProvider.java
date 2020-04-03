@@ -59,14 +59,6 @@ public class DataProvider {
         storage.add(user);
     }
 
-    public void update(User user) {
-        if (userById(user.id) != null) {
-            throw new NotFoundException();
-        }
-
-        storage.update(user);
-    }
-
     public void remove(User.Id id) {
         User user = userById(id);
 

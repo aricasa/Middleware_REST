@@ -64,13 +64,6 @@ public class VolatileStorage implements Storage {
     }
 
     @Override
-    public void update(User user) {
-        User u = userById(user.id);
-        u.username = user.username;
-        u.password = user.password;
-    }
-
-    @Override
     public void remove(User.Id id) {
         users.removeIf(user -> user.id.equals(id));
     }

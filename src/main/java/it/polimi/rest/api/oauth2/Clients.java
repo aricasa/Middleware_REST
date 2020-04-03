@@ -39,7 +39,6 @@ class Clients extends Responder<TokenId, String> {
     protected Message process(TokenId token, String username) {
         DataProvider dataProvider = sessionManager.dataProvider(token);
         User user = dataProvider.userByUsername(username);
-        // TODO: get directly via username (permissions issues)
         OAuth2ClientsList clients = dataProvider.oAuth2Clients(user.id);
         return OAuth2ClientMessage.list(clients);
     }
