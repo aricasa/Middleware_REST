@@ -13,6 +13,7 @@ import it.polimi.rest.data.*;
 import it.polimi.rest.exceptions.RestException;
 import it.polimi.rest.adapters.JsonTransformer;
 import spark.ResponseTransformer;
+import spark.Spark;
 
 import static spark.Spark.*;
 
@@ -104,6 +105,11 @@ public class App {
             post("/deny", "application/x-www-form-urlencoded", oAuth2Server.deny, jsonTransformer);
             post("/token", oAuth2Server.token, jsonTransformer);
         });
+    }
+
+    public void stop()
+    {
+        Spark.stop();
     }
 
     public static void main(String[] args) {
