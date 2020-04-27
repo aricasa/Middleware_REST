@@ -129,12 +129,12 @@ class SecureDataProvider extends DataProvider {
     }
 
     @Override
-    public Image image(Image.Id id) {
+    public Image image(User.Id userId, Image.Id imageId) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
-        Image image = super.image(id);
+        Image image = super.image(userId, imageId);
 
         if (!authorizer.get(image.info.id, agent).read) {
             throw new ForbiddenException();
@@ -174,20 +174,19 @@ class SecureDataProvider extends DataProvider {
     }
 
     @Override
-    public void remove(Image.Id id) {
+    public void remove(User.Id userId, Image.Id imageId) {
         if (agent == null) {
             throw new UnauthorizedException(BEARER);
         }
 
-        Image image = image(id);
+        Image image = image(userId, imageId);
 
         if (!authorizer.get(image.info.id, agent).write) {
             throw new ForbiddenException();
         }
 
-        super.remove(id);
-
-        authorizer.remove(id);
+        super.remove(userId, imageId);
+        authorizer.remove(imageId);
     }
 
     @Override

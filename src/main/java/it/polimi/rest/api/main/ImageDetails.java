@@ -9,6 +9,8 @@ import it.polimi.rest.communication.messages.image.ImageMessage;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
+import it.polimi.rest.models.User;
+import it.polimi.rest.utils.Pair;
 import spark.Request;
 
 import java.util.Optional;
@@ -16,7 +18,7 @@ import java.util.Optional;
 /**
  * Get the metadata of an image.
  */
-class ImageDetails extends Responder<TokenId, Image.Id> {
+class ImageDetails extends Responder<TokenId, Pair<String, Image.Id>> {
 
     private final SessionManager sessionManager;
 
@@ -30,15 +32,18 @@ class ImageDetails extends Responder<TokenId, Image.Id> {
     }
 
     @Override
-    protected Image.Id deserialize(Request request) {
-        String id = request.params("imageId");
-        return new Image.Id(id);
+    protected Pair<String, Image.Id> deserialize(Request request) {
+        String username = request.params("username");
+        Image.Id imageId = new Image.Id(request.params("imageId"));
+
+        return new Pair<>(username, imageId);
     }
 
     @Override
-    protected Message process(TokenId token, Image.Id imageId) {
+    protected Message process(TokenId token, Pair<String, Image.Id> data) {
         DataProvider dataProvider = sessionManager.dataProvider(token);
-        Image image = dataProvider.image(imageId);
+        Image image = dataProvider.image(data.first, data.second);
+
         return ImageMessage.details(image.info);
     }
 

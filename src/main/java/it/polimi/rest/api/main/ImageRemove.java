@@ -9,6 +9,8 @@ import it.polimi.rest.communication.messages.image.ImageMessage;
 import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
+import it.polimi.rest.models.User;
+import it.polimi.rest.utils.Pair;
 import spark.Request;
 
 import java.util.Optional;
@@ -16,7 +18,7 @@ import java.util.Optional;
 /**
  * Remove an image.
  */
-class ImageRemove extends Responder<TokenId, Image.Id> {
+class ImageRemove extends Responder<TokenId, Pair<String, Image.Id>> {
 
     private final SessionManager sessionManager;
 
@@ -30,15 +32,17 @@ class ImageRemove extends Responder<TokenId, Image.Id> {
     }
 
     @Override
-    protected Image.Id deserialize(Request request) {
-        String id = request.params("imageId");
-        return new Image.Id(id);
+    protected Pair<String, Image.Id> deserialize(Request request) {
+        String username = request.params("username");
+        Image.Id imageId = new Image.Id(request.params("imageId"));
+
+        return new Pair<>(username, imageId);
     }
 
     @Override
-    protected Message process(TokenId token, Image.Id data) {
+    protected Message process(TokenId token, Pair<String, Image.Id> data) {
         DataProvider dataProvider = sessionManager.dataProvider(token);
-        dataProvider.remove(data);
+        dataProvider.remove(data.first, data.second);
 
         logger.d("Image " + data + " removed");
         return ImageMessage.deletion();
