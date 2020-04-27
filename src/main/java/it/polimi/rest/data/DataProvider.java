@@ -108,7 +108,7 @@ public class DataProvider {
     }
 
     public ImagesList images(String username) {
-        User owner = storage.userByUsername(username);
+        User owner = userByUsername(username);
         return new ImagesList(owner, storage.images(username));
     }
 
