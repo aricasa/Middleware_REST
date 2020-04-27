@@ -99,16 +99,16 @@ public class GetUserInfoTest
         JSONObject respField = new JSONObject(respBody);
         TokenId idSession = new TokenId(respField.getString("id"));
 
-        //Get images info
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco/images");
-        httpGet.setHeader("Accept", "application/json");
-        httpGet.setHeader("Content-type", "application/json");
+        //Get user info
+        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco");
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         client = HttpClientBuilder.create().build();
         response = client.execute(httpGet);
         respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        JSONObject jsonObj = new JSONObject(respBody);
-        assertEquals(jsonObj.getInt("count"),1);
+        assertTrue(respBody.contains("id") && respBody.contains("username") && respBody.contains("_links"));
+        respField = new JSONObject(respBody);
+        idSession = new TokenId(respField.getString("username"));
+        assertTrue(idSession.toString().contains("pinco"));
         assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
     }
 

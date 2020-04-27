@@ -25,6 +25,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -234,7 +235,7 @@ public class AppTest
 
         //Add image of existing user with right bearer and existing path
         HttpPost httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
-        File image = new File("C:/Users/Arianna.DESKTOP-ABIVNVH/Desktop/image.jpg");
+        File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         MultipartEntityBuilder builder=MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
         builder.addBinaryBody("file",image);
@@ -322,7 +323,7 @@ public class AppTest
         HttpEntity entity=response.getEntity();
         if(entity!=null)
         {
-            try(FileOutputStream outputStream = new FileOutputStream("C:/Users/Arianna.DESKTOP-ABIVNVH/Desktop/belooo.jpg"))
+            try(FileOutputStream outputStream = new FileOutputStream("C:/Users/Arianna.DESKTOP-ABIVNVH/Desktop/yuppi.jpg"))
             {
                 entity.writeTo(outputStream);
             }
@@ -461,7 +462,7 @@ public class AppTest
     {
         //Delete existing user with right token
         System.out.println("DELETE USER \n");
-        //assertEquals(storage.users().count,2);
+        assertEquals(storage.users().count,2);
         HttpDelete httpDelete = new HttpDelete("http://localhost:4567/users/pinco");
         httpDelete.setHeader("Accept", "application/json");
         httpDelete.setHeader("Content-type", "application/json");
