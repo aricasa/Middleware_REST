@@ -49,6 +49,8 @@ public class AddImageTest
 
     App app = new App(resourcesServer, oAuth2Server);
 
+    TokenId idSession;
+
     @Before
     public void startServer() throws InterruptedException, IOException
     {
@@ -79,6 +81,16 @@ public class AddImageTest
         entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
         httpPost.setEntity(entity);
         client.execute(httpPost);
+
+        //Login user1
+        CredentialsProvider provider=new BasicCredentialsProvider();
+        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
+        httpPost = new HttpPost("http://localhost:4567/sessions");
+        client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
+        HttpResponse response = client.execute(httpPost);
+        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        JSONObject respField = new JSONObject(respBody);
+        idSession = new TokenId(respField.getString("id"));
     }
 
     @After
@@ -91,18 +103,7 @@ public class AddImageTest
     @Test
     public void correctTokenImageAdding() throws IOException, InterruptedException
     {
-        //Login
-        CredentialsProvider provider=new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        HttpPost httpPost = new HttpPost("http://localhost:4567/sessions");
-        HttpClient client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
-        HttpResponse response = client.execute(httpPost);
-        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        JSONObject respField = new JSONObject(respBody);
-        TokenId idSession = new TokenId(respField.getString("id"));
-
-        //Add image
-        httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
+        HttpPost httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
         File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         MultipartEntityBuilder builder=MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -111,11 +112,11 @@ public class AddImageTest
         HttpEntity entity=builder.build();
         httpPost.setEntity(entity);
         httpPost.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpPost);
-        respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpResponse response = client.execute(httpPost);
+        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         assertTrue(respBody.contains("id") && respBody.contains("title") && respBody.contains("_links"));
-        respField = new JSONObject(respBody);
+        JSONObject respField = new JSONObject(respBody);
         assertTrue(respField.getString("title").contains("image"));
         assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
     }
@@ -123,18 +124,7 @@ public class AddImageTest
     @Test
     public void incorrectUserImageAdding() throws IOException, InterruptedException
     {
-        //Login
-        CredentialsProvider provider=new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        HttpPost httpPost = new HttpPost("http://localhost:4567/sessions");
-        HttpClient client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
-        HttpResponse response = client.execute(httpPost);
-        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        JSONObject respField = new JSONObject(respBody);
-        TokenId idSession = new TokenId(respField.getString("id"));
-
-        //Add image
-        httpPost = new HttpPost("http://localhost:4567/users/ferrero/images");
+        HttpPost httpPost = new HttpPost("http://localhost:4567/users/ferrero/images");
         File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         MultipartEntityBuilder builder=MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -143,9 +133,9 @@ public class AddImageTest
         HttpEntity entity=builder.build();
         httpPost.setEntity(entity);
         httpPost.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpPost);
-        respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpResponse response = client.execute(httpPost);
+        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         assertTrue(respBody.length()==0);
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
     }
@@ -153,18 +143,7 @@ public class AddImageTest
     @Test
     public void incorrectTokenImageAdding() throws IOException, InterruptedException
     {
-        //Login
-        CredentialsProvider provider=new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        HttpPost httpPost = new HttpPost("http://localhost:4567/sessions");
-        HttpClient client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
-        HttpResponse response = client.execute(httpPost);
-        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        JSONObject respField = new JSONObject(respBody);
-        TokenId idSession = new TokenId(respField.getString("id"));
-
-        //Add image
-        httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
+        HttpPost httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
         File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         MultipartEntityBuilder builder=MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -173,9 +152,9 @@ public class AddImageTest
         HttpEntity entity=builder.build();
         httpPost.setEntity(entity);
         httpPost.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"fake token");
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpPost);
-        respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpResponse response = client.execute(httpPost);
+        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         assertTrue(respBody.length()==0);
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
     }

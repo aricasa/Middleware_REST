@@ -48,6 +48,8 @@ public class GetInfoImagesTest
 
     App app = new App(resourcesServer, oAuth2Server);
 
+    TokenId idSession;
+
     @Before
     public void startServer() throws InterruptedException, IOException
     {
@@ -69,6 +71,29 @@ public class GetInfoImagesTest
         httpPost.setEntity(entity);
         HttpClient client = HttpClientBuilder.create().build();
         client.execute(httpPost);
+
+        //Login
+        CredentialsProvider provider=new BasicCredentialsProvider();
+        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
+        httpPost = new HttpPost("http://localhost:4567/sessions");
+        client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
+        HttpResponse response = client.execute(httpPost);
+        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        JSONObject respField = new JSONObject(respBody);
+        idSession = new TokenId(respField.getString("id"));
+
+        //Add image
+        httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
+        File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
+        MultipartEntityBuilder builder=MultipartEntityBuilder.create();
+        builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        builder.addBinaryBody("file",image);
+        builder.addTextBody("title","image");
+        HttpEntity ent=builder.build();
+        httpPost.setEntity(ent);
+        httpPost.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
+        client = HttpClientBuilder.create().build();
+        client.execute(httpPost);
     }
 
     @After
@@ -81,35 +106,11 @@ public class GetInfoImagesTest
     @Test
     public void correctTokenGetInfoImages() throws IOException, InterruptedException
     {
-        //Login
-        CredentialsProvider provider=new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        HttpPost httpPost = new HttpPost("http://localhost:4567/sessions");
-        HttpClient client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
-        HttpResponse response = client.execute(httpPost);
-        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        JSONObject respField = new JSONObject(respBody);
-        TokenId idSession = new TokenId(respField.getString("id"));
-
-        //Add image
-        httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
-        File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
-        MultipartEntityBuilder builder=MultipartEntityBuilder.create();
-        builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        builder.addBinaryBody("file",image);
-        builder.addTextBody("title","image");
-        HttpEntity entity=builder.build();
-        httpPost.setEntity(entity);
-        httpPost.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
-        client = HttpClientBuilder.create().build();
-        client.execute(httpPost);
-
-        //Get info about images
         HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco/images");
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpGet);
-        respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpResponse response = client.execute(httpGet);
+        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         JSONObject jsonObj = new JSONObject(respBody);
         assertEquals(jsonObj.getInt("count"),1);
         assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
@@ -117,42 +118,6 @@ public class GetInfoImagesTest
 
     @Test
     public void incorrectTokenGetInfoImages() throws IOException, InterruptedException
-    {
-        //Login
-        CredentialsProvider provider=new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        HttpPost httpPost = new HttpPost("http://localhost:4567/sessions");
-        HttpClient client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
-        HttpResponse response = client.execute(httpPost);
-        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        JSONObject respField = new JSONObject(respBody);
-        TokenId idSession = new TokenId(respField.getString("id"));
-
-        //Add image
-        httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
-        File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
-        MultipartEntityBuilder builder=MultipartEntityBuilder.create();
-        builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        builder.addBinaryBody("file",image);
-        builder.addTextBody("title","image");
-        HttpEntity entity=builder.build();
-        httpPost.setEntity(entity);
-        httpPost.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
-        client = HttpClientBuilder.create().build();
-        client.execute(httpPost);
-
-        //Get info about images
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco/images");
-        httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"faketoken");
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpGet);
-        respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        assertTrue(respBody.length()==0);
-        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
-    }
-
-    @Test
-    public void getInfoImagesWithoutLogin() throws IOException, InterruptedException
     {
         HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco/images");
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"faketoken");
@@ -163,11 +128,12 @@ public class GetInfoImagesTest
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
     }
 
+
     @Test
     public void getInfoImageFakeUser() throws IOException, InterruptedException
     {
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco/images");
-        httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"faketoken");
+        HttpGet httpGet = new HttpGet("http://localhost:4567/users/ferrero/images");
+        httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpGet);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);

@@ -8,6 +8,7 @@ import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.data.Storage;
 import it.polimi.rest.data.VolatileStorage;
 import it.polimi.rest.models.TokenId;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -24,17 +25,17 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 
-public class GetUsersTest
+public class OauthAddClientTest
 {
     Authorizer authorizer = new ACL();
     Storage storage = new VolatileStorage();
@@ -48,8 +49,7 @@ public class GetUsersTest
     TokenId idSession;
 
     @Before
-    public void startServer() throws InterruptedException, IOException
-    {
+    public void startServer() throws InterruptedException, IOException {
         authorizer = new ACL();
         storage = new VolatileStorage();
         sessionManager = new SessionManager(authorizer, storage);
@@ -59,26 +59,17 @@ public class GetUsersTest
         app.start();
         Thread.sleep(500);
 
-        //Create user1
+        //Create user
         HttpPost httpPost = new HttpPost("http://localhost:4567/users");
         JSONObject credentials = new JSONObject();
         credentials.put("username","pinco");
         credentials.put("password","pallino");
-        StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
+        HttpEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
         httpPost.setEntity(entity);
         HttpClient client = HttpClientBuilder.create().build();
         client.execute(httpPost);
 
-        //Create user2
-        credentials = new JSONObject();
-        credentials.put("username","ferrero");
-        credentials.put("password","rocher");
-        httpPost = new HttpPost("http://localhost:4567/users");
-        entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
-        httpPost.setEntity(entity);
-        client.execute(httpPost);
-
-        //Login user1
+        //Login user
         CredentialsProvider provider=new BasicCredentialsProvider();
         provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
         httpPost = new HttpPost("http://localhost:4567/sessions");
@@ -97,41 +88,62 @@ public class GetUsersTest
     }
 
     @Test
-    public void getUsersWithoutToken() throws IOException, InterruptedException
+    public void correctTokenAddClient() throws IOException, InterruptedException
     {
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users");
+        HttpPost httpPost = new HttpPost("http://localhost:4567/users/pinco/oauth2/clients");
+        JSONObject credentials = new JSONObject();
+        credentials.put("name","amazon");
+        credentials.put("callback","myUrl");
+        StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
+        httpPost.setEntity(entity);
+        httpPost.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
-        HttpResponse response = client.execute(httpGet);
+        HttpResponse response = client.execute(httpPost);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        assertTrue(response.getStatusLine().getStatusCode() >= 400 && response.getStatusLine().getStatusCode() <= 499);
-        assertTrue(respBody.length()==0);
-    }
-
-    @Test
-    public void getUsersWithCorrectToken() throws IOException
-    {
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users");
-        httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpResponse response = client.execute(httpGet);
-        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
         JSONObject respField = new JSONObject(respBody);
-        assertEquals(respField.getInt("count"),2);
-        List<Object> list=respField.getJSONObject("_embedded").getJSONArray("item").toList();
-        assertTrue(list.toString().contains("ferrero"));
-        assertTrue(list.toString().contains("pinco"));
+        assertTrue(respField.getString("name").compareTo("amazon")==0);
+        assertTrue(respField.getString("callback").compareTo("myUrl")==0);
+        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
     }
 
     @Test
-    public void getUsersWithIncorrectToken() throws IOException
+    public void incorrectTokenAddClient() throws IOException, InterruptedException
     {
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users");
-        httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"fake token");
+        HttpPost httpPost = new HttpPost("http://localhost:4567/users/pinco/oauth2/clients");
+        JSONObject credentials = new JSONObject();
+        credentials.put("name","amazon");
+        credentials.put("callback","myUrl");
+        StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
+        httpPost.setEntity(entity);
+        httpPost.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"fakeToken");
         HttpClient client = HttpClientBuilder.create().build();
-        HttpResponse response = client.execute(httpGet);
+        HttpResponse response = client.execute(httpPost);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        System.out.println(respBody);
         assertTrue(respBody.length()==0);
-        assertTrue(response.getStatusLine().getStatusCode() >= 400 && response.getStatusLine().getStatusCode() <= 499);
+        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
+    }
+
+    @Test
+    public void repeatedAddClient() throws IOException, InterruptedException
+    {
+        HttpPost httpPost = new HttpPost("http://localhost:4567/users/pinco/oauth2/clients");
+        JSONObject credentials = new JSONObject();
+        credentials.put("name","amazon");
+        credentials.put("callback","myUrl");
+        StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
+        httpPost.setEntity(entity);
+        httpPost.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession);
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpResponse response = client.execute(httpPost);
+        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        JSONObject respField = new JSONObject(respBody);
+        String oauthClientId1 = respField.getString("id");
+        response = client.execute(httpPost);
+        respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        respField = new JSONObject(respBody);
+        String oauthClientId2 = respField.getString("id");
+        assertTrue(oauthClientId1.compareTo(oauthClientId2)!=0);
+        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
     }
 }

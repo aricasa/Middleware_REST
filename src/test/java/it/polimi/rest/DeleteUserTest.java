@@ -106,6 +106,7 @@ public class DeleteUserTest
     @Test
     public void correctTokenUserDeleting() throws IOException, InterruptedException
     {
+        //Delete user
         HttpDelete httpDelete = new HttpDelete("http://localhost:4567/users/pinco");
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
@@ -116,16 +117,16 @@ public class DeleteUserTest
         HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco");
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         client = HttpClientBuilder.create().build();
-        //response = client.execute(httpGet);
-        //String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        //assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
+        response = client.execute(httpGet);
+        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
 
 
         //Try obtain information about images
         httpGet = new HttpGet("http://localhost:4567/users/pinco/images");
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         client = HttpClientBuilder.create().build();
-        response = client.execute(httpGet); //PROBLEMA : ECCEZIONE?
+        response = client.execute(httpGet);
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
 
         //Try login
@@ -151,6 +152,7 @@ public class DeleteUserTest
     @Test
     public void incorrectTokenUserDeleting() throws IOException, InterruptedException
     {
+        //Delete user
         HttpDelete httpDelete = new HttpDelete("http://localhost:4567/users/pinco");
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"fakeToken");
         HttpClient client = HttpClientBuilder.create().build();
@@ -172,6 +174,7 @@ public class DeleteUserTest
     @Test
     public void notExistingUserDeleting() throws IOException, InterruptedException
     {
+        //Delete user
         HttpDelete httpDelete = new HttpDelete("http://localhost:4567/users/ferrero");
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession);
         HttpClient client = HttpClientBuilder.create().build();
