@@ -20,9 +20,13 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 import org.junit.Test;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 import static org.junit.Assert.assertTrue;
 
 
@@ -88,12 +92,12 @@ public class DownloadImageTest extends AbstractTest
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpGet);
         assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
-        HttpEntity entity=response.getEntity();
-        byte[] bufferDownloadedImage = new byte[entity.getContent().available()];
-        entity.getContent().read(bufferDownloadedImage);
+        ByteArrayOutputStream downloadedImg = new ByteArrayOutputStream();
+        response.getEntity().writeTo(downloadedImg);
+        byte[] bufferDownloadedImage = downloadedImg.toByteArray();
         byte[] bufferImage;
         bufferImage=FileUtils.readFileToByteArray(image);
-       //assertTrue(Arrays.equals(bufferDownloadedImage,bufferImage));
+        assertTrue(Arrays.equals(bufferDownloadedImage,bufferImage));
     }
 
     @Test
