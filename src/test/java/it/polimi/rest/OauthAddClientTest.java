@@ -71,7 +71,6 @@ public class OauthAddClientTest extends AbstractTest
         JSONObject respField = new JSONObject(respBody);
         assertTrue(respField.getString("name").compareTo("amazon")==0);
         assertTrue(respField.getString("callback").compareTo("myUrl")==0);
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
     }
 
     @Test

@@ -91,7 +91,6 @@ public class DownloadImageTest extends AbstractTest
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpGet);
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
         ByteArrayOutputStream downloadedImg = new ByteArrayOutputStream();
         response.getEntity().writeTo(downloadedImg);
         byte[] bufferDownloadedImage = downloadedImg.toByteArray();

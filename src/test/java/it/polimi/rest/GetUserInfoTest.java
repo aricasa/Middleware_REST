@@ -80,7 +80,6 @@ public class GetUserInfoTest extends AbstractTest
         JSONObject respField = new JSONObject(respBody);
         TokenId username = new TokenId(respField.getString("username"));
         assertTrue(username.toString().compareTo("pinco")==0);
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
     }
 
     @Test

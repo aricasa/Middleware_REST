@@ -75,7 +75,6 @@ public class DeleteUserTest extends AbstractTest
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpDelete);
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
 
         //Try obtain information about user
         HttpGet httpGet = new HttpGet(URLuser1);
@@ -84,7 +83,6 @@ public class DeleteUserTest extends AbstractTest
         response = client.execute(httpGet);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
-
 
         //Try obtain information about images
         httpGet = new HttpGet(URLimagesUser1);

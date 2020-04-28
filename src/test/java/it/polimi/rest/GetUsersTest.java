@@ -85,7 +85,6 @@ public class GetUsersTest extends AbstractTest
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpGet);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
         JSONObject respField = new JSONObject(respBody);
         assertEquals(respField.getInt("count"),2);
         List<Object> list=respField.getJSONObject("_embedded").getJSONArray("item").toList();

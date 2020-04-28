@@ -83,7 +83,6 @@ public class GetInfoImagesTest extends AbstractTest
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         JSONObject jsonObj = new JSONObject(respBody);
         assertEquals(jsonObj.getInt("count"),1);
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
     }
 
     @Test

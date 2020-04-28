@@ -86,7 +86,6 @@ public class AddImageTest extends AbstractTest
         assertTrue(respBody.contains("id") && respBody.contains("title") && respBody.contains("_links"));
         JSONObject respField = new JSONObject(respBody);
         assertTrue(respField.getString("title").contains("image"));
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
     }
 
     @Test

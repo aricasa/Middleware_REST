@@ -97,7 +97,6 @@ public class DeleteImageTest extends AbstractTest
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpDelete);
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
 
         //Check the number of images
         HttpGet httpGet = new HttpGet(URLimagesUser1);

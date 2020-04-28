@@ -48,7 +48,6 @@ public class LoginTest extends AbstractTest
         HttpResponse response = client.execute(httpPost);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
 
-        assertTrue(response.getStatusLine().getStatusCode() >= 200 && response.getStatusLine().getStatusCode() <= 299);
         assertTrue(respBody.contains("id") && respBody.contains("expiration") && respBody.contains("_links"));
     }
 

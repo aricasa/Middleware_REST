@@ -66,7 +66,6 @@ public class OauthGetTest extends AbstractTest
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         assertTrue(respBody.contains("pinco"));
         assertTrue(respBody.contains("count") && respBody.contains("_links"));
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
     }
 
     @Test
