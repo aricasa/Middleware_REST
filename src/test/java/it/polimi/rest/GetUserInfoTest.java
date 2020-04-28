@@ -1,12 +1,5 @@
 package it.polimi.rest;
 
-import it.polimi.rest.api.main.ResourcesServer;
-import it.polimi.rest.api.oauth2.OAuth2Server;
-import it.polimi.rest.authorization.ACL;
-import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.SessionManager;
-import it.polimi.rest.data.Storage;
-import it.polimi.rest.data.VolatileStorage;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -22,45 +15,25 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
-public class GetUserInfoTest
+public class GetUserInfoTest extends AbstractTest
 {
-    Authorizer authorizer = new ACL();
-    Storage storage = new VolatileStorage();
-    SessionManager sessionManager = new SessionManager(authorizer, storage);
+    private static final String URLusers = BASE_URL + "/users";
+    private static final String URLuser1 = URLusers + "/pinco";
+    private static final String URLsessions = BASE_URL + "/sessions";
 
-    ResourcesServer resourcesServer = new ResourcesServer(storage, sessionManager);
-    OAuth2Server oAuth2Server = new OAuth2Server(storage, sessionManager);
-
-    App app = new App(resourcesServer, oAuth2Server);
 
     TokenId idSession;
 
-    @Before
-    public void startServer() throws InterruptedException, IOException
+    public void initializeUsers() throws InterruptedException, IOException
     {
-        authorizer = new ACL();
-        storage = new VolatileStorage();
-        sessionManager = new SessionManager(authorizer, storage);
-        resourcesServer = new ResourcesServer(storage, sessionManager);
-        oAuth2Server = new OAuth2Server(storage, sessionManager);
-        app = new App(resourcesServer, oAuth2Server);
-        app.start();
-        Thread.sleep(500);
-
         //Create user
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users");
+        HttpPost httpPost = new HttpPost(URLusers);
         JSONObject credentials = new JSONObject();
         credentials.put("username","pinco");
         credentials.put("password","pallino");
@@ -72,7 +45,7 @@ public class GetUserInfoTest
         //Login
         CredentialsProvider provider=new BasicCredentialsProvider();
         provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        httpPost = new HttpPost("http://localhost:4567/sessions");
+        httpPost = new HttpPost(URLsessions);
         client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
         HttpResponse response = client.execute(httpPost);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
@@ -80,17 +53,12 @@ public class GetUserInfoTest
         idSession = new TokenId(respField.getString("id"));
     }
 
-    @After
-    public void stopServer() throws InterruptedException
-    {
-        app.stop();
-        Thread.sleep(500);
-    }
-
     @Test
     public void getUserInfoWithoutToken() throws IOException, InterruptedException
     {
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco");
+        initializeUsers();
+
+        HttpGet httpGet = new HttpGet(URLuser1);
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpGet);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
@@ -101,7 +69,9 @@ public class GetUserInfoTest
     @Test
     public void getUserInfoWithCorrectToken() throws IOException, InterruptedException
     {
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco");
+        initializeUsers();
+
+        HttpGet httpGet = new HttpGet(URLuser1);
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpGet);
@@ -116,7 +86,9 @@ public class GetUserInfoTest
     @Test
     public void getUserInfoWithIncorrectToken() throws IOException, InterruptedException
     {
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco");
+        initializeUsers();
+
+        HttpGet httpGet = new HttpGet(URLuser1);
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"fake token");
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpGet);

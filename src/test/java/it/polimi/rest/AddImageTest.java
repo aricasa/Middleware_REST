@@ -1,12 +1,5 @@
 package it.polimi.rest;
 
-import it.polimi.rest.api.main.ResourcesServer;
-import it.polimi.rest.api.oauth2.OAuth2Server;
-import it.polimi.rest.authorization.ACL;
-import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.SessionManager;
-import it.polimi.rest.data.Storage;
-import it.polimi.rest.data.VolatileStorage;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -25,46 +18,26 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
-public class AddImageTest
+public class AddImageTest extends AbstractTest
 {
-    Authorizer authorizer = new ACL();
-    Storage storage = new VolatileStorage();
-    SessionManager sessionManager = new SessionManager(authorizer, storage);
-
-    ResourcesServer resourcesServer = new ResourcesServer(storage, sessionManager);
-    OAuth2Server oAuth2Server = new OAuth2Server(storage, sessionManager);
-
-    App app = new App(resourcesServer, oAuth2Server);
+    private static final String URLusers = BASE_URL + "/users";
+    private static final String URLsessions = BASE_URL + "/sessions";
+    private static final String URLimagesUser1 = URLusers + "/pinco/images";
+    private static final String URLimagesUser2 = URLusers + "/ferrero/images";
 
     TokenId idSession;
 
-    @Before
-    public void startServer() throws InterruptedException, IOException
+    public void initializeUsers() throws InterruptedException, IOException
     {
-        authorizer = new ACL();
-        storage = new VolatileStorage();
-        sessionManager = new SessionManager(authorizer, storage);
-        resourcesServer = new ResourcesServer(storage, sessionManager);
-        oAuth2Server = new OAuth2Server(storage, sessionManager);
-        app = new App(resourcesServer, oAuth2Server);
-        app.start();
-        Thread.sleep(500);
-
         //Create user1
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users");
+        HttpPost httpPost = new HttpPost(URLusers);
         JSONObject credentials = new JSONObject();
         credentials.put("username","pinco");
         credentials.put("password","pallino");
@@ -77,7 +50,7 @@ public class AddImageTest
         credentials = new JSONObject();
         credentials.put("username","ferrero");
         credentials.put("password","rocher");
-        httpPost = new HttpPost("http://localhost:4567/users");
+        httpPost = new HttpPost(URLusers);
         entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
         httpPost.setEntity(entity);
         client.execute(httpPost);
@@ -85,7 +58,7 @@ public class AddImageTest
         //Login user1
         CredentialsProvider provider=new BasicCredentialsProvider();
         provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        httpPost = new HttpPost("http://localhost:4567/sessions");
+        httpPost = new HttpPost(URLsessions);
         client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
         HttpResponse response = client.execute(httpPost);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
@@ -93,17 +66,12 @@ public class AddImageTest
         idSession = new TokenId(respField.getString("id"));
     }
 
-    @After
-    public void stopServer() throws InterruptedException
-    {
-        app.stop();
-        Thread.sleep(500);
-    }
-
     @Test
     public void correctTokenImageAdding() throws IOException, InterruptedException
     {
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
+        initializeUsers();
+
+        HttpPost httpPost = new HttpPost(URLimagesUser1);
         File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         MultipartEntityBuilder builder=MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -124,7 +92,9 @@ public class AddImageTest
     @Test
     public void incorrectUserImageAdding() throws IOException, InterruptedException
     {
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users/ferrero/images");
+        initializeUsers();
+
+        HttpPost httpPost = new HttpPost(URLimagesUser2);
         File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         MultipartEntityBuilder builder=MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -143,7 +113,9 @@ public class AddImageTest
     @Test
     public void incorrectTokenImageAdding() throws IOException, InterruptedException
     {
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
+        initializeUsers();
+
+        HttpPost httpPost = new HttpPost(URLimagesUser1);
         File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         MultipartEntityBuilder builder=MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -162,7 +134,9 @@ public class AddImageTest
     @Test
     public void imageAddingWithoutLogin() throws IOException, InterruptedException
     {
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users/ferrero/images");
+        initializeUsers();
+
+        HttpPost httpPost = new HttpPost(URLimagesUser2);
         File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         MultipartEntityBuilder builder=MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -180,6 +154,8 @@ public class AddImageTest
     @Test
     public void imageAddingFakeUser() throws IOException, InterruptedException
     {
+        initializeUsers();
+
         HttpPost httpPost = new HttpPost("http://localhost:4567/users/fakeUser/images");
         File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         MultipartEntityBuilder builder=MultipartEntityBuilder.create();

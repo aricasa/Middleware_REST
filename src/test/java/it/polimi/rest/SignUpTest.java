@@ -43,7 +43,7 @@ public class SignUpTest extends AbstractTest {
     @Test
     public void missingUsernameSignUp() throws IOException, InterruptedException
     {
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users");
+        HttpPost httpPost = new HttpPost(URL);
         JSONObject credentials = new JSONObject();
         credentials.put("password","pallino");
         StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
@@ -62,7 +62,7 @@ public class SignUpTest extends AbstractTest {
     @Test
     public void missingPasswordSignUp() throws IOException, InterruptedException
     {
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users");
+        HttpPost httpPost = new HttpPost(URL);
         JSONObject credentials = new JSONObject();
         credentials.put("username","ambaraba");
         StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
@@ -81,7 +81,7 @@ public class SignUpTest extends AbstractTest {
     @Test
     public void repeatedSignUp() throws IOException
     {
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users");
+        HttpPost httpPost = new HttpPost(URL);
         JSONObject credentials = new JSONObject();
         credentials.put("username","ferrero");
         credentials.put("password","rocher");

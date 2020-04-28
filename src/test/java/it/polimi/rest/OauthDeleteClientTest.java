@@ -1,12 +1,5 @@
 package it.polimi.rest;
 
-import it.polimi.rest.api.main.ResourcesServer;
-import it.polimi.rest.api.oauth2.OAuth2Server;
-import it.polimi.rest.authorization.ACL;
-import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.SessionManager;
-import it.polimi.rest.data.Storage;
-import it.polimi.rest.data.VolatileStorage;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -15,7 +8,6 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -24,44 +16,25 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 
-public class OauthDeleteClientTest
+public class OauthDeleteClientTest extends AbstractTest
 {
-    Authorizer authorizer = new ACL();
-    Storage storage = new VolatileStorage();
-    SessionManager sessionManager = new SessionManager(authorizer, storage);
-
-    ResourcesServer resourcesServer = new ResourcesServer(storage, sessionManager);
-    OAuth2Server oAuth2Server = new OAuth2Server(storage, sessionManager);
-
-    App app = new App(resourcesServer, oAuth2Server);
+    private static final String URLusers = BASE_URL + "/users";
+    private static final String URLoauth = URLusers + "/pinco/oauth2/clients";
+    private static final String URLsessions = BASE_URL + "/sessions";
 
     TokenId idSession;
     String oauthClientId;
 
-    @Before
-    public void startServer() throws InterruptedException, IOException {
-        authorizer = new ACL();
-        storage = new VolatileStorage();
-        sessionManager = new SessionManager(authorizer, storage);
-        resourcesServer = new ResourcesServer(storage, sessionManager);
-        oAuth2Server = new OAuth2Server(storage, sessionManager);
-        app = new App(resourcesServer, oAuth2Server);
-        app.start();
-        Thread.sleep(500);
-
+    public void initializeUsers() throws InterruptedException, IOException
+    {
         //Add user
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users");
+        HttpPost httpPost = new HttpPost(URLusers);
         JSONObject credentials = new JSONObject();
         credentials.put("username","pinco");
         credentials.put("password","pallino");
@@ -73,7 +46,7 @@ public class OauthDeleteClientTest
         //Login user
         CredentialsProvider provider=new BasicCredentialsProvider();
         provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        httpPost = new HttpPost("http://localhost:4567/sessions");
+        httpPost = new HttpPost(URLsessions);
         client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
         HttpResponse response = client.execute(httpPost);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
@@ -81,7 +54,7 @@ public class OauthDeleteClientTest
         idSession = new TokenId(respField.getString("id"));
 
         //Add client
-        httpPost = new HttpPost("http://localhost:4567/users/pinco/oauth2/clients");
+        httpPost = new HttpPost(URLoauth);
         credentials = new JSONObject();
         credentials.put("name","amazon");
         credentials.put("callback","myUrl");
@@ -98,17 +71,12 @@ public class OauthDeleteClientTest
         assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
     }
 
-    @After
-    public void stopServer() throws InterruptedException
-    {
-        app.stop();
-        Thread.sleep(500);
-    }
-
     @Test
     public void correctDeleteClient() throws IOException, InterruptedException
     {
-        HttpDelete httpDelete = new HttpDelete("http://localhost:4567/users/pinco/oauth2/clients/"+oauthClientId);
+        initializeUsers();
+
+        HttpDelete httpDelete = new HttpDelete(URLoauth+"/"+oauthClientId);
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpDelete);
@@ -118,8 +86,10 @@ public class OauthDeleteClientTest
     @Test
     public void incorrectDeleteClient() throws IOException, InterruptedException
     {
+        initializeUsers();
+
         HttpClient client = HttpClientBuilder.create().build();
-        HttpDelete httpDelete = new HttpDelete("http://localhost:4567/users/pinco/oauth2/clients/"+oauthClientId+"1");
+        HttpDelete httpDelete = new HttpDelete(URLoauth+"/"+oauthClientId+"1");
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpResponse response = client.execute(httpDelete);
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);

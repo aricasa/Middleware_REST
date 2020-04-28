@@ -1,13 +1,5 @@
 package it.polimi.rest;
 
-import com.google.gson.JsonObject;
-import it.polimi.rest.api.main.ResourcesServer;
-import it.polimi.rest.api.oauth2.OAuth2Server;
-import it.polimi.rest.authorization.ACL;
-import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.SessionManager;
-import it.polimi.rest.data.Storage;
-import it.polimi.rest.data.VolatileStorage;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -16,7 +8,6 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -28,69 +19,50 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
-public class DeleteImageTest
+public class DeleteImageTest extends AbstractTest
 {
-    Authorizer authorizer = new ACL();
-    Storage storage = new VolatileStorage();
-    SessionManager sessionManager = new SessionManager(authorizer, storage);
+    private static final String URLusers = BASE_URL + "/users";
+    private static final String URLsessions = BASE_URL + "/sessions";
+    private static final String URLimagesUser1 = URLusers + "/pinco/images";
+    private static final String URLimagesUser2 = URLusers + "/ferrero/images";
 
-    ResourcesServer resourcesServer = new ResourcesServer(storage, sessionManager);
-    OAuth2Server oAuth2Server = new OAuth2Server(storage, sessionManager);
+    static TokenId idSession;
+    static String imageID;
 
-    App app = new App(resourcesServer, oAuth2Server);
-
-    TokenId idSession;
-    String imageID;
-
-    @Before
-    public void startServer() throws InterruptedException, IOException
+    public void initializeUsers() throws InterruptedException, IOException
     {
-        authorizer = new ACL();
-        storage = new VolatileStorage();
-        sessionManager = new SessionManager(authorizer, storage);
-        resourcesServer = new ResourcesServer(storage, sessionManager);
-        oAuth2Server = new OAuth2Server(storage, sessionManager);
-        app = new App(resourcesServer, oAuth2Server);
-        app.start();
-        Thread.sleep(500);
-
         //Create user1
-        HttpPost httpPost = new HttpPost("http://localhost:4567/users");
+        HttpPost httpPost = new HttpPost(URLusers);
         JSONObject credentials = new JSONObject();
-        credentials.put("username","ferrero");
-        credentials.put("password","rocher");
+        credentials.put("username","pinco");
+        credentials.put("password","pallino");
         StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
         httpPost.setEntity(entity);
         HttpClient client = HttpClientBuilder.create().build();
         client.execute(httpPost);
 
         //Create user2
-        httpPost = new HttpPost("http://localhost:4567/users");
+        httpPost = new HttpPost(URLusers);
         credentials = new JSONObject();
-        credentials.put("username","pinco");
-        credentials.put("password","pallino");
+        credentials.put("username","ferrero");
+        credentials.put("password","rocher");
         entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
         httpPost.setEntity(entity);
         client = HttpClientBuilder.create().build();
         client.execute(httpPost);
 
-        //Login user2
+        //Login user1
         CredentialsProvider provider=new BasicCredentialsProvider();
         provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        httpPost = new HttpPost("http://localhost:4567/sessions");
+        httpPost = new HttpPost(URLsessions);
         client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
         HttpResponse response = client.execute(httpPost);
         String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
@@ -98,7 +70,7 @@ public class DeleteImageTest
         idSession = new TokenId(respField.getString("id"));
 
         //Add image
-        httpPost = new HttpPost("http://localhost:4567/users/pinco/images");
+        httpPost = new HttpPost(URLimagesUser1);
         File image = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         MultipartEntityBuilder builder=MultipartEntityBuilder.create();
         builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -114,25 +86,21 @@ public class DeleteImageTest
         imageID = respField.getString("id");
     }
 
-    @After
-    public void stopServer() throws InterruptedException
-    {
-        app.stop();
-        Thread.sleep(500);
-    }
 
     @Test
     public void correctTokenImageDeleting() throws IOException, InterruptedException
     {
+        initializeUsers();
+
         //Delete image
-        HttpDelete httpDelete = new HttpDelete("http://localhost:4567/users/pinco/images/"+imageID);
+        HttpDelete httpDelete = new HttpDelete(URLimagesUser1+"/"+imageID);
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpDelete);
         assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
 
         //Check the number of images
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco/images");
+        HttpGet httpGet = new HttpGet(URLimagesUser1);
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         client = HttpClientBuilder.create().build();
         response = client.execute(httpGet);
@@ -144,15 +112,17 @@ public class DeleteImageTest
     @Test
     public void incorrectTokenImageDeleting() throws IOException, InterruptedException
     {
+        initializeUsers();
+
         //Delete image
-        HttpDelete httpDelete = new HttpDelete("http://localhost:4567/users/pinco/images/"+imageID);
+        HttpDelete httpDelete = new HttpDelete(URLimagesUser1+"/"+imageID);
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"fakeToken");
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpDelete);
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
 
         //Check the number of images
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco/images");
+        HttpGet httpGet = new HttpGet(URLimagesUser1);
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         client = HttpClientBuilder.create().build();
         response = client.execute(httpGet);
@@ -165,15 +135,17 @@ public class DeleteImageTest
     @Test
     public void incorrectUserImageDeleting() throws IOException, InterruptedException
     {
+        initializeUsers();
+
         //Delete image
-        HttpDelete httpDelete = new HttpDelete("http://localhost:4567/users/ferrero/images/"+imageID);
+        HttpDelete httpDelete = new HttpDelete(URLimagesUser2+"/"+imageID);
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
-        HttpResponse response = client.execute(httpDelete);  //PROBLEMA!!!!
+        HttpResponse response = client.execute(httpDelete);
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
 
         //Check the number of images
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco/images");
+        HttpGet httpGet = new HttpGet(URLimagesUser1);
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         client = HttpClientBuilder.create().build();
         response = client.execute(httpGet);
@@ -185,15 +157,17 @@ public class DeleteImageTest
     @Test
     public void incorrectImageImageDeleting() throws IOException, InterruptedException
     {
+        initializeUsers();
+
         //Delete image
-        HttpDelete httpDelete = new HttpDelete("http://localhost:4567/users/pinco/images/"+imageID+"a");
+        HttpDelete httpDelete = new HttpDelete(URLimagesUser1+"/"+imageID+"a");
         httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         HttpClient client = HttpClientBuilder.create().build();
         HttpResponse response = client.execute(httpDelete);
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
 
         //Check the number of images
-        HttpGet httpGet = new HttpGet("http://localhost:4567/users/pinco/images");
+        HttpGet httpGet = new HttpGet(URLimagesUser1);
         httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
         client = HttpClientBuilder.create().build();
         response = client.execute(httpGet);
