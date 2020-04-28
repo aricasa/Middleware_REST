@@ -16,12 +16,12 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
 
-public class UsersTest extends AbstractTest {
+public class SignUpTest extends AbstractTest {
 
     private static final String URL = BASE_URL + "/users";
 
     @Test
-    public void signUp_valid() throws Exception {
+    public void valid() throws Exception {
         String username = "user";
         String password = "pass";
 
