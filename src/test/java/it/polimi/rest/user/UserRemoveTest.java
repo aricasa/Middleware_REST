@@ -1,5 +1,6 @@
-package it.polimi.rest;
+package it.polimi.rest.user;
 
+import it.polimi.rest.AbstractTest;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -7,9 +8,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.*;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -22,8 +21,8 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.Assert.assertTrue;
 
 
-public class DeleteUserTest extends AbstractTest
-{
+public class UserRemoveTest extends AbstractTest {
+
     private static final String URLusers = BASE_URL + "/users";
     private static final String URLuser1 = URLusers + "/pinco";
     private static final String URLuser2 = URLusers + "/ferrero";
@@ -32,8 +31,7 @@ public class DeleteUserTest extends AbstractTest
 
     TokenId idSession;
 
-    public void initializeUsers() throws InterruptedException, IOException
-    {
+    public void initializeUsers() throws Exception {
         //Create user1
         HttpPost httpPost = new HttpPost(URLusers);
         JSONObject credentials = new JSONObject();
@@ -66,9 +64,23 @@ public class DeleteUserTest extends AbstractTest
     }
 
     @Test
-    public void correctTokenUserDeleting() throws IOException, InterruptedException
-    {
-        initializeUsers();
+    public void valid() throws Exception {
+        // Create user
+        String username = "user";
+        String password = "pass";
+
+        JSONObject credentials = new JSONObject();
+        credentials.put("username", username);
+        credentials.put("password", password);
+        StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
+
+        HttpUriRequest request = RequestBuilder
+                .post(BASE_URL + "/users")
+                .setEntity(entity)
+                .build();
+
+        client.execute(request);
+
 
         //Delete user
         HttpDelete httpDelete = new HttpDelete(URLuser1);
@@ -100,6 +112,7 @@ public class DeleteUserTest extends AbstractTest
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
 
         //Try signup
+        /*
         httpPost = new HttpPost(URLusers);
         JSONObject credentials = new JSONObject();
         credentials.put("username","pinco");
@@ -109,11 +122,12 @@ public class DeleteUserTest extends AbstractTest
         client = HttpClientBuilder.create().build();
         response = client.execute(httpPost);
         assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
+
+         */
     }
 
     @Test
-    public void incorrectTokenUserDeleting() throws IOException, InterruptedException
-    {
+    public void incorrectTokenUserDeleting() throws Exception {
         initializeUsers();
 
         //Delete user
@@ -136,8 +150,7 @@ public class DeleteUserTest extends AbstractTest
     }
 
     @Test
-    public void notExistingUserDeleting() throws IOException, InterruptedException
-    {
+    public void notExistingUserDeleting() throws Exception {
         initializeUsers();
 
         //Delete user
@@ -169,4 +182,5 @@ public class DeleteUserTest extends AbstractTest
         response = client.execute(httpPost);
         assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
     }
+
 }
