@@ -1,6 +1,10 @@
 package it.polimi.rest.user;
 
 import it.polimi.rest.AbstractTest;
+import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.messages.Request;
+import it.polimi.rest.messages.UserAdd;
+import it.polimi.rest.messages.UserLogin;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -18,169 +22,132 @@ import org.json.JSONObject;
 import org.junit.Test;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
-public class UserRemoveTest extends AbstractTest {
-
-    private static final String URLusers = BASE_URL + "/users";
-    private static final String URLuser1 = URLusers + "/pinco";
-    private static final String URLuser2 = URLusers + "/ferrero";
-    private static final String URLimagesUser1 = URLuser1 + "/images";
-    private static final String URLsessions = BASE_URL + "/sessions";
-
+public class UserRemoveTest extends AbstractTest
+{
     TokenId idSession;
-
-    public void initializeUsers() throws Exception {
-        //Create user1
-        HttpPost httpPost = new HttpPost(URLusers);
-        JSONObject credentials = new JSONObject();
-        credentials.put("username","pinco");
-        credentials.put("password","pallino");
-        StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
-        httpPost.setEntity(entity);
-        HttpClient client = HttpClientBuilder.create().build();
-        client.execute(httpPost);
-
-        //Create user2
-        httpPost = new HttpPost(URLusers);
-        credentials = new JSONObject();
-        credentials.put("username","ferrero");
-        credentials.put("password","rocher");
-        entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
-        httpPost.setEntity(entity);
-        client = HttpClientBuilder.create().build();
-        client.execute(httpPost);
-
-        //Login user
-        CredentialsProvider provider=new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        httpPost = new HttpPost(URLsessions);
-        client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
-        HttpResponse response = client.execute(httpPost);
-        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        JSONObject respField = new JSONObject(respBody);
-        idSession = new TokenId(respField.getString("id"));
-    }
 
     @Test
     public void valid() throws Exception {
-        // Create user
+
         String username = "user";
         String password = "pass";
 
-        JSONObject credentials = new JSONObject();
-        credentials.put("username", username);
-        credentials.put("password", password);
-        StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
+        addUser(username,password);
+        idSession = loginUser(username,password);
 
+        //Delete user
         HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/users")
-                .setEntity(entity)
+                .delete(BASE_URL+"/users/"+username)
+                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
                 .build();
 
         client.execute(request);
 
-
-        //Delete user
-        HttpDelete httpDelete = new HttpDelete(URLuser1);
-        httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpResponse response = client.execute(httpDelete);
-
         //Try obtain information about user
-        HttpGet httpGet = new HttpGet(URLuser1);
-        httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpGet);
-        String respBody=EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
+        request = RequestBuilder
+                .get(BASE_URL+"/users/"+username)
+                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
+                .build();
+
+        HttpResponse response = client.execute(request);
+        assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());
 
         //Try obtain information about images
-        httpGet = new HttpGet(URLimagesUser1);
-        httpGet.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString());
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpGet);
-        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
+        request = RequestBuilder
+                .get(BASE_URL+"/users/"+username+"/images")
+                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
+                .build();
+
+        response = client.execute(request);
+        assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());
 
         //Try login
         CredentialsProvider provider=new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials("pinco","pallino"));
-        HttpPost httpPost = new HttpPost(URLsessions);
+        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials(username,password));
+
+         request = RequestBuilder
+                .post(BASE_URL+"/sessions")
+                .build();
+
         client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
-        response = client.execute(httpPost);
-        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
+        response = client.execute(request);
+        assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());
 
         //Try signup
-        /*
-        httpPost = new HttpPost(URLusers);
-        JSONObject credentials = new JSONObject();
-        credentials.put("username","pinco");
-        credentials.put("password","pallino");
-        StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
-        httpPost.setEntity(entity);
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpPost);
-        assertTrue(response.getStatusLine().getStatusCode()>=200 && response.getStatusLine().getStatusCode()<=299);
+        Request body = new UserAdd.Request(username, password);
 
-         */
+        request = RequestBuilder
+                .post(BASE_URL + "/users")
+                .setEntity(body.jsonEntity())
+                .build();
+
+        response = client.execute(request);
+        assertEquals(HttpStatus.CREATED,response.getStatusLine().getStatusCode());
     }
 
     @Test
-    public void incorrectTokenUserDeleting() throws Exception {
-        initializeUsers();
+    public void incorrectToken() throws Exception {
+        String username = "user";
+        String password = "pass";
+
+        addUser(username,password);
+        idSession = loginUser(username,password);
 
         //Delete user
-        HttpDelete httpDelete = new HttpDelete(URLuser1);
-        httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"fakeToken");
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpResponse response = client.execute(httpDelete);
-        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
+        HttpUriRequest request = RequestBuilder
+                .delete(BASE_URL+"/users/"+username)
+                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"fakeToken")
+                .build();
+
+        client.execute(request);
 
         //Try signup
-        HttpPost httpPost = new HttpPost(URLusers);
-        JSONObject credentials = new JSONObject();
-        credentials.put("username","pinco");
-        credentials.put("password","pallino");
-        StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
-        httpPost.setEntity(entity);
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpPost);
-        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
+        Request body = new UserAdd.Request(username, password);
+
+        request = RequestBuilder
+                .post(BASE_URL + "/users")
+                .setEntity(body.jsonEntity())
+                .build();
+
+        HttpResponse response = client.execute(request);
+        assertEquals(HttpStatus.FORBIDDEN,response.getStatusLine().getStatusCode());
     }
 
     @Test
-    public void notExistingUserDeleting() throws Exception {
-        initializeUsers();
+    public void notExistingUser() throws Exception {
+        String username1 = "user1";
+        String password1 = "pass1";
+
+        String username2 = "user2";
+        String password2 = "pass2";
+
+        addUser(username1,password1);
+        addUser(username2,password2);
+        idSession = loginUser(username1,password1);
 
         //Delete user
-        HttpDelete httpDelete = new HttpDelete(URLuser2);
-        httpDelete.setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession);
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpResponse response = client.execute(httpDelete);
-        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
+        HttpUriRequest request = RequestBuilder
+                .delete(BASE_URL+"/users/"+username2)
+                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
+                .build();
 
-        //Try signup pinco
-        HttpPost httpPost = new HttpPost(URLusers);
-        JSONObject credentials = new JSONObject();
-        credentials.put("username","pinco");
-        credentials.put("password","pallino");
-        StringEntity entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
-        httpPost.setEntity(entity);
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpPost);
-        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
+        HttpResponse response = client.execute(request);
+        assertEquals(HttpStatus.FORBIDDEN,response.getStatusLine().getStatusCode());
 
-        //Try signup ferrero
-        httpPost = new HttpPost(URLusers);
-        credentials = new JSONObject();
-        credentials.put("username","ferrero");
-        credentials.put("password","rocher");
-        entity = new StringEntity(credentials.toString(), ContentType.APPLICATION_JSON);
-        httpPost.setEntity(entity);
-        client = HttpClientBuilder.create().build();
-        response = client.execute(httpPost);
-        assertTrue(response.getStatusLine().getStatusCode()>=400 && response.getStatusLine().getStatusCode()<=499);
+        //Try signup user1
+        Request body = new UserAdd.Request(username1, password1);
+
+        request = RequestBuilder
+                .post(BASE_URL + "/users")
+                .setEntity(body.jsonEntity())
+                .build();
+
+        response = client.execute(request);
+        assertEquals(HttpStatus.FORBIDDEN,response.getStatusLine().getStatusCode());
     }
-
 }

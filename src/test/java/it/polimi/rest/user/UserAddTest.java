@@ -69,5 +69,4 @@ public class UserAddTest extends AbstractTest {
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
     }
-
 }
