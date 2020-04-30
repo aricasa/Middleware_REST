@@ -68,7 +68,7 @@ public class DataProvider {
             }
         });
 
-        storage.images(user.username).forEach(image -> remove(id, image.id));
+        storage.images(user.username).forEach(image -> remove(image.id));
         storage.oAuth2Clients(user.id).forEach(client -> remove(client.id));
 
         storage.oAuth2AuthorizationCodes().forEach(code -> {
@@ -102,14 +102,8 @@ public class DataProvider {
         sessionManager.remove(basicToken.id);
     }
 
-    public final Image image(String username, Image.Id imageId) {
-        User.Id userId = userByUsername(username).id;
-        return image(userId, imageId);
-    }
-
-    public Image image(User.Id userId, Image.Id imageId) {
+    public Image image(Image.Id imageId) {
         return Optional.ofNullable(storage.image(imageId))
-                .filter(image -> image.info.owner.id.equals(userId))
                 .orElseThrow(NotFoundException::new);
     }
 
@@ -126,13 +120,8 @@ public class DataProvider {
         storage.add(image);
     }
 
-    public final void remove(String username, Image.Id imageId) {
-        User.Id userId = userByUsername(username).id;
-        remove(userId, imageId);
-    }
-
-    public void remove(User.Id userId, Image.Id imageId) {
-        Image image = image(userId, imageId);
+    public void remove(Image.Id imageId) {
+        Image image = image(imageId);
         storage.remove(image.info.id);
     }
 

@@ -107,8 +107,7 @@ public class App {
         });
     }
 
-    public void stop()
-    {
+    public void stop() {
         Spark.stop();
     }
 

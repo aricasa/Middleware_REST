@@ -7,10 +7,9 @@ import it.polimi.rest.communication.TokenHeaderExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.image.ImageMessage;
 import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.exceptions.NotFoundException;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.User;
-import it.polimi.rest.utils.Pair;
 import spark.Request;
 
 import java.util.Optional;
@@ -18,7 +17,7 @@ import java.util.Optional;
 /**
  * Get the metadata of an image.
  */
-class ImageDetails extends Responder<TokenId, Pair<String, Image.Id>> {
+class ImageDetails extends Responder<TokenId, ImageDetails.Data> {
 
     private final SessionManager sessionManager;
 
@@ -32,19 +31,33 @@ class ImageDetails extends Responder<TokenId, Pair<String, Image.Id>> {
     }
 
     @Override
-    protected Pair<String, Image.Id> deserialize(Request request) {
+    protected ImageDetails.Data deserialize(Request request) {
         String username = request.params("username");
         Image.Id imageId = new Image.Id(request.params("imageId"));
 
-        return new Pair<>(username, imageId);
+        return new ImageDetails.Data(username, imageId);
     }
 
     @Override
-    protected Message process(TokenId token, Pair<String, Image.Id> data) {
+    protected Message process(TokenId token, ImageDetails.Data data) {
         DataProvider dataProvider = sessionManager.dataProvider(token);
-        Image image = dataProvider.image(data.first, data.second);
+        Image image = dataProvider.image(data.imageId);
+
+        if (!image.info.owner.username.equals(data.username)) {
+            throw new NotFoundException();
+        }
 
         return ImageMessage.details(image.info);
+    }
+
+    protected static class Data {
+        public final String username;
+        public final Image.Id imageId;
+
+        public Data(String username, Image.Id imageId) {
+            this.username = username;
+            this.imageId = imageId;
+        }
     }
 
 }
