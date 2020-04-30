@@ -112,6 +112,6 @@ public class ImageDownloadTest extends AbstractTest
                 .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
                 .build();
 
-        assertEquals(HttpStatus.FORBIDDEN, client.execute(request).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, client.execute(request).getStatusLine().getStatusCode());
     }
 }
