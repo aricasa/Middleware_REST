@@ -22,6 +22,7 @@ public class OauthClientAdd {
         public String name;
         public String callback;
         public String id;
+        public String secret;
 
         private Response() {
 
