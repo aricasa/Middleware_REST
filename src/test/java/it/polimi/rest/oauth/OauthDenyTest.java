@@ -72,7 +72,7 @@ public class OauthDenyTest extends OauthAbstractTest
                 .addParameter("token","fakeToken")
                 .build();
 
-        assertEquals(HttpStatus.UNAUTHORIZED,client.execute(request).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.FOUND,client.execute(request).getStatusLine().getStatusCode());
     }
 
     @Test
@@ -146,7 +146,7 @@ public class OauthDenyTest extends OauthAbstractTest
                 .addParameter("redirect_uri", callback)
                 .build();
 
-        assertEquals(HttpStatus.UNAUTHORIZED,client.execute(request).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.FOUND,client.execute(request).getStatusLine().getStatusCode());
     }
 
 
