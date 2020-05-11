@@ -1,14 +1,21 @@
 package it.polimi.rest.oauth2;
 
+import it.polimi.rest.authorization.Agent;
+import it.polimi.rest.authorization.Authorizer;
+import it.polimi.rest.authorization.SessionManager;
+import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.OAuth2ClientAdd;
 import it.polimi.rest.messages.OAuth2Grant;
 import it.polimi.rest.models.TokenId;
+import it.polimi.rest.models.User;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
+import org.eclipse.jetty.io.ssl.ALPNProcessor;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import static org.junit.Assert.*;
 
@@ -39,83 +46,118 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
         assertEquals("state", response.state);
     }
 
-    // TODO: missing token
-    // TODO: wrong token
-    // TODO: missing client id
-    // TODO: wrong client id
-    // TODO: missing callback
-    // TODO: wrong callback
-    // TODO: missing scopes
+    @Test
+    public void missingToken() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+        OAuth2Grant.Request request = new OAuth2Grant.Request(null, clientId, callback,
+                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
+                "state");
+
+        assertEquals(HttpStatus.UNAUTHORIZED,request.run(BASE_URL).getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void wrongToken() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+        OAuth2Grant.Request request = new OAuth2Grant.Request(new TokenId("fakeToken"), clientId, callback,
+                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
+                "state");
+
+        assertEquals(HttpStatus.UNAUTHORIZED,request.run(BASE_URL).getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void missingClientID() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+        OAuth2Grant.Request request = new OAuth2Grant.Request(token, null, callback,
+                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
+                "state");
+
+        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void wrongClientID() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+        OAuth2Grant.Request request = new OAuth2Grant.Request(token, new OAuth2Client.Id("fakeClientID"), callback,
+                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
+                "state");
+
+        assertEquals(HttpStatus.NOT_FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void missingCallback() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, null,
+                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
+                "state");
+
+        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void wrongCallback() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, "fakeCallback",
+                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
+                "state");
+
+        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+
+    }
+
+    @Test
+    public void missingScopes() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback,
+                null, "state");
+
+        assertEquals(HttpStatus.FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void wrongScopes() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+
+       // OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback,
+         //       Arrays.asList(new Scope("hola")), "state");
+
+        //assertEquals(HttpStatus.FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void missingState() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback,
+                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
+                null);
+
+        assertEquals(HttpStatus.FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
+    }
+
     // TODO: wrong scopes
-    // TODO: missing state
-
-    /*
-    @Test
-    public void incorrectToken() throws IOException, InterruptedException
-    {
-        //Grant request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/grant")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("scope","scope1")
-                .addParameter("redirect_uri", callback)
-                .addParameter("token","fakeToken")
-                .build();
-
-        assertEquals(HttpStatus.UNAUTHORIZED,client.execute(request).getStatusLine().getStatusCode());
-    }
-
-    @Test
-    public void mismatchingURL() throws IOException, InterruptedException
-    {
-        //Grant request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/grant")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("scope","scope1")
-                .addParameter("redirect_uri", "differentUrl")
-                .addParameter("token",idSession.toString())
-                .build();
-
-        assertEquals(HttpStatus.BAD_REQUEST,client.execute(request).getStatusLine().getStatusCode());
-    }
-
-    @Test
-    public void fakeClient() throws IOException, InterruptedException
-    {
-        //Grant request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/grant")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id","myIdd")
-                .addParameter("response_type","code")
-                .addParameter("scope","scope1")
-                .addParameter("redirect_uri", "myUrl")
-                .addParameter("token","token")
-                .build();
-
-        assertEquals(HttpStatus.NOT_FOUND,client.execute(request).getStatusLine().getStatusCode());
-    }
-
-    @Test
-    public void missingToken() throws IOException, InterruptedException
-    {
-        //Grant request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/grant")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("scope","scope1")
-                .addParameter("redirect_uri", callback)
-                .build();
-
-        assertEquals(HttpStatus.UNAUTHORIZED,client.execute(request).getStatusLine().getStatusCode());
-    }
-     */
 
 }

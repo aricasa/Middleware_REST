@@ -45,7 +45,10 @@ public class ImageRaw {
     }
 
     public static class Response implements it.polimi.rest.messages.Response {
-        // TODO
+
+        private Response() {
+
+        }
     }
 
 }

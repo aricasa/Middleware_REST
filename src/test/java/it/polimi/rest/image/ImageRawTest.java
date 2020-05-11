@@ -2,6 +2,8 @@ package it.polimi.rest.image;
 
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.messages.ImageRaw;
+import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
@@ -23,6 +25,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -35,86 +38,47 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ImageRawTest extends AbstractTest {
-    // TODO: adapt to tests general structure
 
-    /*
-    private TokenId idSession;
-    private String idImage;
+    private String username = "user";
+    private TokenId token;
+    private File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
+    private String title = "title";
+    private Image.Id image;
+
+    @Before
+    public void setUp() throws Exception {
+        addUser(username, "pass");
+        token = new TokenId(login(username, "pass").id);
+        image = new Image.Id(addImage(token, username, title, file).id);
+    }
 
     @Test
     public void valid() throws IOException, InterruptedException
     {
-        String username = "user";
-        String password = "pass";
+        ImageRaw.Request request = new ImageRaw.Request(token, username, image);
+        HttpResponse response = request.run(BASE_URL);
 
-        String imageTitle = "image";
-
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        idImage = addImage(imageTitle, username, idSession.toString());
-
-        //Download image
-        HttpUriRequest request = RequestBuilder
-                .get(BASE_URL+"/users/"+username+"/images/"+idImage+"/raw")
-                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
-                .build();
-
-        File image = new File(getClass().getClassLoader().getResource(imageTitle+".jpg").getFile());
         ByteArrayOutputStream downloadedImg = new ByteArrayOutputStream();
-        client.execute(request).getEntity().writeTo(downloadedImg);
+        response.getEntity().writeTo(downloadedImg);
         byte[] bufferDownloadedImage = downloadedImg.toByteArray();
-        byte[] bufferImage = FileUtils.readFileToByteArray(image);
+        byte[] bufferImage = FileUtils.readFileToByteArray(file);
         assertTrue(Arrays.equals(bufferDownloadedImage,bufferImage));
     }
+
 
     @Test
     public void incorrectToken() throws IOException, InterruptedException
     {
-        String username = "user";
-        String password = "pass";
-
-        String imageTitle = "image";
-
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        idImage = addImage(imageTitle, username, idSession.toString());
-
-        //Download image
-        HttpUriRequest request = RequestBuilder
-                .get(BASE_URL+"/users/"+username+"/images/"+idImage+"/raw")
-                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"fakeToken")
-                .build();
-
-        assertEquals(HttpStatus.UNAUTHORIZED, client.execute(request).getStatusLine().getStatusCode());
+        ImageRaw.Request request = new ImageRaw.Request(new TokenId("fakeToken"), username, image);
+        HttpResponse response = request.run(BASE_URL);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
     public void incorrectUser() throws IOException, InterruptedException
     {
-        String username = "user";
-        String password = "pass";
-
-        String username2 = "user2";
-        String password2 = "pass2";
-
-        String imageTitle = "image";
-
-        addUser(username,password);
-        addUser(username2,password2);
-        idSession = loginUser(username,password);
-
-        idImage = addImage(imageTitle, username, idSession.toString());
-
-        //Download image
-        HttpUriRequest request = RequestBuilder
-                .get(BASE_URL+"/users/"+username2+"/images/"+idImage+"/raw")
-                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
-                .build();
-
-        assertEquals(HttpStatus.NOT_FOUND, client.execute(request).getStatusLine().getStatusCode());
+        ImageRaw.Request request = new ImageRaw.Request(token, "fakeUser", image);
+        HttpResponse response = request.run(BASE_URL);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
     }
-
-     */
 }

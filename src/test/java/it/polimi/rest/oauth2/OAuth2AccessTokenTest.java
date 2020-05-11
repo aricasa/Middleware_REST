@@ -1,234 +1,90 @@
 package it.polimi.rest.oauth2;
 
+import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.messages.OAuth2AccessToken;
+import it.polimi.rest.messages.OAuth2ClientAdd;
+import it.polimi.rest.messages.OAuth2Grant;
+import it.polimi.rest.models.TokenId;
+import it.polimi.rest.models.oauth2.OAuth2Client;
+import it.polimi.rest.models.oauth2.scope.Scope;
+import org.apache.http.HttpResponse;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 
 
 public class OAuth2AccessTokenTest extends OAuth2AbstractTest
 {
-    // TODO: adapt to tests general structure
     // TODO: test token usage
 
-    /*
-    private TokenId idSession;
-    private String clientId;
-    private String clientSecret;
+    private TokenId token;
+    private OAuth2Client.Id clientId;
+    private OAuth2Client.Secret clientSecret;
     private String authorizationCode;
+    private String callback = "http://localhost/callback";
+
+    @Before
+    public void setUp() throws Exception {
+        addUser("user", "pass");
+        token = new TokenId(login("user", "pass").id);
+        OAuth2ClientAdd.Response response = addClient(token, "user", "client", callback);
+        clientId = new OAuth2Client.Id(response.id);
+        clientSecret = new OAuth2Client.Secret(response.secret);
+
+        //Grant request
+        OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
+                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
+                "state");
+        authorizationCode = responseGrant.location.substring(responseGrant.location.indexOf("code=")+5,responseGrant.location.indexOf("&state"));
+        System.out.println(authorizationCode);
+    }
 
     @Test
     public void valid() throws IOException, InterruptedException
     {
-        //Add and login a user
-        String username = "user";
-        String password = "pass";
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Add a client
-        String clientName = "IamAclient";
-        String callback = "myUrl";
-        OauthClientAdd.Response clientInfo = addClient(username,idSession.toString(),clientName,callback);
-        clientId = clientInfo.id;
-        clientSecret = clientInfo.secret;
-
-        //Grant request
-        HttpResponse response = sendGrantRequest(clientId, callback, idSession.toString(), "read_user" );
-        String redictedtLoc = response.getFirstHeader("Location").getValue();
-        authorizationCode = redictedtLoc.substring(redictedtLoc.lastIndexOf("=")+1);
-
-        //Token request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/token")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("redirect_uri", callback)
-                .addParameter("client_secret",clientSecret)
-                .addParameter("grant_type","authorization_code")
-                .addParameter("code",authorizationCode)
-                .build();
-
-        assertEquals(HttpStatus.CREATED,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "authorization_code");
+        assertEquals(HttpStatus.CREATED,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
+
 
     @Test
     public void incorrectAuthorizationCode() throws IOException, InterruptedException
     {
-        //Add and login a user
-        String username = "user";
-        String password = "pass";
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Add a client
-        String clientName = "IamAclient";
-        String callback = "myUrl";
-        OauthClientAdd.Response clientInfo = addClient(username,idSession.toString(),clientName,callback);
-        clientId = clientInfo.id;
-        clientSecret = clientInfo.secret;
-
-        //Grant request
-        HttpResponse response = sendGrantRequest(clientId, callback, idSession.toString(), "read_user" );
-        String redictedtLoc = response.getFirstHeader("Location").getValue();
-        authorizationCode = redictedtLoc.substring(redictedtLoc.lastIndexOf("=")+1);
-
-        //Token request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/token")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("redirect_uri", callback)
-                .addParameter("client_secret",clientSecret)
-                .addParameter("grant_type","authorization_code")
-                .addParameter("code","fakeCode")
-                .build();
-
-        assertEquals(HttpStatus.BAD_REQUEST,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, "fakeCode", "authorization_code");
+        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void incorrectClientId() throws IOException, InterruptedException
     {
-        //Add and login a user
-        String username = "user";
-        String password = "pass";
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Add a client
-        String clientName = "IamAclient";
-        String callback = "myUrl";
-        OauthClientAdd.Response clientInfo = addClient(username,idSession.toString(),clientName,callback);
-        clientId = clientInfo.id;
-        clientSecret = clientInfo.secret;
-
-        //Grant request
-        HttpResponse response = sendGrantRequest(clientId, callback, idSession.toString(), "read_user" );
-        String redictedtLoc = response.getFirstHeader("Location").getValue();
-        authorizationCode = redictedtLoc.substring(redictedtLoc.lastIndexOf("=")+1);
-
-        //Token request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/token")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id","fakeId")
-                .addParameter("response_type","code")
-                .addParameter("redirect_uri", callback)
-                .addParameter("client_secret",clientSecret)
-                .addParameter("grant_type","authorization_code")
-                .addParameter("code",authorizationCode)
-                .build();
-
-        assertEquals(HttpStatus.BAD_REQUEST,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(new OAuth2Client.Id("fakeClient"), clientSecret, callback, authorizationCode, "authorization_code");
+        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void mismatchingCallbackURL() throws IOException, InterruptedException
     {
-        //Add and login a user
-        String username = "user";
-        String password = "pass";
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Add a client
-        String clientName = "IamAclient";
-        String callback = "myUrl";
-        OauthClientAdd.Response clientInfo = addClient(username,idSession.toString(),clientName,callback);
-        clientId = clientInfo.id;
-        clientSecret = clientInfo.secret;
-
-        //Grant request
-        HttpResponse response = sendGrantRequest(clientId, callback, idSession.toString(), "read_user" );
-        String redictedtLoc = response.getFirstHeader("Location").getValue();
-        authorizationCode = redictedtLoc.substring(redictedtLoc.lastIndexOf("=")+1);
-
-        //Token request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/token")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("redirect_uri", "differentCallbackUrl")
-                .addParameter("client_secret",clientSecret)
-                .addParameter("grant_type","authorization_code")
-                .addParameter("code",authorizationCode)
-                .build();
-
-        assertEquals(HttpStatus.BAD_REQUEST,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, "wrongURL", authorizationCode, "authorization_code");
+        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void incorrectClientSecret() throws IOException, InterruptedException
     {
-        //Add and login a user
-        String username = "user";
-        String password = "pass";
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Add a client
-        String clientName = "IamAclient";
-        String callback = "myUrl";
-        OauthClientAdd.Response clientInfo = addClient(username,idSession.toString(),clientName,callback);
-        clientId = clientInfo.id;
-        clientSecret = clientInfo.secret;
-
-        //Grant request
-        HttpResponse response = sendGrantRequest(clientId, callback, idSession.toString(), "read_user" );
-        String redictedtLoc = response.getFirstHeader("Location").getValue();
-        authorizationCode = redictedtLoc.substring(redictedtLoc.lastIndexOf("=")+1);
-
-        //Token request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/token")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("redirect_uri", callback)
-                .addParameter("client_secret","fakeSecret")
-                .addParameter("grant_type","authorization_code")
-                .addParameter("code",authorizationCode)
-                .build();
-
-        assertEquals(HttpStatus.BAD_REQUEST,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, new OAuth2Client.Secret("wrongSecret"), callback, authorizationCode, "authorization_code");
+        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
+
 
     @Test
     public void unknownGrantType() throws IOException, InterruptedException
     {
-        //Add and login a user
-        String username = "user";
-        String password = "pass";
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Add a client
-        String clientName = "IamAclient";
-        String callback = "myUrl";
-        OauthClientAdd.Response clientInfo = addClient(username,idSession.toString(),clientName,callback);
-        clientId = clientInfo.id;
-        clientSecret = clientInfo.secret;
-
-        //Grant request
-        HttpResponse response = sendGrantRequest(clientId, callback, idSession.toString(), "read_user" );
-        String redictedtLoc = response.getFirstHeader("Location").getValue();
-        authorizationCode = redictedtLoc.substring(redictedtLoc.lastIndexOf("=")+1);
-
-        //Token request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/token")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("redirect_uri", callback)
-                .addParameter("client_secret",clientSecret)
-                .addParameter("grant_type","FakeGrantType")
-                .addParameter("code",authorizationCode)
-                .build();
-
-        assertEquals(HttpStatus.BAD_REQUEST,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "fakeGrantType");
+        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
 
-     */
 }

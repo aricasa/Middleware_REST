@@ -1,147 +1,65 @@
 package it.polimi.rest.oauth2;
 
+import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.messages.OAuth2ClientAdd;
+import it.polimi.rest.messages.OAuth2Deny;
+import it.polimi.rest.messages.OAuth2Grant;
+import it.polimi.rest.models.TokenId;
+import it.polimi.rest.models.oauth2.OAuth2Client;
+import it.polimi.rest.models.oauth2.scope.Scope;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 
 public class OAuth2DenyTest extends OAuth2AbstractTest {
-    // TODO: adapt to tests general structure
 
-    /*
-    private TokenId idSession;
-    private String clientId;
+    private TokenId token;
+    private OAuth2Client.Id clientId;
+    private String callback = "http://localhost/callback";
 
+    @Before
+    public void setUp() throws Exception {
+        addUser("owner", "pass");
+        token = new TokenId(login("owner", "pass").id);
+        OAuth2ClientAdd.Response response = addClient(token, "owner", "client", callback);
+        clientId = new OAuth2Client.Id(response.id);
+    }
     @Test
     public void valid() throws IOException, InterruptedException
     {
-        //Add and login a user
-        String username = "user";
-        String password = "pass";
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Add a client
-        String clientName = "IamAclient";
-        String callback = "myUrl";
-        OauthClientAdd.Response clientInfo = addClient(username,idSession.toString(),clientName,callback);
-        clientId = clientInfo.id;
-
-        //Deny request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/deny")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("scope","scope1")
-                .addParameter("redirect_uri", callback)
-                .addParameter("token",idSession.toString())
-                .build();
-
-        assertEquals(HttpStatus.FOUND,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2Deny.Request request = new OAuth2Deny.Request(token, clientId, callback,  Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)), "state");
+        assertEquals(HttpStatus.FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void incorrectToken() throws IOException, InterruptedException
     {
-        //Add and login a user
-        String username = "user";
-        String password = "pass";
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Add a client
-        String clientName = "IamAclient";
-        String callback = "myUrl";
-        OauthClientAdd.Response clientInfo = addClient(username,idSession.toString(),clientName,callback);
-        clientId = clientInfo.id;
-
-        //Deny request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/deny")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("scope","scope1")
-                .addParameter("redirect_uri", callback)
-                .addParameter("token","fakeToken")
-                .build();
-
-        assertEquals(HttpStatus.FOUND,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2Deny.Request request = new OAuth2Deny.Request(new TokenId("fakeToken"), clientId, callback,  Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)), "state");
+        assertEquals(HttpStatus.FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void mismatchingURL() throws IOException, InterruptedException
     {
-        //Add and login a user
-        String username = "user";
-        String password = "pass";
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Add a client
-        String clientName = "IamAclient";
-        String callback = "myUrl";
-        OauthClientAdd.Response clientInfo = addClient(username,idSession.toString(),clientName,callback);
-        clientId = clientInfo.id;
-
-        //Deny request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/deny")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("scope","scope1")
-                .addParameter("redirect_uri", "differentUrl")
-                .addParameter("token",idSession.toString())
-                .build();
-
-        assertEquals(HttpStatus.BAD_REQUEST,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2Deny.Request request = new OAuth2Deny.Request(token, clientId, "differentURL",  Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)), "state");
+        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void fakeClient() throws IOException, InterruptedException
     {
-        //Deny request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/deny")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id","myIdd")
-                .addParameter("response_type","code")
-                .addParameter("scope","scope1")
-                .addParameter("redirect_uri", "myUrl")
-                .addParameter("token","token")
-                .build();
-
-        assertEquals(HttpStatus.NOT_FOUND,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2Deny.Request request = new OAuth2Deny.Request(token, new OAuth2Client.Id("fakeClientID"), callback,  Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)), "state");
+        assertEquals(HttpStatus.NOT_FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void missingToken() throws IOException, InterruptedException
     {
-        //Add and login a user
-        String username = "user";
-        String password = "pass";
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Add a client
-        String clientName = "IamAclient";
-        String callback = "myUrl";
-        OauthClientAdd.Response clientInfo = addClient(username,idSession.toString(),clientName,callback);
-        clientId = clientInfo.id;
-
-        //Deny request
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/deny")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",clientId)
-                .addParameter("response_type","code")
-                .addParameter("scope","scope1")
-                .addParameter("redirect_uri", callback)
-                .build();
-
-        assertEquals(HttpStatus.FOUND,client.execute(request).getStatusLine().getStatusCode());
+        OAuth2Deny.Request request = new OAuth2Deny.Request(null, clientId, callback,  Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)), "state");
+        assertEquals(HttpStatus.FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
-
-     */
-
-
 }

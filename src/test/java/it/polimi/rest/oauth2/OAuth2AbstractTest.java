@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
-abstract class OAuth2AbstractTest extends AbstractTest {
+public abstract class OAuth2AbstractTest extends AbstractTest {
 
     public static OAuth2ClientsList.Response clientsList(TokenId token, String username) throws IOException {
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(token, username);
@@ -40,7 +40,7 @@ abstract class OAuth2AbstractTest extends AbstractTest {
         String url = response.getFirstHeader("Location").getValue();
         Map<String, String> params = RequestUtils.bodyParams(url.substring(callback.length() + 1));
 
-        return new OAuth2Grant.Response(params.get("code"), params.get("state"));
+        return new OAuth2Grant.Response(params.get("code"), params.get("state"), url);
     }
 
     /*

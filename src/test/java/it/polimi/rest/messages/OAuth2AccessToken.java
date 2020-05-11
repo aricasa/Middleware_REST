@@ -1,7 +1,6 @@
 package it.polimi.rest.messages;
 
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
 import org.apache.http.HttpResponse;
@@ -14,52 +13,54 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public class OAuth2Grant {
+public class OAuth2AccessToken {
 
-    private OAuth2Grant() {
+    private OAuth2AccessToken() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request {
 
-        private final TokenId token;
         private final OAuth2Client.Id clientId;
         private final String callback;
-        private final Collection<Scope> scopes;
-        private final String state;
+        private final OAuth2Client.Secret secret;
+        private final String code;
+        private final String grantType;
 
-        public Request(TokenId token, OAuth2Client.Id clientId, String callback, Collection<Scope> scopes, String state) {
-            this.token = token;
+        public Request(OAuth2Client.Id clientId, OAuth2Client.Secret secret, String callback, String code, String grantType) {
             this.clientId = clientId;
             this.callback = callback;
-            this.scopes = scopes;
-            this.state = state;
+            this.secret = secret;
+            this.code = code;
+            this.grantType = grantType;
         }
 
         @Override
         public HttpResponse run(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.post(baseUrl + "/oauth2/grant");
+            RequestBuilder builder = RequestBuilder.post(baseUrl + "/oauth2/token");
             builder.addHeader("Content-Type", "application/x-www-form-urlencoded");
-
-            if (token != null) {
-                builder.addParameter("token", token.toString());
-            }
 
             if (clientId != null) {
                 builder.addParameter("client_id", clientId.toString());
+            }
+
+            if (secret != null) {
+                builder.addParameter("client_secret", secret.toString());
             }
 
             if (callback != null && !callback.isEmpty()) {
                 builder.addParameter("redirect_uri", callback);
             }
 
-            if (scopes != null && !scopes.isEmpty()) {
-                builder.addParameter("scope", scopes.stream().map(Object::toString).collect(Collectors.joining(" ")));
+            if (code != null) {
+                builder.addParameter("code", code);
             }
 
-            if (state != null && !state.isEmpty()) {
-                builder.addParameter("state", state);
+            if (grantType != null) {
+                builder.addParameter("grant_type", grantType);
             }
+
+            builder.addParameter("response_type", "code");
 
             HttpUriRequest request = builder.build();
             HttpClient client = HttpClientBuilder.create().build();
@@ -70,14 +71,7 @@ public class OAuth2Grant {
 
     public static class Response implements it.polimi.rest.messages.Response {
 
-        public final String authorizationCode;
-        public final String state;
-        public final String location;
-
-        public Response(String authorizationCode, String state, String location) {
-            this.authorizationCode = authorizationCode;
-            this.state = state;
-            this.location = location;
+        public Response() {
         }
 
     }

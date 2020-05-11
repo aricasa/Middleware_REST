@@ -1,7 +1,6 @@
 package it.polimi.rest.messages;
 
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
 import org.apache.http.HttpResponse;
@@ -14,9 +13,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public class OAuth2Grant {
+public class OAuth2Deny {
 
-    private OAuth2Grant() {
+    private OAuth2Deny() {
 
     }
 
@@ -38,7 +37,7 @@ public class OAuth2Grant {
 
         @Override
         public HttpResponse run(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.post(baseUrl + "/oauth2/grant");
+            RequestBuilder builder = RequestBuilder.post(baseUrl + "/oauth2/deny");
             builder.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
             if (token != null) {
@@ -70,14 +69,7 @@ public class OAuth2Grant {
 
     public static class Response implements it.polimi.rest.messages.Response {
 
-        public final String authorizationCode;
-        public final String state;
-        public final String location;
-
-        public Response(String authorizationCode, String state, String location) {
-            this.authorizationCode = authorizationCode;
-            this.state = state;
-            this.location = location;
+        public Response() {
         }
 
     }
