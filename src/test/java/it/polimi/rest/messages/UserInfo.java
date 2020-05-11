@@ -1,6 +1,7 @@
 package it.polimi.rest.messages;
 
-import com.google.gson.annotations.Expose;
+import it.polimi.rest.models.TokenId;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -9,32 +10,31 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 
-public class UserAdd {
+public class UserInfo {
 
-    private UserAdd() {
+    private UserInfo() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request {
 
-        @Expose
-        public final String username;
+        private final TokenId token;
+        private final String username;
 
-        @Expose
-        public final String password;
-
-        public Request(String username, String password) {
+        public Request(TokenId token, String username) {
+            this.token = token;
             this.username = username;
-            this.password = password;
         }
 
         @Override
         public HttpResponse run(String baseUrl) throws IOException {
-            HttpUriRequest request = RequestBuilder
-                    .post(baseUrl + "/users")
-                    .setEntity(jsonEntity())
-                    .build();
+            RequestBuilder builder = RequestBuilder.get(baseUrl + "/users/" + username);
 
+            if (token != null) {
+                builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
+            }
+
+            HttpUriRequest request = builder.build();
             HttpClient client = HttpClientBuilder.create().build();
             return client.execute(request);
         }

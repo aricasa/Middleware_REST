@@ -48,7 +48,7 @@ class AccessToken extends Responder<TokenId, AccessToken.Data> {
 
     @Override
     protected Data deserialize(Request request) {
-        Map<String, String> bodyParams = RequestUtils.bodyParams(request);
+        Map<String, String> bodyParams = RequestUtils.bodyParams(request.body());
 
         String grantType = bodyParams.get("grant_type");
 

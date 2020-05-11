@@ -1,6 +1,8 @@
 package it.polimi.rest.messages;
 
-import com.google.gson.annotations.Expose;
+import it.polimi.rest.models.Image;
+import it.polimi.rest.models.TokenId;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -9,32 +11,33 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 
-public class UserAdd {
+public class ImageRaw {
 
-    private UserAdd() {
+    private ImageRaw() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request {
 
-        @Expose
-        public final String username;
+        private final TokenId token;
+        private final String username;
+        private final Image.Id image;
 
-        @Expose
-        public final String password;
-
-        public Request(String username, String password) {
+        public Request(TokenId token, String username, Image.Id image) {
+            this.token = token;
             this.username = username;
-            this.password = password;
+            this.image = image;
         }
 
         @Override
         public HttpResponse run(String baseUrl) throws IOException {
-            HttpUriRequest request = RequestBuilder
-                    .post(baseUrl + "/users")
-                    .setEntity(jsonEntity())
-                    .build();
+            RequestBuilder builder = RequestBuilder.get(baseUrl + "/users/" + username + "/images/" + image + "/raw");
 
+            if (token != null) {
+                builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
+            }
+
+            HttpUriRequest request = builder.build();
             HttpClient client = HttpClientBuilder.create().build();
             return client.execute(request);
         }
@@ -42,14 +45,7 @@ public class UserAdd {
     }
 
     public static class Response implements it.polimi.rest.messages.Response {
-
-        public String id;
-        public String username;
-
-        private Response() {
-
-        }
-
+        // TODO
     }
 
 }

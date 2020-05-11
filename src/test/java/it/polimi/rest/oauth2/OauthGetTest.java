@@ -1,37 +1,14 @@
-package it.polimi.rest.oauth;
+package it.polimi.rest.oauth2;
 
 import it.polimi.rest.AbstractTest;
-import it.polimi.rest.communication.HttpStatus;
-import it.polimi.rest.messages.OauthClientAdd;
-import it.polimi.rest.messages.Request;
-import it.polimi.rest.models.TokenId;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
-import org.junit.Test;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-
+// TODO: not clear what this is
 public class OauthGetTest extends AbstractTest
 {
+    /*
     private TokenId idSession;
 
     @Test
@@ -79,4 +56,6 @@ public class OauthGetTest extends AbstractTest
 
         assertEquals(HttpStatus.UNAUTHORIZED,client.execute(request).getStatusLine().getStatusCode());
     }
+
+     */
 }

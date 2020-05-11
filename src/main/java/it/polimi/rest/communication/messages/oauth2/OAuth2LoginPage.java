@@ -3,9 +3,9 @@ package it.polimi.rest.communication.messages.oauth2;
 import com.google.common.io.Resources;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.communication.messages.Message;
+import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.exceptions.InternalErrorException;
 import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.models.oauth2.scope.Scope;
 
 import java.io.IOException;
 import java.net.URL;

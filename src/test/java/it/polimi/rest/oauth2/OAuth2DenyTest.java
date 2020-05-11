@@ -1,19 +1,11 @@
-package it.polimi.rest.oauth;
-
-import it.polimi.rest.communication.HttpStatus;
-import it.polimi.rest.messages.OauthClientAdd;
-import it.polimi.rest.models.TokenId;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
-import org.junit.Test;
-
-import java.io.IOException;
+package it.polimi.rest.oauth2;
 
 import static org.junit.Assert.assertEquals;
 
+public class OAuth2DenyTest extends OAuth2AbstractTest {
+    // TODO: adapt to tests general structure
 
-public class OauthDenyTest extends OauthAbstractTest
-{
+    /*
     private TokenId idSession;
     private String clientId;
 
@@ -148,6 +140,8 @@ public class OauthDenyTest extends OauthAbstractTest
 
         assertEquals(HttpStatus.FOUND,client.execute(request).getStatusLine().getStatusCode());
     }
+
+     */
 
 
 }

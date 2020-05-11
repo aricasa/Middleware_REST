@@ -13,6 +13,7 @@ public final class OAuth2Server extends Api {
 
     public final Route clients = new Clients(sessionManager);
     public final Route clientAdd = new ClientAdd(sessionManager);
+    public final Route clientDetails = new ClientDetails(sessionManager);
     public final Route clientRemove = new ClientRemove(sessionManager);
     public final Route authorize = new Authorize();
     public final Route grant = new Grant(sessionManager);

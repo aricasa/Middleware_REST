@@ -16,10 +16,8 @@ public class RequestUtils {
 
     }
 
-    public static Map<String, String> bodyParams(Request request) {
+    public static Map<String, String> bodyParams(String body) {
         Map<String, String> result = new HashMap<>();
-
-        String body = request.body();
 
         if (body != null) {
             for (String entry : body.split("&")) {

@@ -2,152 +2,83 @@ package it.polimi.rest.user;
 
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
-import it.polimi.rest.messages.Request;
-import it.polimi.rest.messages.UserAdd;
-import it.polimi.rest.messages.UserLogin;
+import it.polimi.rest.messages.*;
 import it.polimi.rest.models.TokenId;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.*;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
+public class UserRemoveTest extends AbstractTest {
 
-public class UserRemoveTest extends AbstractTest
-{
-    TokenId idSession;
+    private String username = "user";
+    private String password = "pass";
+    private TokenId token;
 
-    @Test
-    public void valid() throws Exception {
-
-        String username = "user";
-        String password = "pass";
-
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Delete user
-        HttpUriRequest request = RequestBuilder
-                .delete(BASE_URL+"/users/"+username)
-                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
-                .build();
-
-        client.execute(request);
-
-        //Try obtain information about user
-        request = RequestBuilder
-                .get(BASE_URL+"/users/"+username)
-                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
-                .build();
-
-        HttpResponse response = client.execute(request);
-        assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());
-
-        //Try obtain information about images
-        request = RequestBuilder
-                .get(BASE_URL+"/users/"+username+"/images")
-                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
-                .build();
-
-        response = client.execute(request);
-        assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());
-
-        //Try login
-        CredentialsProvider provider=new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials(username,password));
-
-         request = RequestBuilder
-                .post(BASE_URL+"/sessions")
-                .build();
-
-        client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
-        response = client.execute(request);
-        assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());
-
-        //Try signup
-        Request body = new UserAdd.Request(username, password);
-
-        request = RequestBuilder
-                .post(BASE_URL + "/users")
-                .setEntity(body.jsonEntity())
-                .build();
-
-        response = client.execute(request);
-        assertEquals(HttpStatus.CREATED,response.getStatusLine().getStatusCode());
+    @Before
+    public void setUp() throws Exception {
+        addUser(username, password);
+        token = new TokenId(login(username, password).id);
     }
 
     @Test
-    public void incorrectToken() throws Exception {
-        String username = "user";
-        String password = "pass";
+    public void response() throws Exception {
+        UserRemove.Request request = new UserRemove.Request(token, username);
+        HttpResponse response = request.run(BASE_URL);
 
-        addUser(username,password);
-        idSession = loginUser(username,password);
-
-        //Delete user
-        HttpUriRequest request = RequestBuilder
-                .delete(BASE_URL+"/users/"+username)
-                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+"fakeToken")
-                .build();
-
-        client.execute(request);
-
-        //Try signup
-        Request body = new UserAdd.Request(username, password);
-
-        request = RequestBuilder
-                .post(BASE_URL + "/users")
-                .setEntity(body.jsonEntity())
-                .build();
-
-        HttpResponse response = client.execute(request);
-        assertEquals(HttpStatus.FORBIDDEN,response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusLine().getStatusCode());
     }
 
     @Test
-    public void notExistingUser() throws Exception {
-        String username1 = "user1";
-        String password1 = "pass1";
+    public void loginNotPossible() throws Exception {
+        removeUser(token, username);
 
-        String username2 = "user2";
-        String password2 = "pass2";
+        Login.Request request = new Login.Request(username, password);
+        HttpResponse response = request.run(BASE_URL);
 
-        addUser(username1,password1);
-        addUser(username2,password2);
-        idSession = loginUser(username1,password1);
-
-        //Delete user
-        HttpUriRequest request = RequestBuilder
-                .delete(BASE_URL+"/users/"+username2)
-                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
-                .build();
-
-        HttpResponse response = client.execute(request);
-        assertEquals(HttpStatus.FORBIDDEN,response.getStatusLine().getStatusCode());
-
-        //Try signup user1
-        Request body = new UserAdd.Request(username1, password1);
-
-        request = RequestBuilder
-                .post(BASE_URL + "/users")
-                .setEntity(body.jsonEntity())
-                .build();
-
-        response = client.execute(request);
-        assertEquals(HttpStatus.FORBIDDEN,response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
+
+    @Test
+    public void signUpAgain() throws Exception {
+        removeUser(token, username);
+
+        UserAdd.Request request = new UserAdd.Request(username, password);
+        HttpResponse response = request.run(BASE_URL);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void infoNotAccessible() throws Exception {
+        removeUser(token, username);
+
+        UserInfo.Request request = new UserInfo.Request(token, username);
+        HttpResponse response = request.run(BASE_URL);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
+    }
+
+    // TODO: images not accessible
+    // TODO: clients not accessible
+
+    @Test
+    public void wrongToken() throws Exception {
+        TokenId wrongToken = new TokenId(token + "wrongToken");
+        UserRemove.Request request = new UserRemove.Request(wrongToken, username);
+        HttpResponse response = request.run(BASE_URL);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void deleteOtherUser() throws Exception {
+        String user2 = username + "2";
+        addUser(user2, "pass");
+
+        UserRemove.Request request = new UserRemove.Request(token, user2);
+        HttpResponse response = request.run(BASE_URL);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
+    }
+
 }

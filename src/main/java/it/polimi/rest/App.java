@@ -96,6 +96,7 @@ public class App {
         path("/users/:username/oauth2/clients", () -> {
             get("", oAuth2Server.clients, jsonTransformer);
             post("", oAuth2Server.clientAdd, jsonTransformer);
+            get("/:clientId", oAuth2Server.clientDetails, jsonTransformer);
             delete("/:clientId", oAuth2Server.clientRemove);
         });
 

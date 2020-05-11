@@ -44,7 +44,7 @@ public class Grant extends Responder<BasicToken.Id, Grant.Data> {
 
     @Override
     protected Data deserialize(Request request) {
-        Map<String, String> params = RequestUtils.bodyParams(request);
+        Map<String, String> params = RequestUtils.bodyParams(request.body());
 
         String responseType = params.get("response_type");
 
@@ -130,6 +130,5 @@ public class Grant extends Responder<BasicToken.Id, Grant.Data> {
         }
 
     }
-
 
 }

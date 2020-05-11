@@ -12,23 +12,8 @@ import it.polimi.rest.messages.*;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 
@@ -39,12 +24,10 @@ import java.nio.charset.StandardCharsets;
 public abstract class AbstractTest {
 
     protected static final String BASE_URL = "http://localhost:4567";
-    protected HttpClient client = HttpClientBuilder.create().build();
-
     private App app;
 
     @Before
-    public void setUp() throws InterruptedException {
+    public void start() throws InterruptedException {
         Authorizer authorizer = new ACL();
         Storage storage = new VolatileStorage();
         SessionManager sessionManager = new SessionManager(authorizer, storage);
@@ -57,59 +40,66 @@ public abstract class AbstractTest {
     }
 
     @After
-    public void tearDown() throws InterruptedException {
+    public void stop() throws InterruptedException {
         app.stop();
         Thread.sleep(500);
     }
 
-    protected final <T extends Response> T parseJson(HttpResponse response, Class<T> clazz) throws IOException {
-        String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+    protected static <T extends Response> T parseJson(HttpResponse response, Class<T> clazz) throws IOException {
+        HttpEntity entity = response.getEntity();
+        String body = entity == null ? "{}" : EntityUtils.toString(entity, StandardCharsets.UTF_8);
         Gson gson = new Gson();
         return gson.fromJson(body, clazz);
     }
 
-    public void addUser(String username, String password) throws IOException {
-        Request body = new UserAdd.Request(username, password);
-
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/users")
-                .setEntity(body.jsonEntity())
-                .build();
-
-        client.execute(request);
+    public static UsersList.Response usersList(TokenId token) throws IOException {
+        UsersList.Request request = new UsersList.Request(token);
+        return parseJson(request.run(BASE_URL), UsersList.Response.class);
     }
 
-    public TokenId loginUser(String username, String password) throws IOException {
-        CredentialsProvider provider=new BasicCredentialsProvider();
-        provider.setCredentials(AuthScope.ANY,new UsernamePasswordCredentials(username,password));
-
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL+"/sessions")
-                .build();
-
-        client = HttpClientBuilder.create().setDefaultCredentialsProvider(provider).build();
-        UserLogin.Response response = parseJson(client.execute(request), UserLogin.Response.class);
-        return new TokenId(response.id);
+    public static UserInfo.Response userInfo(TokenId token, String username) throws IOException {
+        UserInfo.Request request = new UserInfo.Request(token, username);
+        return parseJson(request.run(BASE_URL), UserInfo.Response.class);
     }
 
-    public String addImage(String image, String username, String idSession) throws IOException {
-        File imageFile = new File(getClass().getClassLoader().getResource(image+".jpg").getFile());
-        MultipartEntityBuilder builder=MultipartEntityBuilder
-                .create()
-                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                .addBinaryBody("file",imageFile)
-                .addTextBody("title",image);
+    public static UserAdd.Response addUser(String username, String password) throws IOException {
+        Request request = new UserAdd.Request(username, password);
+        return parseJson(request.run(BASE_URL), UserAdd.Response.class);
+    }
 
-        HttpEntity entity=builder.build();
+    public static UserRemove.Response removeUser(TokenId token, String username) throws IOException {
+        Request request = new UserRemove.Request(token, username);
+        return parseJson(request.run(BASE_URL), UserRemove.Response.class);
+    }
 
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL+"/users/"+username+"/images")
-                .setHeader(HttpHeaders.AUTHORIZATION,"Bearer"+idSession.toString())
-                .setEntity(entity)
-                .build();
+    public static Login.Response login(String username, String password) throws IOException {
+        Request request = new Login.Request(username, password);
+        return parseJson(request.run(BASE_URL), Login.Response.class);
+    }
 
-        ImageAdd.Response response = parseJson(client.execute(request), ImageAdd.Response.class);
-        return response.id;
+    public static Logout.Response logout(TokenId token, String session) throws IOException {
+        Request request = new Logout.Request(token, session);
+        return parseJson(request.run(BASE_URL), Logout.Response.class);
+    }
+
+    public static ImagesList.Response imagesList(TokenId token, String username) throws IOException {
+        ImagesList.Request request = new ImagesList.Request(token, username);
+        return parseJson(request.run(BASE_URL), ImagesList.Response.class);
+    }
+
+    public static ImageInfo.Response imageInfo(TokenId token, String username, Image.Id image) throws IOException {
+        ImageInfo.Request request = new ImageInfo.Request(token, username, image);
+        return parseJson(request.run(BASE_URL), ImageInfo.Response.class);
+    }
+
+    public static ImageAdd.Response addImage(TokenId token, String username, String title, File file) throws IOException {
+        ImageAdd.Request request = new ImageAdd.Request(token, username, title, file);
+        return parseJson(request.run(BASE_URL), ImageAdd.Response.class);
+    }
+
+    public static ImageRemove.Response removeImage(TokenId token, String username, Image.Id image) throws IOException {
+        ImageRemove.Request request = new ImageRemove.Request(token, username, image);
+        return parseJson(request.run(BASE_URL), ImageRemove.Response.class);
     }
 
 }

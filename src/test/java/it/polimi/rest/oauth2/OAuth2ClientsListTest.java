@@ -1,11 +1,7 @@
-package it.polimi.rest.user;
+package it.polimi.rest.oauth2;
 
-import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
-import it.polimi.rest.messages.Request;
-import it.polimi.rest.messages.Login;
-import it.polimi.rest.messages.Logout;
-import it.polimi.rest.messages.UserInfo;
+import it.polimi.rest.messages.OAuth2ClientsList;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
 import org.junit.Before;
@@ -13,57 +9,50 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class UserLogoutTest extends AbstractTest {
+public class OAuth2ClientsListTest extends OAuth2AbstractTest {
 
     private String username = "user";
     private TokenId token;
-    private String session;
+    private int count = 10;
 
     @Before
     public void setUp() throws Exception {
         addUser(username, "pass");
-        session = login(username, "pass").id;
-        token = new TokenId(session);
+        token = new TokenId(login(username, "pass").id);
+
+        for (int i = 0; i < count; i++) {
+            addClient(token, username, "client" + i, "http://localhost/callback");
+        }
     }
 
     @Test
     public void response() throws Exception {
-        Request request = new Logout.Request(token, session);
-        HttpResponse response = request.run(BASE_URL);
-
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusLine().getStatusCode());
+        OAuth2ClientsList.Response response = clientsList(token, username);
+        assertEquals(count, Integer.valueOf(response.count).intValue());
     }
 
     @Test
-    public void userInfo() throws Exception {
-        logout(token, session);
-
-        UserInfo.Request request = new UserInfo.Request(token, username);
+    public void missingToken() throws Exception {
+        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(null, username);
         HttpResponse response = request.run(BASE_URL);
-
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
-
-    // TODO: images not accessible
-    // TODO: clients not accessible
 
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
-        Request request = new Logout.Request(wrongToken, session);
+        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(wrongToken, username);
         HttpResponse response = request.run(BASE_URL);
-
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
-    public void otherUserToken() throws Exception {
+    public void otherUserClients() throws Exception {
         String user2 = username + "2";
-
         addUser(user2, "pass");
-        Login.Response session = login(user2, "pass");
+        TokenId token2 = new TokenId(login(user2, "pass").id);
 
-        Request request = new Logout.Request(token, session.id);
+        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(token2, username);
         HttpResponse response = request.run(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
