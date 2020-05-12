@@ -39,8 +39,7 @@ public class OAuth2AccessTokenTest extends OAuth2AbstractTest
         OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
                 Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
                 "state");
-        authorizationCode = responseGrant.location.substring(responseGrant.location.indexOf("code=")+5,responseGrant.location.indexOf("&state"));
-        System.out.println(authorizationCode);
+        authorizationCode = responseGrant.authorizationCode;
     }
 
     @Test

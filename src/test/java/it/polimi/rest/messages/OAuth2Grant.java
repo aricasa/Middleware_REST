@@ -72,12 +72,10 @@ public class OAuth2Grant {
 
         public final String authorizationCode;
         public final String state;
-        public final String location;
 
-        public Response(String authorizationCode, String state, String location) {
+        public Response(String authorizationCode, String state) {
             this.authorizationCode = authorizationCode;
             this.state = state;
-            this.location = location;
         }
 
     }
