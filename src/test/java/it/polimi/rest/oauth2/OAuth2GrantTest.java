@@ -135,18 +135,6 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
     }
 
     @Test
-    public void wrongScopes() throws Exception {
-        addUser("user", "pass");
-        TokenId token = new TokenId(login("user", "pass").id);
-
-
-       // OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback,
-         //       Arrays.asList(new Scope("hola")), "state");
-
-        //assertEquals(HttpStatus.FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
-    }
-
-    @Test
     public void missingState() throws Exception {
         addUser("user", "pass");
         TokenId token = new TokenId(login("user", "pass").id);
@@ -157,7 +145,4 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
 
         assertEquals(HttpStatus.FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
-
-    // TODO: wrong scopes
-
 }

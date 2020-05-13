@@ -1,10 +1,7 @@
 package it.polimi.rest.oauth2;
 
 import it.polimi.rest.AbstractTest;
-import it.polimi.rest.messages.OAuth2ClientAdd;
-import it.polimi.rest.messages.OAuth2ClientInfo;
-import it.polimi.rest.messages.OAuth2ClientsList;
-import it.polimi.rest.messages.OAuth2Grant;
+import it.polimi.rest.messages.*;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
@@ -43,36 +40,9 @@ public abstract class OAuth2AbstractTest extends AbstractTest {
         return new OAuth2Grant.Response(params.get("code"), params.get("state"));
     }
 
-    /*
-
-    public HttpResponse sendGrantRequest(String client_id, String callback, String idSession, String scope) throws IOException {
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/grant")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",client_id)
-                .addParameter("response_type","code")
-                .addParameter("scope",scope)
-                .addParameter("redirect_uri", callback)
-                .addParameter("token",idSession)
-                .build();
-
-        return client.execute(request);
-    }
-
-    public HttpResponse sendDenyRequest(String client_id, String callback, String idSession, String scope) throws IOException {
-        HttpUriRequest request = RequestBuilder
-                .post(BASE_URL + "/oauth2/deny")
-                .setHeader("Content-Type","application/x-www-form-urlencoded")
-                .addParameter("client_id",client_id)
-                .addParameter("response_type","code")
-                .addParameter("scope",scope)
-                .addParameter("redirect_uri", callback)
-                .addParameter("token",idSession)
-                .build();
-
-        return client.execute(request);
-    }
-
-     */
+   public static OAuth2AccessToken.Response getAccessToken(OAuth2Client.Id clientId, OAuth2Client.Secret secret, String callback, String code, String grantType) throws IOException {
+       OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, secret, callback, code, grantType);
+       return  parseJson(request.run(BASE_URL), OAuth2AccessToken.Response.class);
+   }
 
 }

@@ -71,7 +71,10 @@ public class OAuth2AccessToken {
 
     public static class Response implements it.polimi.rest.messages.Response {
 
-        public Response() {
+        public final String access_token;
+
+        public Response(String access_token) {
+            this.access_token = access_token;
         }
 
     }
