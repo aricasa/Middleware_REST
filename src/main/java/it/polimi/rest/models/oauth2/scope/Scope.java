@@ -7,7 +7,6 @@ import com.google.gson.annotations.JsonAdapter;
 import it.polimi.rest.authorization.Agent;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.authorization.SessionManager;
-import it.polimi.rest.data.DataProvider;
 import it.polimi.rest.exceptions.oauth2.OAuth2BadRequestException;
 import it.polimi.rest.exceptions.oauth2.OAuth2Exception;
 import it.polimi.rest.models.User;

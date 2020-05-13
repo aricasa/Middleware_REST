@@ -11,7 +11,6 @@ import it.polimi.rest.models.User;
 import it.polimi.rest.models.oauth2.scope.Scope;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 
 public class OAuth2RefreshToken implements Token {

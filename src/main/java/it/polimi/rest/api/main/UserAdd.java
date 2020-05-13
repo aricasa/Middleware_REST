@@ -12,7 +12,6 @@ import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
 import spark.Request;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 /**

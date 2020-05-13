@@ -1,6 +1,5 @@
 package it.polimi.rest.oauth2;
 
-import com.sun.source.tree.AssertTree;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.*;
 import it.polimi.rest.models.Image;

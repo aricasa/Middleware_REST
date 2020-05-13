@@ -1,28 +1,33 @@
 package it.polimi.rest.authorization;
 
 import it.polimi.rest.data.DataProvider;
-import it.polimi.rest.data.Storage;
 import it.polimi.rest.exceptions.ForbiddenException;
 import it.polimi.rest.exceptions.UnauthorizedException;
 import it.polimi.rest.models.*;
-import it.polimi.rest.models.oauth2.OAuth2AccessToken;
-import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.models.oauth2.OAuth2ClientsList;
+import it.polimi.rest.models.oauth2.*;
+
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static it.polimi.rest.exceptions.UnauthorizedException.AuthType.BEARER;
 
-class SecureDataProvider extends DataProvider {
+class SecureDataProvider implements DataProvider {
 
+    private final DataProvider dataProvider;
     private final Authorizer authorizer;
     private final SessionManager sessionManager;
     private final Agent agent;
 
-    public SecureDataProvider(Storage storage, SessionManager sessionManager, Authorizer authorizer, Agent agent) {
-        super(storage, sessionManager);
-
+    public SecureDataProvider(DataProvider dataProvider, SessionManager sessionManager, Authorizer authorizer, Agent agent) {
+        this.dataProvider = dataProvider;
         this.authorizer = authorizer;
         this.sessionManager = sessionManager;
         this.agent = agent;
+    }
+
+    @Override
+    public <T extends Id> T uniqueId(Supplier<String> randomizer, Function<String, T> supplier) {
+        return dataProvider.uniqueId(randomizer, supplier);
     }
 
     @Override
@@ -31,7 +36,7 @@ class SecureDataProvider extends DataProvider {
             throw new UnauthorizedException(BEARER);
         }
 
-        User user = super.userById(id);
+        User user = dataProvider.userById(id);
 
         if (!authorizer.get(id, agent).read) {
             throw new ForbiddenException();
@@ -46,7 +51,7 @@ class SecureDataProvider extends DataProvider {
             throw new UnauthorizedException(BEARER);
         }
 
-        User user = super.userByUsername(username);
+        User user = dataProvider.userByUsername(username);
 
         if (!authorizer.get(user.id, agent).read) {
             throw new ForbiddenException();
@@ -61,12 +66,12 @@ class SecureDataProvider extends DataProvider {
             throw new UnauthorizedException(BEARER);
         }
 
-        return super.users();
+        return dataProvider.users();
     }
 
     @Override
     public void add(User user) {
-        super.add(user);
+        dataProvider.add(user);
 
         authorizer.grant(user.id, user.id, Permission.WRITE);
         authorizer.grant(ImagesList.placeholder(user), user.id, Permission.WRITE);
@@ -85,7 +90,7 @@ class SecureDataProvider extends DataProvider {
             throw new ForbiddenException();
         }
 
-        super.remove(id);
+        dataProvider.remove(id);
 
         authorizer.remove(id);
     }
@@ -96,7 +101,7 @@ class SecureDataProvider extends DataProvider {
             throw new UnauthorizedException(BEARER);
         }
 
-        BasicToken token = super.basicToken(id);
+        BasicToken token = dataProvider.basicToken(id);
 
         if (!authorizer.get(token.id, agent).read) {
             throw new ForbiddenException();
@@ -107,7 +112,7 @@ class SecureDataProvider extends DataProvider {
 
     @Override
     public void add(BasicToken token) {
-        super.add(token);
+        dataProvider.add(token);
         authorizer.grant(token.id, token.user, Permission.WRITE);
     }
 
@@ -123,7 +128,7 @@ class SecureDataProvider extends DataProvider {
             throw new ForbiddenException();
         }
 
-        super.remove(id);
+        dataProvider.remove(id);
 
         authorizer.remove(id);
     }
@@ -134,7 +139,7 @@ class SecureDataProvider extends DataProvider {
             throw new UnauthorizedException(BEARER);
         }
 
-        Image image = super.image(imageId);
+        Image image = dataProvider.image(imageId);
 
         if (!authorizer.get(image.info.id, agent).read) {
             throw new ForbiddenException();
@@ -149,7 +154,7 @@ class SecureDataProvider extends DataProvider {
             throw new UnauthorizedException(BEARER);
         }
 
-        ImagesList images = super.images(username);
+        ImagesList images = dataProvider.images(username);
 
         if (!authorizer.get(images, agent).read) {
             throw new ForbiddenException();
@@ -169,7 +174,7 @@ class SecureDataProvider extends DataProvider {
             throw new ForbiddenException();
         }
 
-        super.add(image);
+        dataProvider.add(image);
         authorizer.grant(image.info.id, image.info.owner.id, Permission.WRITE);
     }
 
@@ -185,7 +190,7 @@ class SecureDataProvider extends DataProvider {
             throw new ForbiddenException();
         }
 
-        super.remove(imageId);
+        dataProvider.remove(imageId);
         authorizer.remove(imageId);
     }
 
@@ -195,7 +200,7 @@ class SecureDataProvider extends DataProvider {
             throw new UnauthorizedException(BEARER);
         }
 
-        OAuth2Client client = super.oAuth2Client(id);
+        OAuth2Client client = dataProvider.oAuth2Client(id);
 
         if (!authorizer.get(client.id, agent).read) {
             throw new ForbiddenException();
@@ -210,7 +215,7 @@ class SecureDataProvider extends DataProvider {
             throw new UnauthorizedException(BEARER);
         }
 
-        OAuth2ClientsList clients = super.oAuth2Clients(user);
+        OAuth2ClientsList clients = dataProvider.oAuth2Clients(user);
 
         if (!authorizer.get(clients, agent).read) {
             throw new ForbiddenException();
@@ -231,7 +236,7 @@ class SecureDataProvider extends DataProvider {
             throw new ForbiddenException();
         }
 
-        super.add(client);
+        dataProvider.add(client);
 
         authorizer.grant(client.id, owner.id, Permission.WRITE);
         authorizer.grant(client.id, client.id, Permission.READ);
@@ -249,21 +254,55 @@ class SecureDataProvider extends DataProvider {
             throw new ForbiddenException();
         }
 
-        super.remove(id);
-
+        dataProvider.remove(id);
         authorizer.remove(id);
     }
 
     @Override
+    public OAuth2AuthorizationCode oAuth2AuthCode(OAuth2AuthorizationCode.Id id) {
+        return dataProvider.oAuth2AuthCode(id);
+    }
+
+    @Override
+    public void add(OAuth2AuthorizationCode code) {
+        dataProvider.add(code);
+    }
+
+    @Override
+    public void remove(OAuth2AuthorizationCode.Id id) {
+        dataProvider.remove(id);
+    }
+
+    @Override
+    public OAuth2AccessToken oAuth2AccessToken(OAuth2AccessToken.Id id) {
+        return dataProvider.oAuth2AccessToken(id);
+    }
+
+    @Override
     public void add(OAuth2AccessToken token) {
-        super.add(token);
+        dataProvider.add(token);
         token.scope.forEach(scope -> scope.addPermissions(authorizer, sessionManager, token));
     }
 
     @Override
     public void remove(OAuth2AccessToken.Id id) {
-        super.remove(id);
+        dataProvider.remove(id);
         authorizer.remove(id);
+    }
+
+    @Override
+    public OAuth2RefreshToken oAuth2RefreshToken(OAuth2RefreshToken.Id id) {
+        return dataProvider.oAuth2RefreshToken(id);
+    }
+
+    @Override
+    public void add(OAuth2RefreshToken token) {
+        dataProvider.add(token);
+    }
+
+    @Override
+    public void remove(OAuth2RefreshToken.Id id) {
+        dataProvider.remove(id);
     }
 
 }
