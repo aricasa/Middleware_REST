@@ -59,7 +59,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
     {
         //Grant request
         OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
-                Arrays.asList(Scope.get(Scope.READ_IMAGES), Scope.get(Scope.READ_USER)),
+                Arrays.asList(Scope.get(Scope.READ_IMAGES)),
                 "state");
         authorizationCode = responseGrant.authorizationCode;
 
