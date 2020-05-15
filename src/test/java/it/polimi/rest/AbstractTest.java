@@ -6,6 +6,7 @@ import it.polimi.rest.api.oauth2.OAuth2Server;
 import it.polimi.rest.authorization.ACL;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.authorization.SessionManager;
+import it.polimi.rest.authorization.Token;
 import it.polimi.rest.data.Storage;
 import it.polimi.rest.data.VolatileStorage;
 import it.polimi.rest.messages.*;
@@ -92,8 +93,8 @@ public abstract class AbstractTest {
         return parseJson(request.run(BASE_URL), ImageInfo.Response.class);
     }
 
-    public static ImageAdd.Response addImage(TokenId token, String username, String title, File file) throws IOException {
-        ImageAdd.Request request = new ImageAdd.Request(token, username, title, file);
+    public static ImageAdd.Response addImage(TokenId tokenLink, TokenId token, String username, String title, File file) throws IOException {
+        ImageAdd.Request request = new ImageAdd.Request(tokenLink, token, username, title, file);
         return parseJson(request.run(BASE_URL), ImageAdd.Response.class);
     }
 

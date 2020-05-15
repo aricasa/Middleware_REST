@@ -51,7 +51,7 @@ public class UserLogoutTest extends AbstractTest {
 
         //Add image
         File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
-        Image.Id image = new Image.Id(addImage(token, username, "title", file).id);
+        Image.Id image = new Image.Id(addImage(token, token, username, "title", file).id);
 
         logout(token, session);
 

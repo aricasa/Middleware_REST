@@ -1,5 +1,6 @@
 package it.polimi.rest.messages;
 
+import it.polimi.rest.models.Link;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -7,8 +8,12 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 public class UserInfo {
 
@@ -45,9 +50,25 @@ public class UserInfo {
 
         public String id;
         public String username;
+        public Map<String, Link> _links;
 
         private Response() {
 
+        }
+
+        public Link getImagesLink()
+        {
+            return _links.get("images");
+        }
+
+        public Link getOauthClientsLink()
+        {
+            return _links.get("oauth2_clients");
+        }
+
+        public Link getSelfLink()
+        {
+            return  _links.get("self");
         }
 
     }

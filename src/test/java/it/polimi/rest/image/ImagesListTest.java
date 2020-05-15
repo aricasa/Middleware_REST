@@ -25,7 +25,7 @@ public class ImagesListTest extends AbstractTest {
         File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
 
         for (int i = 0; i < count; i++) {
-            addImage(token, username, "title" + i, file);
+            addImage(token, token, username, "title" + i, file);
         }
     }
 

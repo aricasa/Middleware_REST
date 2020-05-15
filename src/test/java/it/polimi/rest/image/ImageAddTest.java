@@ -26,25 +26,14 @@ public class ImageAddTest extends AbstractTest {
 
     @Test
     public void valid() throws Exception {
-        ImageAdd.Response response = addImage(token, username, title, file);
+        ImageAdd.Response response = addImage(token, token, username, title, file);
         assertEquals(title, response.title);
     }
 
     @Test
-    public void wrongUser() throws Exception {
-        String user2 = username + "2";
-        addUser(user2, "pass");
-
-        ImageAdd.Request request = new ImageAdd.Request(token, user2, title, file);
-        HttpResponse response = request.run(BASE_URL);
-
-        assertEquals(HttpStatus.FORBIDDEN,response.getStatusLine().getStatusCode());
-    }
-
-    @Test
     public void wrongToken() throws Exception {
-        TokenId wrongToken = new TokenId(token + "wrongToken");
-        ImageAdd.Request request = new ImageAdd.Request(wrongToken, username, title, file);
+        TokenId wrongToken = new TokenId("wrongToken");
+        ImageAdd.Request request = new ImageAdd.Request(token, wrongToken, username, title, file);
         HttpResponse response = request.run(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());
@@ -52,7 +41,7 @@ public class ImageAddTest extends AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        ImageAdd.Request request = new ImageAdd.Request(null, username, title, file);
+        ImageAdd.Request request = new ImageAdd.Request(token, null, username, title, file);
         HttpResponse response = request.run(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());

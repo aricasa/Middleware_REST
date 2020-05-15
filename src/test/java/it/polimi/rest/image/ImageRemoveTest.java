@@ -31,7 +31,7 @@ public class ImageRemoveTest extends AbstractTest {
     public void setUp() throws Exception {
         addUser(username, "pass");
         token = new TokenId(login(username, "pass").id);
-        image = new Image.Id(addImage(token, username, title, file).id);
+        image = new Image.Id(addImage(token, token, username, title, file).id);
     }
 
     @Test

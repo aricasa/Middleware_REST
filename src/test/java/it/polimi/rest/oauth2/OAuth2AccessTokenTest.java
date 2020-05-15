@@ -46,7 +46,7 @@ public class OAuth2AccessTokenTest extends OAuth2AbstractTest
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         assertEquals(HttpStatus.CREATED,request.run(BASE_URL).getStatusLine().getStatusCode());
     }
-    
+
     @Test
     public void incorrectAuthorizationCode() throws IOException, InterruptedException
     {
