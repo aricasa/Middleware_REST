@@ -27,7 +27,7 @@ public class ImageAddTest extends AbstractTest {
 
     @Test
     public void valid() throws Exception {
-        ImageAdd.Response response = addImage(token, token, username, title, file);
+        ImageAdd.Response response = addImage(token, username, title, file);
         assertEquals(title, response.title);
     }
 
@@ -43,7 +43,8 @@ public class ImageAddTest extends AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        ImageAdd.Request request = new ImageAdd.Request(token, null, username, title, file);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        ImageAdd.Request request = new ImageAdd.Request(userInfo, null, title, file);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());

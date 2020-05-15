@@ -17,7 +17,7 @@ public class Login {
 
     }
 
-    public static class Request implements it.polimi.rest.messages.Request {
+    public static class Request implements it.polimi.rest.messages.Request<Response> {
 
         private final String username;
         private final String password;
@@ -43,6 +43,12 @@ public class Login {
             }
 
             return clientBuilder.build().execute(request);
+        }
+
+        @Override
+        public Response response(String baseUrl) throws IOException {
+            HttpResponse response = rawResponse(baseUrl);
+            return parseJson(response, Response.class);
         }
 
     }

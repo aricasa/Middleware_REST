@@ -17,7 +17,7 @@ public class ImageInfo {
 
     }
 
-    public static class Request implements it.polimi.rest.messages.Request {
+    public static class Request implements it.polimi.rest.messages.Request<Response> {
 
         private final TokenId token;
         private final String username;
@@ -40,6 +40,12 @@ public class ImageInfo {
             HttpUriRequest request = builder.build();
             HttpClient client = HttpClientBuilder.create().build();
             return client.execute(request);
+        }
+
+        @Override
+        public Response response(String baseUrl) throws IOException {
+            HttpResponse response = rawResponse(baseUrl);
+            return parseJson(response, Response.class);
         }
 
     }

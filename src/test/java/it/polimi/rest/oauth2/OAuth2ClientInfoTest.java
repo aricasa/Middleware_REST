@@ -2,6 +2,7 @@ package it.polimi.rest.oauth2;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.OAuth2ClientInfo;
+import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import org.apache.http.HttpResponse;
@@ -38,7 +39,8 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(null, username, id);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo,null, id);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
@@ -46,7 +48,8 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
     @Test
     public void inexistentClient() throws Exception {
         OAuth2Client.Id wrongId = new OAuth2Client.Id(id + "wrongId");
-        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(token, username, wrongId);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo, token, wrongId);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
     }
@@ -56,22 +59,10 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
         String user2 = username + "2";
         addUser(user2, "pass");
         TokenId token2 = new TokenId(login(user2, "pass").id);
-
-        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(token2, username, id);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo, token2, id);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
     }
-
-    @Test
-    public void wrongUsername() throws Exception {
-        String user2 = username + "2";
-        addUser(user2, "pass");
-
-        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(token, user2, id);
-        HttpResponse response = request.rawResponse(BASE_URL);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
-    }
-
 }

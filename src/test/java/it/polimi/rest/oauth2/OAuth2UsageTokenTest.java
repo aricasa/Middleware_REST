@@ -66,7 +66,8 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
 
-        ImagesList.Request request = new ImagesList.Request(new TokenId(accessToken), "user");
+        UserInfo.Response userInfo = new UserInfo.Request(token, "user").response(BASE_URL);
+        ImagesList.Request request = new ImagesList.Request(userInfo, new TokenId(accessToken));
         assertEquals(HttpStatus.OK, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
@@ -116,8 +117,8 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         //Get access token
         OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
-
-        ImagesList.Request request = new ImagesList.Request(new TokenId("fakeToken"), "user");
+        UserInfo.Response userInfo = new UserInfo.Request(token, "user").response(BASE_URL);
+        ImagesList.Request request = new ImagesList.Request(userInfo, new TokenId("fakeToken"));
         assertEquals(HttpStatus.UNAUTHORIZED, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
@@ -133,8 +134,8 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         //Get access token
         OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
-
-        ImagesList.Request request = new ImagesList.Request(null, "user");
+        UserInfo.Response userInfo = new UserInfo.Request(token, "user").response(BASE_URL);
+        ImagesList.Request request = new ImagesList.Request(userInfo,null);
         assertEquals(HttpStatus.UNAUTHORIZED, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
@@ -150,8 +151,8 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         //Get access token
         OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
-
-        ImagesList.Request request = new ImagesList.Request(new TokenId(accessToken), "user");
+        UserInfo.Response userInfo = new UserInfo.Request(token, "user").response(BASE_URL);
+        ImagesList.Request request = new ImagesList.Request(userInfo, new TokenId(accessToken));
         assertEquals(HttpStatus.FORBIDDEN, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 

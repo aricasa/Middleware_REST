@@ -44,7 +44,7 @@ public class ImageAdd {
                     .build();
 
             RequestBuilder requestBuilder = RequestBuilder
-                    .post(userInfo.imagesLink().url)
+                    .post(baseUrl + userInfo.imagesLink().url)
                     .setEntity(entity);
 
             if (token != null) {

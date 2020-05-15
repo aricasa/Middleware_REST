@@ -2,6 +2,7 @@ package it.polimi.rest.oauth2;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.OAuth2ClientRemove;
+import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import org.apache.http.HttpResponse;
@@ -27,7 +28,8 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
 
     @Test
     public void response() throws Exception {
-        OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(token, username, id);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(userInfo, token, id);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusLine().getStatusCode());
     }
@@ -35,7 +37,8 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
-        OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(wrongToken, username, id);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(userInfo, wrongToken, id);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
@@ -43,7 +46,8 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
     @Test
     public void inexistentClient() throws Exception {
         OAuth2Client.Id wrongId = new OAuth2Client.Id(id + "wrongId");
-        OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(token, username, wrongId);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(userInfo, token, wrongId);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
     }
@@ -53,22 +57,10 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
         String user2 = username + "2";
         addUser(user2, "pass");
         TokenId token2 = new TokenId(login(user2, "pass").id);
-
-        OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(token2, username, id);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(userInfo, token2, id);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
     }
-
-    @Test
-    public void wrongUsername() throws Exception {
-        String user2 = username + "2";
-        addUser(user2, "pass");
-
-        OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(token, user2, id);
-        HttpResponse response = request.rawResponse(BASE_URL);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
-    }
-
 }

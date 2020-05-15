@@ -68,7 +68,8 @@ public abstract class AbstractTest {
     }
 
     public static UserRemove.Response removeUser(TokenId token, String username) throws IOException {
-        Request request = new UserRemove.Request(token, username);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        Request request = new UserRemove.Request(userInfo, token);
         return parseJson(request.rawResponse(BASE_URL), UserRemove.Response.class);
     }
 
@@ -83,7 +84,8 @@ public abstract class AbstractTest {
     }
 
     public static ImagesList.Response imagesList(TokenId token, String username) throws IOException {
-        ImagesList.Request request = new ImagesList.Request(token, username);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        ImagesList.Request request = new ImagesList.Request(userInfo, token);
         return parseJson(request.rawResponse(BASE_URL), ImagesList.Response.class);
     }
 
@@ -92,13 +94,15 @@ public abstract class AbstractTest {
         return parseJson(request.rawResponse(BASE_URL), ImageInfo.Response.class);
     }
 
-    public static ImageAdd.Response addImage(TokenId tokenLink, TokenId token, String username, String title, File file) throws IOException {
-        ImageAdd.Request request = new ImageAdd.Request(tokenLink, token, username, title, file);
+    public static ImageAdd.Response addImage(TokenId token, String username, String title, File file) throws IOException {
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        ImageAdd.Request request = new ImageAdd.Request(userInfo, token, title, file);
         return parseJson(request.rawResponse(BASE_URL), ImageAdd.Response.class);
     }
 
     public static ImageRemove.Response removeImage(TokenId token, String username, Image.Id image) throws IOException {
-        ImageRemove.Request request = new ImageRemove.Request(token, username, image);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        ImageRemove.Request request = new ImageRemove.Request(userInfo, token, image);
         return parseJson(request.rawResponse(BASE_URL), ImageRemove.Response.class);
     }
 

@@ -2,6 +2,7 @@ package it.polimi.rest.oauth2;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.OAuth2ClientsList;
+import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
 import org.junit.Before;
@@ -33,7 +34,8 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(null, username);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo,null);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
@@ -41,7 +43,8 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
-        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(wrongToken, username);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, wrongToken);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
@@ -51,8 +54,8 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
         String user2 = username + "2";
         addUser(user2, "pass");
         TokenId token2 = new TokenId(login(user2, "pass").id);
-
-        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(token2, username);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, token2);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());

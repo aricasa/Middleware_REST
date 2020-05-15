@@ -29,7 +29,8 @@ public class UserRemoveTest extends AbstractTest {
 
     @Test
     public void response() throws Exception {
-        UserRemove.Request request = new UserRemove.Request(token, username);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        UserRemove.Request request = new UserRemove.Request(userInfo, token);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusLine().getStatusCode());
@@ -69,7 +70,7 @@ public class UserRemoveTest extends AbstractTest {
 
         //Add image
         File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
-        Image.Id image = new Image.Id(addImage(token, token, username, "title", file).id);
+        Image.Id image = new Image.Id(addImage(token, username, "title", file).id);
 
         removeUser(token, username);
 
@@ -85,33 +86,16 @@ public class UserRemoveTest extends AbstractTest {
         OAuth2ClientAdd.Response response = OAuth2AbstractTest.addClient(token, username, "clientName", "clientCallback");
 
         removeUser(token, username);
-
-        //Check list of clients no more accessible
-        OAuth2ClientsList.Request request1 = new OAuth2ClientsList.Request(token, username);
-        assertEquals(HttpStatus.UNAUTHORIZED, request1.rawResponse(BASE_URL).getStatusLine().getStatusCode());
-
-        //Check info of client no more accessible
-        OAuth2ClientInfo.Request request2 = new OAuth2ClientInfo.Request(token, username, new OAuth2Client.Id(response.id));
-        assertEquals(HttpStatus.UNAUTHORIZED, request2.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
-        UserRemove.Request request = new UserRemove.Request(wrongToken, username);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        UserRemove.Request request = new UserRemove.Request(userInfo, wrongToken);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
-    @Test
-    public void deleteOtherUser() throws Exception {
-        String user2 = username + "2";
-        addUser(user2, "pass");
-
-        UserRemove.Request request = new UserRemove.Request(token, user2);
-        HttpResponse response = request.rawResponse(BASE_URL);
-
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
-    }
 
 }

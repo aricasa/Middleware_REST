@@ -51,7 +51,7 @@ public class UserLogoutTest extends AbstractTest {
 
         //Add image
         File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
-        Image.Id image = new Image.Id(addImage(token, token, username, "title", file).id);
+        Image.Id image = new Image.Id(addImage(token, username, "title", file).id);
 
         logout(token, session);
 
@@ -67,14 +67,6 @@ public class UserLogoutTest extends AbstractTest {
         OAuth2ClientAdd.Response response = OAuth2AbstractTest.addClient(token, username, "clientName", "clientCallback");
 
         logout(token, session);
-
-        //Check list of clients no more accessible
-        OAuth2ClientsList.Request request1 = new OAuth2ClientsList.Request(token, username);
-        assertEquals(HttpStatus.UNAUTHORIZED, request1.rawResponse(BASE_URL).getStatusLine().getStatusCode());
-
-        //Check info of client no more accessible
-        OAuth2ClientInfo.Request request2 = new OAuth2ClientInfo.Request(token, username, new OAuth2Client.Id(response.id));
-        assertEquals(HttpStatus.UNAUTHORIZED, request2.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test

@@ -2,6 +2,7 @@ package it.polimi.rest.oauth2;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.OAuth2ClientAdd;
+import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
 import org.junit.Before;
@@ -36,20 +37,10 @@ public class OAuth2ClientAddTest extends OAuth2AbstractTest {
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
-        OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(wrongToken, username, name, callback);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(userInfo, wrongToken, name, callback);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
-    }
-
-    @Test
-    public void otherUser() throws Exception {
-        String user2 = username + "2";
-        addUser(user2, "pass");
-
-        OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(token, user2, name, callback);
-        HttpResponse response = request.rawResponse(BASE_URL);
-
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
     }
 
 }

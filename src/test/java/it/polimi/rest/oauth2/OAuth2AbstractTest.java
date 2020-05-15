@@ -15,17 +15,20 @@ import java.util.Map;
 public abstract class OAuth2AbstractTest extends AbstractTest {
 
     public static OAuth2ClientsList.Response clientsList(TokenId token, String username) throws IOException {
-        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(token, username);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, token);
         return parseJson(request.rawResponse(BASE_URL), OAuth2ClientsList.Response.class);
     }
 
     public static OAuth2ClientInfo.Response clientInfo(TokenId token, String username, OAuth2Client.Id client) throws IOException {
-        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(token, username, client);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo, token, client);
         return parseJson(request.rawResponse(BASE_URL), OAuth2ClientInfo.Response.class);
     }
 
     public static OAuth2ClientAdd.Response addClient(TokenId token, String username, String name, String callback) throws IOException {
-        OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(token, username, name, callback);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(userInfo, token, name, callback);
         return parseJson(request.rawResponse(BASE_URL), OAuth2ClientAdd.Response.class);
     }
 

@@ -17,12 +17,10 @@ public class OAuth2ClientAdd {
 
     }
 
-    public static class Request implements it.polimi.rest.messages.Request {
+    public static class Request implements it.polimi.rest.messages.Request<Response> {
 
+        private final UserInfo.Response userInfo;
         private final TokenId token;
-
-        @Expose
-        private final String username;
 
         @Expose
         private final String name;
@@ -30,9 +28,9 @@ public class OAuth2ClientAdd {
         @Expose
         private final String callback;
 
-        public Request(TokenId token, String username, String name, String callback) {
+        public Request(UserInfo.Response userInfo, TokenId token, String name, String callback) {
             this.token = token;
-            this.username = username;
+            this.userInfo = userInfo;
             this.name = name;
             this.callback = callback;
         }
@@ -40,7 +38,7 @@ public class OAuth2ClientAdd {
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder requestBuilder = RequestBuilder
-                    .post(baseUrl + "/users/" + username + "/oauth2/clients")
+                    .post(baseUrl + userInfo.oAuth2ClientsLink().url)
                     .setEntity(jsonEntity());
 
             if (token != null) {
@@ -51,6 +49,12 @@ public class OAuth2ClientAdd {
             HttpClient client = HttpClientBuilder.create().build();
 
             return client.execute(request);
+        }
+
+        @Override
+        public Response response(String baseUrl) throws IOException {
+            HttpResponse response = rawResponse(baseUrl);
+            return parseJson(response, Response.class);
         }
 
     }

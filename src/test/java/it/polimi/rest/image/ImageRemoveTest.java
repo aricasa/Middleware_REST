@@ -5,6 +5,7 @@ import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.ImageRaw;
 import it.polimi.rest.messages.ImageRemove;
 import it.polimi.rest.messages.ImageInfo;
+import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
@@ -28,12 +29,13 @@ public class ImageRemoveTest extends AbstractTest {
     public void setUp() throws Exception {
         addUser(username, "pass");
         token = new TokenId(login(username, "pass").id);
-        image = new Image.Id(addImage(token, token, username, title, file).id);
+        image = new Image.Id(addImage(token, username, title, file).id);
     }
 
     @Test
     public void response() throws Exception {
-        ImageRemove.Request request = new ImageRemove.Request(token, username, image);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        ImageRemove.Request request = new ImageRemove.Request(userInfo, token, image);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusLine().getStatusCode());
     }
@@ -51,8 +53,8 @@ public class ImageRemoveTest extends AbstractTest {
     @Test
     public void raw() throws Exception {
         removeImage(token, username, image);
-
-        ImageRaw.Request request = new ImageRaw.Request(token, username, image);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        ImageRaw.Request request = new ImageRaw.Request(userInfo, token, image);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
@@ -61,7 +63,8 @@ public class ImageRemoveTest extends AbstractTest {
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
-        ImageRemove.Request request = new ImageRemove.Request(wrongToken, username, image);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        ImageRemove.Request request = new ImageRemove.Request(userInfo, wrongToken, image);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
@@ -73,8 +76,8 @@ public class ImageRemoveTest extends AbstractTest {
 
         addUser(user2, pass2);
         TokenId token2 = new TokenId(login(user2, pass2).id);
-
-        ImageRemove.Request request = new ImageRemove.Request(token2, username, image);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        ImageRemove.Request request = new ImageRemove.Request(userInfo, token2, image);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());

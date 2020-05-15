@@ -16,19 +16,19 @@ public class UserRemove {
 
     }
 
-    public static class Request implements it.polimi.rest.messages.Request {
+    public static class Request implements it.polimi.rest.messages.Request<Response> {
 
+        private final UserInfo.Response userInfo;
         private final TokenId token;
-        private final String username;
 
-        public Request(TokenId token, String username) {
+        public Request(UserInfo.Response userInfo, TokenId token) {
             this.token = token;
-            this.username = username;
+            this.userInfo = userInfo;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.delete(baseUrl + "/users/" + username);
+            RequestBuilder builder = RequestBuilder.delete(baseUrl + userInfo.selfLink().url);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
@@ -37,6 +37,12 @@ public class UserRemove {
             HttpUriRequest request = builder.build();
             HttpClient client = HttpClientBuilder.create().build();
             return client.execute(request);
+        }
+
+        @Override
+        public Response response(String baseUrl) throws IOException {
+            HttpResponse response = rawResponse(baseUrl);
+            return parseJson(response, Response.class);
         }
 
     }

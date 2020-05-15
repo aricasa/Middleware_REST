@@ -17,21 +17,21 @@ public class ImageRemove {
 
     }
 
-    public static class Request implements it.polimi.rest.messages.Request {
+    public static class Request implements it.polimi.rest.messages.Request<Response> {
 
+        private final UserInfo.Response userInfo;
         private final TokenId token;
-        private final String username;
         private final Image.Id image;
 
-        public Request(TokenId token, String username, Image.Id image) {
+        public Request(UserInfo.Response userInfo, TokenId token, Image.Id image) {
             this.token = token;
-            this.username = username;
+            this.userInfo = userInfo;
             this.image = image;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.delete(baseUrl + "/users/" + username + "/images/" + image);
+            RequestBuilder builder = RequestBuilder.delete(baseUrl + userInfo.imagesLink().url + "/" + image);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
@@ -40,6 +40,12 @@ public class ImageRemove {
             HttpUriRequest request = builder.build();
             HttpClient client = HttpClientBuilder.create().build();
             return client.execute(request);
+        }
+
+        @Override
+        public Response response(String baseUrl) throws IOException {
+            HttpResponse response = rawResponse(baseUrl);
+            return parseJson(response, Response.class);
         }
 
     }

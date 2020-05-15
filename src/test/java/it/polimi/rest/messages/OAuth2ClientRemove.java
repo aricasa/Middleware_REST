@@ -17,22 +17,22 @@ public class OAuth2ClientRemove {
 
     }
 
-    public static class Request implements it.polimi.rest.messages.Request {
+    public static class Request implements it.polimi.rest.messages.Request<Response> {
 
+        private final UserInfo.Response userInfo;
         private final TokenId token;
-        private final String username;
         private final OAuth2Client.Id client;
 
-        public Request(TokenId token, String username, OAuth2Client.Id client) {
+        public Request(UserInfo.Response userInfo, TokenId token, OAuth2Client.Id client) {
+            this.userInfo = userInfo;
             this.token = token;
-            this.username = username;
             this.client = client;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder requestBuilder = RequestBuilder
-                    .delete(baseUrl + "/users/" + username + "/oauth2/clients/" + client)
+                    .delete(baseUrl + userInfo.oAuth2ClientsLink().url + "/" + client)
                     .setEntity(jsonEntity());
 
             if (token != null) {
@@ -43,6 +43,12 @@ public class OAuth2ClientRemove {
             HttpClient client = HttpClientBuilder.create().build();
 
             return client.execute(request);
+        }
+
+        @Override
+        public Response response(String baseUrl) throws IOException {
+            HttpResponse response = rawResponse(baseUrl);
+            return parseJson(response, Response.class);
         }
 
     }

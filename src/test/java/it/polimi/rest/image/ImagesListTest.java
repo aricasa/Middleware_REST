@@ -3,6 +3,7 @@ package it.polimi.rest.image;
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.ImagesList;
+import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
 import org.junit.Before;
@@ -25,7 +26,7 @@ public class ImagesListTest extends AbstractTest {
         File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
 
         for (int i = 0; i < count; i++) {
-            addImage(token, token, username, "title" + i, file);
+            addImage(token, username, "title" + i, file);
         }
     }
 
@@ -37,7 +38,8 @@ public class ImagesListTest extends AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        ImagesList.Request request = new ImagesList.Request(null, username);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        ImagesList.Request request = new ImagesList.Request(userInfo,null);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
@@ -45,7 +47,8 @@ public class ImagesListTest extends AbstractTest {
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
-        ImagesList.Request request = new ImagesList.Request(wrongToken, username);
+        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        ImagesList.Request request = new ImagesList.Request(userInfo, wrongToken);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }

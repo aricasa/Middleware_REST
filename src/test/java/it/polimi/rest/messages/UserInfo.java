@@ -61,13 +61,9 @@ public class UserInfo {
 
         }
 
-        public Link imagesLink() {
-            return _links.get("images");
-        }
+        public Link imagesLink() { return _links.get("images"); }
 
-        public Link oAuth2ClientsLink() {
-            return _links.get("oauth2_clients");
-        }
+        public Link oAuth2ClientsLink() { return _links.get("oauth2_clients"); }
 
         public Link selfLink() {
             return  _links.get("self");
