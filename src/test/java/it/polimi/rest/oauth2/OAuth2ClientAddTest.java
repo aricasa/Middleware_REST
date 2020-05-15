@@ -37,7 +37,7 @@ public class OAuth2ClientAddTest extends OAuth2AbstractTest {
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
         OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(wrongToken, username, name, callback);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -47,7 +47,7 @@ public class OAuth2ClientAddTest extends OAuth2AbstractTest {
         addUser(user2, "pass");
 
         OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(token, user2, name, callback);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
     }

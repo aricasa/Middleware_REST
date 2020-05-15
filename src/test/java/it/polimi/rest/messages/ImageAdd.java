@@ -1,9 +1,6 @@
 package it.polimi.rest.messages;
 
-import com.google.gson.annotations.Expose;
-import it.polimi.rest.AbstractTest;
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.oauth2.OAuth2AbstractTest;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -23,24 +20,22 @@ public class ImageAdd {
 
     }
 
-    public static class Request implements it.polimi.rest.messages.Request {
+    public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private TokenId token;
-        private TokenId tokenLink;
-        private final String username;
+        private final UserInfo.Response userInfo;
+        private final TokenId token;
         private final String title;
         private final File file;
 
-        public Request(TokenId tokenLink, TokenId token, String username, String title, File file) {
+        public Request(UserInfo.Response userInfo, TokenId token, String title, File file) {
+            this.userInfo = userInfo;
             this.token = token;
-            this.tokenLink = tokenLink;
-            this.username = username;
             this.title = title;
             this.file = file;
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             HttpEntity entity = MultipartEntityBuilder
                     .create()
                     .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
@@ -48,10 +43,8 @@ public class ImageAdd {
                     .addTextBody("title", title)
                     .build();
 
-            UserInfo.Response response = AbstractTest.userInfo(tokenLink, username);
-
             RequestBuilder requestBuilder = RequestBuilder
-                    .post(baseUrl + response.getImagesLink().url)
+                    .post(userInfo.imagesLink().url)
                     .setEntity(entity);
 
             if (token != null) {
@@ -62,6 +55,12 @@ public class ImageAdd {
             HttpClient client = HttpClientBuilder.create().build();
 
             return client.execute(request);
+        }
+
+        @Override
+        public Response response(String baseUrl) throws IOException {
+            HttpResponse response = rawResponse(baseUrl);
+            return parseJson(response, Response.class);
         }
 
     }

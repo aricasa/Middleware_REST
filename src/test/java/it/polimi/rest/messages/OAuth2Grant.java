@@ -37,7 +37,7 @@ public class OAuth2Grant {
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder builder = RequestBuilder.post(baseUrl + "/oauth2/grant");
             builder.addHeader("Content-Type", "application/x-www-form-urlencoded");
 

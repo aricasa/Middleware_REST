@@ -34,7 +34,7 @@ public class OAuth2Authorize {
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder builder = RequestBuilder.get(baseUrl + "/oauth2/authorize");
             builder.addHeader("Content-Type", "application/x-www-form-urlencoded");
 

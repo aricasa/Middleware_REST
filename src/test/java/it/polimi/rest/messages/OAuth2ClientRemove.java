@@ -30,7 +30,7 @@ public class OAuth2ClientRemove {
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder requestBuilder = RequestBuilder
                     .delete(baseUrl + "/users/" + username + "/oauth2/clients/" + client)
                     .setEntity(jsonEntity());

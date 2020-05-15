@@ -1,21 +1,15 @@
 package it.polimi.rest.oauth2;
 
-import it.polimi.rest.authorization.Agent;
-import it.polimi.rest.authorization.Authorizer;
-import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.OAuth2ClientAdd;
 import it.polimi.rest.messages.OAuth2Grant;
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.User;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
-import org.eclipse.jetty.io.ssl.ALPNProcessor;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Collection;
 
 import static org.junit.Assert.*;
 
@@ -55,7 +49,7 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
                 Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
                 "state");
 
-        assertEquals(HttpStatus.UNAUTHORIZED,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
 
     }
 
@@ -68,7 +62,7 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
                 Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
                 "state");
 
-        assertEquals(HttpStatus.UNAUTHORIZED,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
 
     }
 
@@ -81,7 +75,7 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
                 Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
                 "state");
 
-        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
 
     }
 
@@ -94,7 +88,7 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
                 Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
                 "state");
 
-        assertEquals(HttpStatus.NOT_FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
@@ -106,7 +100,7 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
                 Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
                 "state");
 
-        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
 
     }
 
@@ -119,7 +113,7 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
                 Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
                 "state");
 
-        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
 
     }
 
@@ -131,7 +125,7 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
         OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback,
                 null, "state");
 
-        assertEquals(HttpStatus.FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
@@ -143,6 +137,6 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
                 Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
                 null);
 
-        assertEquals(HttpStatus.FOUND,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 }

@@ -30,7 +30,7 @@ public class UserLoginTest extends AbstractTest {
     @Test
     public void missingCredentials() throws Exception {
         Request request = new Login.Request(null, null);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -38,7 +38,7 @@ public class UserLoginTest extends AbstractTest {
     public void wrongPassword() throws Exception {
         String wrongPassword = password + "wrongPassword";
         Request request = new Login.Request(username, wrongPassword);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }

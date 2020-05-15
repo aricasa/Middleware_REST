@@ -3,7 +3,6 @@ package it.polimi.rest.oauth2;
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.messages.*;
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
 import it.polimi.rest.utils.RequestUtils;
@@ -17,22 +16,22 @@ public abstract class OAuth2AbstractTest extends AbstractTest {
 
     public static OAuth2ClientsList.Response clientsList(TokenId token, String username) throws IOException {
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(token, username);
-        return parseJson(request.run(BASE_URL), OAuth2ClientsList.Response.class);
+        return parseJson(request.rawResponse(BASE_URL), OAuth2ClientsList.Response.class);
     }
 
     public static OAuth2ClientInfo.Response clientInfo(TokenId token, String username, OAuth2Client.Id client) throws IOException {
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(token, username, client);
-        return parseJson(request.run(BASE_URL), OAuth2ClientInfo.Response.class);
+        return parseJson(request.rawResponse(BASE_URL), OAuth2ClientInfo.Response.class);
     }
 
     public static OAuth2ClientAdd.Response addClient(TokenId token, String username, String name, String callback) throws IOException {
         OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(token, username, name, callback);
-        return parseJson(request.run(BASE_URL), OAuth2ClientAdd.Response.class);
+        return parseJson(request.rawResponse(BASE_URL), OAuth2ClientAdd.Response.class);
     }
 
     public static OAuth2Grant.Response authCode(TokenId token, OAuth2Client.Id clientId, String callback, Collection<Scope> scopes, String state) throws IOException {
         OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback, scopes, state);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         String url = response.getFirstHeader("Location").getValue();
         Map<String, String> params = RequestUtils.bodyParams(url.substring(callback.length() + 1));
@@ -42,7 +41,7 @@ public abstract class OAuth2AbstractTest extends AbstractTest {
 
    public static OAuth2AccessToken.Response getAccessToken(OAuth2Client.Id clientId, OAuth2Client.Secret secret, String callback, String code, String grantType) throws IOException {
        OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, secret, callback, code, grantType);
-       return  parseJson(request.run(BASE_URL), OAuth2AccessToken.Response.class);
+       return  parseJson(request.rawResponse(BASE_URL), OAuth2AccessToken.Response.class);
    }
 
 }

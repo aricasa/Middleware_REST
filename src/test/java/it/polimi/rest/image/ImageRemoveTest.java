@@ -7,13 +7,10 @@ import it.polimi.rest.messages.ImageRemove;
 import it.polimi.rest.messages.ImageInfo;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.*;
 import org.junit.Before;
 import org.junit.Test;
 import java.io.File;
-import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -37,7 +34,7 @@ public class ImageRemoveTest extends AbstractTest {
     @Test
     public void response() throws Exception {
         ImageRemove.Request request = new ImageRemove.Request(token, username, image);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusLine().getStatusCode());
     }
 
@@ -46,7 +43,7 @@ public class ImageRemoveTest extends AbstractTest {
         removeImage(token, username, image);
 
         ImageInfo.Request request = new ImageInfo.Request(token, username, image);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
     }
@@ -56,7 +53,7 @@ public class ImageRemoveTest extends AbstractTest {
         removeImage(token, username, image);
 
         ImageRaw.Request request = new ImageRaw.Request(token, username, image);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
     }
@@ -65,7 +62,7 @@ public class ImageRemoveTest extends AbstractTest {
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
         ImageRemove.Request request = new ImageRemove.Request(wrongToken, username, image);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -78,7 +75,7 @@ public class ImageRemoveTest extends AbstractTest {
         TokenId token2 = new TokenId(login(user2, pass2).id);
 
         ImageRemove.Request request = new ImageRemove.Request(token2, username, image);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
     }

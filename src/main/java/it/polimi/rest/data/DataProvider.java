@@ -37,7 +37,7 @@ public interface DataProvider {
     OAuth2AccessToken oAuth2AccessToken(OAuth2AccessToken.Id id);
     void add(OAuth2AccessToken token);
     void remove(OAuth2AccessToken.Id id);
-    
+
     OAuth2RefreshToken oAuth2RefreshToken(OAuth2RefreshToken.Id id);
     void add(OAuth2RefreshToken token);
     void remove(OAuth2RefreshToken.Id id);

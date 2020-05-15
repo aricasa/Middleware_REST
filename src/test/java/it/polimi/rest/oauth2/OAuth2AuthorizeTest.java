@@ -36,7 +36,7 @@ public class OAuth2AuthorizeTest extends OAuth2AbstractTest {
                 "state"
         );
 
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.OK, response.getStatusLine().getStatusCode());
     }
 
@@ -49,7 +49,7 @@ public class OAuth2AuthorizeTest extends OAuth2AbstractTest {
                 "state"
         );
 
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusLine().getStatusCode());
     }
 
@@ -62,7 +62,7 @@ public class OAuth2AuthorizeTest extends OAuth2AbstractTest {
                 "state"
         );
 
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusLine().getStatusCode());
     }
 
@@ -75,7 +75,7 @@ public class OAuth2AuthorizeTest extends OAuth2AbstractTest {
                 "state"
         );
 
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusLine().getStatusCode());
     }
 
@@ -88,7 +88,7 @@ public class OAuth2AuthorizeTest extends OAuth2AbstractTest {
                 null
         );
 
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.OK, response.getStatusLine().getStatusCode());
     }
 

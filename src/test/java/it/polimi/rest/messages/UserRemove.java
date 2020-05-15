@@ -27,7 +27,7 @@ public class UserRemove {
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder builder = RequestBuilder.delete(baseUrl + "/users/" + username);
 
             if (token != null) {

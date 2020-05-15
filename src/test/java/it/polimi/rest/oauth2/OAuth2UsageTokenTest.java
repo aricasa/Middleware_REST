@@ -6,7 +6,6 @@ import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
-import org.apache.http.HttpResponse;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,7 +50,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         accessToken = responseAccessToken.access_token;
 
         UserInfo.Request request = new UserInfo.Request(new TokenId(accessToken), "user");
-        assertEquals(HttpStatus.OK, request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.OK, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
@@ -68,7 +67,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         accessToken = responseAccessToken.access_token;
 
         ImagesList.Request request = new ImagesList.Request(new TokenId(accessToken), "user");
-        assertEquals(HttpStatus.OK, request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.OK, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
@@ -85,7 +84,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         accessToken = responseAccessToken.access_token;
 
         UserInfo.Request request = new UserInfo.Request(new TokenId("fakeToken"), "user");
-        assertEquals(HttpStatus.UNAUTHORIZED, request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
@@ -102,7 +101,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         accessToken = responseAccessToken.access_token;
 
         UserInfo.Request request = new UserInfo.Request(null, "user");
-        assertEquals(HttpStatus.UNAUTHORIZED, request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
@@ -119,7 +118,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         accessToken = responseAccessToken.access_token;
 
         ImagesList.Request request = new ImagesList.Request(new TokenId("fakeToken"), "user");
-        assertEquals(HttpStatus.UNAUTHORIZED, request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
@@ -136,7 +135,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         accessToken = responseAccessToken.access_token;
 
         ImagesList.Request request = new ImagesList.Request(null, "user");
-        assertEquals(HttpStatus.UNAUTHORIZED, request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
@@ -153,7 +152,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         accessToken = responseAccessToken.access_token;
 
         ImagesList.Request request = new ImagesList.Request(new TokenId(accessToken), "user");
-        assertEquals(HttpStatus.FORBIDDEN, request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
@@ -170,7 +169,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         accessToken = responseAccessToken.access_token;
 
         UserInfo.Request request = new UserInfo.Request(new TokenId(accessToken), "user");
-        assertEquals(HttpStatus.FORBIDDEN, request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
 }

@@ -27,7 +27,7 @@ public class ImagesList {
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder builder = RequestBuilder.get(baseUrl + "/users/" + username + "/images");
 
             if (token != null) {

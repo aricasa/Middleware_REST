@@ -38,7 +38,7 @@ public class ImagesListTest extends AbstractTest {
     @Test
     public void missingToken() throws Exception {
         ImagesList.Request request = new ImagesList.Request(null, username);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -46,7 +46,7 @@ public class ImagesListTest extends AbstractTest {
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
         ImagesList.Request request = new ImagesList.Request(wrongToken, username);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 

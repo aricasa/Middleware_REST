@@ -28,7 +28,7 @@ public class Login {
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             HttpUriRequest request = RequestBuilder
                     .post(baseUrl + "/sessions")
                     .build();

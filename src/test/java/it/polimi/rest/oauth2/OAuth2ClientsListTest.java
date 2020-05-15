@@ -34,7 +34,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
     @Test
     public void missingToken() throws Exception {
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(null, username);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -42,7 +42,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(wrongToken, username);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -53,7 +53,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
         TokenId token2 = new TokenId(login(user2, "pass").id);
 
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(token2, username);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
     }

@@ -23,22 +23,22 @@ public class UserAddTest extends AbstractTest {
     @Test
     public void missingUsername() throws Exception {
         Request request = new UserAdd.Request(null, password);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusLine().getStatusCode());
     }
 
     @Test
     public void missingPassword() throws Exception {
         Request request = new UserAdd.Request(username, null);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusLine().getStatusCode());
     }
 
     @Test
     public void alreadyExistingUser() throws Exception {
         Request request = new UserAdd.Request(username, password);
-        request.run(BASE_URL);
-        HttpResponse response = request.run(BASE_URL);
+        request.rawResponse(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
     }
 

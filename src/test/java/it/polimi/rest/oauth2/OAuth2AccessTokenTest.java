@@ -7,7 +7,6 @@ import it.polimi.rest.messages.OAuth2Grant;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
-import org.apache.http.HttpResponse;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,35 +43,35 @@ public class OAuth2AccessTokenTest extends OAuth2AbstractTest
     public void valid() throws IOException, InterruptedException
     {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "authorization_code");
-        assertEquals(HttpStatus.CREATED,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.CREATED,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void incorrectAuthorizationCode() throws IOException, InterruptedException
     {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, "fakeCode", "authorization_code");
-        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void incorrectClientId() throws IOException, InterruptedException
     {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(new OAuth2Client.Id("fakeClient"), clientSecret, callback, authorizationCode, "authorization_code");
-        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void mismatchingCallbackURL() throws IOException, InterruptedException
     {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, "wrongURL", authorizationCode, "authorization_code");
-        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
     public void incorrectClientSecret() throws IOException, InterruptedException
     {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, new OAuth2Client.Secret("wrongSecret"), callback, authorizationCode, "authorization_code");
-        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
 
@@ -80,7 +79,7 @@ public class OAuth2AccessTokenTest extends OAuth2AbstractTest
     public void unknownGrantType() throws IOException, InterruptedException
     {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "fakeGrantType");
-        assertEquals(HttpStatus.BAD_REQUEST,request.run(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
 }

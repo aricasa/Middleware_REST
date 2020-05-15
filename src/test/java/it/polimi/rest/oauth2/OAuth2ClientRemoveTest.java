@@ -28,7 +28,7 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
     @Test
     public void response() throws Exception {
         OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(token, username, id);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusLine().getStatusCode());
     }
 
@@ -36,7 +36,7 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
         OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(wrongToken, username, id);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -44,7 +44,7 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
     public void inexistentClient() throws Exception {
         OAuth2Client.Id wrongId = new OAuth2Client.Id(id + "wrongId");
         OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(token, username, wrongId);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
     }
 
@@ -55,7 +55,7 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
         TokenId token2 = new TokenId(login(user2, "pass").id);
 
         OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(token2, username, id);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
     }
@@ -66,7 +66,7 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
         addUser(user2, "pass");
 
         OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(token, user2, id);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
     }

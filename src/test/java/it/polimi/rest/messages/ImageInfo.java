@@ -30,7 +30,7 @@ public class ImageInfo {
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder builder = RequestBuilder.get(baseUrl + "/users/" + username + "/images/" + image);
 
             if (token != null) {

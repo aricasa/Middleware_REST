@@ -21,7 +21,7 @@ public class UserInfo {
 
     }
 
-    public static class Request implements it.polimi.rest.messages.Request {
+    public static class Request implements it.polimi.rest.messages.Request<Response> {
 
         private final TokenId token;
         private final String username;
@@ -32,7 +32,7 @@ public class UserInfo {
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder builder = RequestBuilder.get(baseUrl + "/users/" + username);
 
             if (token != null) {
@@ -42,6 +42,11 @@ public class UserInfo {
             HttpUriRequest request = builder.build();
             HttpClient client = HttpClientBuilder.create().build();
             return client.execute(request);
+        }
+
+        @Override
+        public Response response(String baseUrl) throws IOException {
+            return parseJson(rawResponse(baseUrl), Response.class);
         }
 
     }
@@ -56,18 +61,15 @@ public class UserInfo {
 
         }
 
-        public Link getImagesLink()
-        {
+        public Link imagesLink() {
             return _links.get("images");
         }
 
-        public Link getOauthClientsLink()
-        {
+        public Link oAuth2ClientsLink() {
             return _links.get("oauth2_clients");
         }
 
-        public Link getSelfLink()
-        {
+        public Link selfLink() {
             return  _links.get("self");
         }
 

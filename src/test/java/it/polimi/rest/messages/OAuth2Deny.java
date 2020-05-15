@@ -36,7 +36,7 @@ public class OAuth2Deny {
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder builder = RequestBuilder.post(baseUrl + "/oauth2/deny");
             builder.addHeader("Content-Type", "application/x-www-form-urlencoded");
 

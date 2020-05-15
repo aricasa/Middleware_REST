@@ -38,7 +38,7 @@ public class OAuth2ClientAdd {
         }
 
         @Override
-        public HttpResponse run(String baseUrl) throws IOException {
+        public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder requestBuilder = RequestBuilder
                     .post(baseUrl + "/users/" + username + "/oauth2/clients")
                     .setEntity(jsonEntity());

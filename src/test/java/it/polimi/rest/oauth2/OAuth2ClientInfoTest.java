@@ -39,7 +39,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
     @Test
     public void missingToken() throws Exception {
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(null, username, id);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -47,7 +47,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
     public void inexistentClient() throws Exception {
         OAuth2Client.Id wrongId = new OAuth2Client.Id(id + "wrongId");
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(token, username, wrongId);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
     }
 
@@ -58,7 +58,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
         TokenId token2 = new TokenId(login(user2, "pass").id);
 
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(token2, username, id);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
     }
@@ -69,7 +69,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
         addUser(user2, "pass");
 
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(token, user2, id);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
     }

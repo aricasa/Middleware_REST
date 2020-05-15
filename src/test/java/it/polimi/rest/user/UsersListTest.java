@@ -36,7 +36,7 @@ public class UsersListTest extends AbstractTest {
     @Test
     public void missingToken() throws Exception {
         UsersList.Request request = new UsersList.Request(null);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -44,7 +44,7 @@ public class UsersListTest extends AbstractTest {
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
         UsersList.Request request = new UsersList.Request(wrongToken);
-        HttpResponse response = request.run(BASE_URL);
+        HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
