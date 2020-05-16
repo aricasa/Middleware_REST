@@ -4,6 +4,8 @@ import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.Request;
 import it.polimi.rest.messages.Login;
+import it.polimi.rest.messages.RootLinks;
+import it.polimi.rest.messages.UserInfo;
 import org.apache.http.HttpResponse;
 import org.junit.*;
 
@@ -29,7 +31,8 @@ public class UserLoginTest extends AbstractTest {
 
     @Test
     public void missingCredentials() throws Exception {
-        Request request = new Login.Request(null, null);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        Request request = new Login.Request(rootLinks,null, null);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
@@ -37,7 +40,8 @@ public class UserLoginTest extends AbstractTest {
     @Test
     public void wrongPassword() throws Exception {
         String wrongPassword = password + "wrongPassword";
-        Request request = new Login.Request(username, wrongPassword);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        Request request = new Login.Request(rootLinks, username, wrongPassword);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());

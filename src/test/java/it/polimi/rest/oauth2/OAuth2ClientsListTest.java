@@ -2,6 +2,7 @@ package it.polimi.rest.oauth2;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.OAuth2ClientsList;
+import it.polimi.rest.messages.RootLinks;
 import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
@@ -15,6 +16,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
     private String username = "user";
     private TokenId token;
     private int count = 10;
+    private RootLinks.Response rootLinks;
 
     @Before
     public void setUp() throws Exception {
@@ -24,6 +26,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
         for (int i = 0; i < count; i++) {
             addClient(token, username, "client" + i, "http://localhost/callback");
         }
+       rootLinks = new RootLinks.Request().response(BASE_URL);
     }
 
     @Test
@@ -34,7 +37,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo,null);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -43,7 +46,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, wrongToken);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -54,7 +57,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
         String user2 = username + "2";
         addUser(user2, "pass");
         TokenId token2 = new TokenId(login(user2, "pass").id);
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, token2);
         HttpResponse response = request.rawResponse(BASE_URL);
 

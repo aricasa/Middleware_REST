@@ -2,6 +2,7 @@ package it.polimi.rest.oauth2;
 
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.OAuth2ClientInfo;
+import it.polimi.rest.messages.RootLinks;
 import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2Client;
@@ -19,12 +20,14 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
     private String name = "client";
     private String callback = "http://localhost/callback";
     private OAuth2Client.Id id;
+    private RootLinks.Response rootLinks;
 
     @Before
     public void setUp() throws Exception {
         addUser(username, "pass");
         token = new TokenId(login(username, "pass").id);
         id = new OAuth2Client.Id(addClient(token, username, name, callback).id);
+        rootLinks = new RootLinks.Request().response(BASE_URL);
     }
 
     @Test
@@ -39,7 +42,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo,null, id);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -48,7 +51,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
     @Test
     public void inexistentClient() throws Exception {
         OAuth2Client.Id wrongId = new OAuth2Client.Id(id + "wrongId");
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo, token, wrongId);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
@@ -59,7 +62,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
         String user2 = username + "2";
         addUser(user2, "pass");
         TokenId token2 = new TokenId(login(user2, "pass").id);
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo, token2, id);
         HttpResponse response = request.rawResponse(BASE_URL);
 

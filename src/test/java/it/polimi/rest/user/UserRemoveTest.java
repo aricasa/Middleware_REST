@@ -20,16 +20,21 @@ public class UserRemoveTest extends AbstractTest {
     private String username = "user";
     private String password = "pass";
     private TokenId token;
+    private RootLinks.Response rootLinks;
+    private UserInfo.Response userInfo;
 
     @Before
     public void setUp() throws Exception {
         addUser(username, password);
         token = new TokenId(login(username, password).id);
+        rootLinks = new RootLinks.Request().response(BASE_URL);
+        userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
     }
 
     @Test
     public void response() throws Exception {
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         UserRemove.Request request = new UserRemove.Request(userInfo, token);
         HttpResponse response = request.rawResponse(BASE_URL);
 
@@ -39,8 +44,8 @@ public class UserRemoveTest extends AbstractTest {
     @Test
     public void loginNotPossible() throws Exception {
         removeUser(token, username);
-
-        Login.Request request = new Login.Request(username, password);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        Login.Request request = new Login.Request(rootLinks, username, password);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -49,8 +54,8 @@ public class UserRemoveTest extends AbstractTest {
     @Test
     public void signUpAgain() throws Exception {
         removeUser(token, username);
-
-        UserAdd.Request request = new UserAdd.Request(username, password);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserAdd.Request request = new UserAdd.Request(rootLinks, username, password);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.CREATED, response.getStatusLine().getStatusCode());
@@ -60,7 +65,8 @@ public class UserRemoveTest extends AbstractTest {
     public void infoNotAccessible() throws Exception {
         removeUser(token, username);
 
-        UserInfo.Request request = new UserInfo.Request(token, username);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Request request = new UserInfo.Request(rootLinks, token, username);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
@@ -75,7 +81,7 @@ public class UserRemoveTest extends AbstractTest {
         removeUser(token, username);
 
         //Check image no more accessible
-        ImageInfo.Request request = new ImageInfo.Request(token, username, image);
+        ImageInfo.Request request = new ImageInfo.Request(userInfo, token, username, image);
         assertEquals(HttpStatus.UNAUTHORIZED, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
@@ -83,15 +89,21 @@ public class UserRemoveTest extends AbstractTest {
     public void clientsNotAccessible() throws Exception {
 
         //Add client
-        OAuth2ClientAdd.Response response = OAuth2AbstractTest.addClient(token, username, "clientName", "clientCallback");
+        OAuth2Client.Id id = new OAuth2Client.Id(OAuth2AbstractTest.addClient(token, username, "clientName", "callback").id);
 
         removeUser(token, username);
+
+        //Check clients no more visibles
+        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo,null, id);
+        HttpResponse response = request.rawResponse(BASE_URL);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         UserRemove.Request request = new UserRemove.Request(userInfo, wrongToken);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());

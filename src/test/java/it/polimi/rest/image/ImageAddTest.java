@@ -3,6 +3,7 @@ package it.polimi.rest.image;
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.ImageAdd;
+import it.polimi.rest.messages.RootLinks;
 import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
@@ -34,7 +35,8 @@ public class ImageAddTest extends AbstractTest {
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId("wrongToken");
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageAdd.Request request = new ImageAdd.Request(userInfo, wrongToken, title, file);
         HttpResponse response = request.rawResponse(BASE_URL);
 
@@ -43,7 +45,8 @@ public class ImageAddTest extends AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageAdd.Request request = new ImageAdd.Request(userInfo, null, title, file);
         HttpResponse response = request.rawResponse(BASE_URL);
 

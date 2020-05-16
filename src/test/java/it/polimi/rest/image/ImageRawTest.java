@@ -3,6 +3,7 @@ package it.polimi.rest.image;
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.ImageRaw;
+import it.polimi.rest.messages.RootLinks;
 import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
@@ -37,7 +38,8 @@ public class ImageRawTest extends AbstractTest {
     @Test
     public void valid() throws IOException, InterruptedException
     {
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageRaw.Request request = new ImageRaw.Request(userInfo, token, image);
         HttpResponse response = request.rawResponse(BASE_URL);
 
@@ -52,7 +54,8 @@ public class ImageRawTest extends AbstractTest {
     @Test
     public void incorrectToken() throws IOException, InterruptedException
     {
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageRaw.Request request = new ImageRaw.Request(userInfo, new TokenId("fakeToken"), image);
         HttpResponse response = request.rawResponse(BASE_URL);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());

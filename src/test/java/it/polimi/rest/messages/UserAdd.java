@@ -17,13 +17,16 @@ public class UserAdd {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
+        private final RootLinks.Response rootLinks;
+
         @Expose
         public final String username;
 
         @Expose
         public final String password;
 
-        public Request(String username, String password) {
+        public Request(RootLinks.Response rootLinks, String username, String password) {
+            this.rootLinks = rootLinks;
             this.username = username;
             this.password = password;
         }
@@ -31,7 +34,7 @@ public class UserAdd {
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
             HttpUriRequest request = RequestBuilder
-                    .post(baseUrl + "/users")
+                    .post(baseUrl + rootLinks.usersLink().url)
                     .setEntity(jsonEntity())
                     .build();
 

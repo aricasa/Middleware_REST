@@ -2,6 +2,7 @@ package it.polimi.rest.user;
 
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.messages.RootLinks;
 import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
@@ -29,7 +30,8 @@ public class UserInfoTest extends AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        UserInfo.Request request = new UserInfo.Request(null, username);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Request request = new UserInfo.Request(rootLinks,null, username);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -38,7 +40,8 @@ public class UserInfoTest extends AbstractTest {
     @Test
     public void wrongToken() throws Exception {
         TokenId wrongToken = new TokenId(token + "wrongToken");
-        UserInfo.Request request = new UserInfo.Request(wrongToken, username);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Request request = new UserInfo.Request(rootLinks, wrongToken, username);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());

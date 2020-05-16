@@ -18,17 +18,19 @@ public class Logout {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
+        private final RootLinks.Response rootLinks;
         private final TokenId token;
         private final String session;
 
-        public Request(TokenId token, String session) {
+        public Request(RootLinks.Response rootLinks, TokenId token, String session) {
+            this.rootLinks = rootLinks;
             this.token = token;
             this.session = session;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.delete(baseUrl + "/sessions/" + session);
+            RequestBuilder builder = RequestBuilder.delete(baseUrl + rootLinks.sessionLink().url +"/" + session);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

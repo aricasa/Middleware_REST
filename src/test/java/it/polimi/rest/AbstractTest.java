@@ -53,55 +53,66 @@ public abstract class AbstractTest {
     }
 
     public static UsersList.Response usersList(TokenId token) throws IOException {
-        UsersList.Request request = new UsersList.Request(token);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UsersList.Request request = new UsersList.Request(rootLinks, token);
         return parseJson(request.rawResponse(BASE_URL), UsersList.Response.class);
     }
 
     public static UserInfo.Response userInfo(TokenId token, String username) throws IOException {
-        UserInfo.Request request = new UserInfo.Request(token, username);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Request request = new UserInfo.Request(rootLinks, token, username);
         return parseJson(request.rawResponse(BASE_URL), UserInfo.Response.class);
     }
 
     public static UserAdd.Response addUser(String username, String password) throws IOException {
-        Request request = new UserAdd.Request(username, password);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        Request request = new UserAdd.Request(rootLinks, username, password);
         return parseJson(request.rawResponse(BASE_URL), UserAdd.Response.class);
     }
 
     public static UserRemove.Response removeUser(TokenId token, String username) throws IOException {
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         Request request = new UserRemove.Request(userInfo, token);
         return parseJson(request.rawResponse(BASE_URL), UserRemove.Response.class);
     }
 
     public static Login.Response login(String username, String password) throws IOException {
-        Request request = new Login.Request(username, password);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        Request request = new Login.Request(rootLinks, username, password);
         return parseJson(request.rawResponse(BASE_URL), Login.Response.class);
     }
 
     public static Logout.Response logout(TokenId token, String session) throws IOException {
-        Request request = new Logout.Request(token, session);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        Request request = new Logout.Request(rootLinks, token, session);
         return parseJson(request.rawResponse(BASE_URL), Logout.Response.class);
     }
 
     public static ImagesList.Response imagesList(TokenId token, String username) throws IOException {
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImagesList.Request request = new ImagesList.Request(userInfo, token);
         return parseJson(request.rawResponse(BASE_URL), ImagesList.Response.class);
     }
 
     public static ImageInfo.Response imageInfo(TokenId token, String username, Image.Id image) throws IOException {
-        ImageInfo.Request request = new ImageInfo.Request(token, username, image);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
+        ImageInfo.Request request = new ImageInfo.Request(userInfo, token, username, image);
         return parseJson(request.rawResponse(BASE_URL), ImageInfo.Response.class);
     }
 
     public static ImageAdd.Response addImage(TokenId token, String username, String title, File file) throws IOException {
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageAdd.Request request = new ImageAdd.Request(userInfo, token, title, file);
         return parseJson(request.rawResponse(BASE_URL), ImageAdd.Response.class);
     }
 
     public static ImageRemove.Response removeImage(TokenId token, String username, Image.Id image) throws IOException {
-        UserInfo.Response userInfo = new UserInfo.Request(token, username).response(BASE_URL);
+        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageRemove.Request request = new ImageRemove.Request(userInfo, token, image);
         return parseJson(request.rawResponse(BASE_URL), ImageRemove.Response.class);
     }

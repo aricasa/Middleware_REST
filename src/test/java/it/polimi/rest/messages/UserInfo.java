@@ -23,17 +23,19 @@ public class UserInfo {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
+        private final RootLinks.Response rootLinks;
         private final TokenId token;
         private final String username;
 
-        public Request(TokenId token, String username) {
+        public Request(RootLinks.Response rootLinks, TokenId token, String username) {
+            this.rootLinks = rootLinks;
             this.token = token;
             this.username = username;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + "/users/" + username);
+            RequestBuilder builder = RequestBuilder.get(baseUrl + rootLinks.usersLink().url + "/" + username);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

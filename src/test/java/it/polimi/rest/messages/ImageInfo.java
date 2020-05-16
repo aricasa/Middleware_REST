@@ -19,11 +19,13 @@ public class ImageInfo {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
+        private final UserInfo.Response userInfo;
         private final TokenId token;
         private final String username;
         private final Image.Id image;
 
-        public Request(TokenId token, String username, Image.Id image) {
+        public Request (UserInfo.Response userInfo, TokenId token, String username, Image.Id image) {
+            this.userInfo = userInfo;
             this.token = token;
             this.username = username;
             this.image = image;
@@ -31,7 +33,7 @@ public class ImageInfo {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + "/users/" + username + "/images/" + image);
+            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.imagesLink().url + "/" + image);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
