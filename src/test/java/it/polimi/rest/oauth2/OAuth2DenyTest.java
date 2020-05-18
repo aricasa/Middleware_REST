@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,38 +28,47 @@ public class OAuth2DenyTest extends OAuth2AbstractTest {
         OAuth2ClientAdd.Response response = addClient(token, "owner", "client", callback);
         clientId = new OAuth2Client.Id(response.id);
     }
+
     @Test
-    public void valid() throws IOException, InterruptedException
-    {
-        OAuth2Deny.Request request = new OAuth2Deny.Request(token, clientId, callback,  Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)), "state");
+    public void response() throws Exception {
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Deny.Request request = new OAuth2Deny.Request(token, clientId, callback, scopes, "state");
+
         assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
-    public void incorrectToken() throws IOException, InterruptedException
-    {
-        OAuth2Deny.Request request = new OAuth2Deny.Request(new TokenId("fakeToken"), clientId, callback,  Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)), "state");
+    public void missingToken() throws Exception {
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Deny.Request request = new OAuth2Deny.Request(null, clientId, callback, scopes, "state");
+
         assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
-    public void mismatchingURL() throws IOException, InterruptedException
-    {
-        OAuth2Deny.Request request = new OAuth2Deny.Request(token, clientId, "differentURL",  Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)), "state");
-        assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
+    public void invalidToken() throws Exception {
+        TokenId invalidToken = new TokenId(token + "invalidToken");
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Deny.Request request = new OAuth2Deny.Request(invalidToken, clientId, callback, scopes, "state");
+
+        assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
-    public void fakeClient() throws IOException, InterruptedException
-    {
-        OAuth2Deny.Request request = new OAuth2Deny.Request(token, new OAuth2Client.Id("fakeClientID"), callback,  Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)), "state");
+    public void inexistentClient() throws Exception {
+        OAuth2Client.Id inexistentId = new OAuth2Client.Id(clientId + "inexistentId");
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Deny.Request request = new OAuth2Deny.Request(token, inexistentId, callback, scopes, "state");
+
         assertEquals(HttpStatus.NOT_FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
-    public void missingToken() throws IOException, InterruptedException
-    {
-        OAuth2Deny.Request request = new OAuth2Deny.Request(null, clientId, callback,  Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)), "state");
-        assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
+    public void mismatchingURL() throws Exception {
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Deny.Request request = new OAuth2Deny.Request(token, clientId, "differentURL",  scopes, "state");
+
+        assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
+
 }

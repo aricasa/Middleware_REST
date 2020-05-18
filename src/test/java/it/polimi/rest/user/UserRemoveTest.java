@@ -20,20 +20,19 @@ public class UserRemoveTest extends AbstractTest {
     private String username = "user";
     private String password = "pass";
     private TokenId token;
-    private RootLinks.Response rootLinks;
+    private Root.Response rootLinks;
     private UserInfo.Response userInfo;
 
     @Before
     public void setUp() throws Exception {
         addUser(username, password);
         token = new TokenId(login(username, password).id);
-        rootLinks = new RootLinks.Request().response(BASE_URL);
+        rootLinks = new Root.Request().response(BASE_URL);
         userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
     }
 
     @Test
     public void response() throws Exception {
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         UserRemove.Request request = new UserRemove.Request(userInfo, token);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -42,9 +41,9 @@ public class UserRemoveTest extends AbstractTest {
     }
 
     @Test
-    public void loginNotPossible() throws Exception {
+    public void loginNotPossibleAnymore() throws Exception {
         removeUser(token, username);
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+
         Login.Request request = new Login.Request(rootLinks, username, password);
         HttpResponse response = request.rawResponse(BASE_URL);
 
@@ -54,7 +53,7 @@ public class UserRemoveTest extends AbstractTest {
     @Test
     public void signUpAgain() throws Exception {
         removeUser(token, username);
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+
         UserAdd.Request request = new UserAdd.Request(rootLinks, username, password);
         HttpResponse response = request.rawResponse(BASE_URL);
 
@@ -62,18 +61,18 @@ public class UserRemoveTest extends AbstractTest {
     }
 
     @Test
-    public void infoNotAccessible() throws Exception {
+    public void infoNotAccessibleAnymore() throws Exception {
         removeUser(token, username);
 
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
         UserInfo.Request request = new UserInfo.Request(rootLinks, token, username);
         HttpResponse response = request.rawResponse(BASE_URL);
+
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
-    public void imagesNotAccessible() throws Exception {
-
+    public void imagesNotAccessibleAnymore() throws Exception {
+        // TODO: NO
         //Add image
         File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
         Image.Id image = new Image.Id(addImage(token, username, "title", file).id);
@@ -86,8 +85,8 @@ public class UserRemoveTest extends AbstractTest {
     }
 
     @Test
-    public void clientsNotAccessible() throws Exception {
-
+    public void oAuth2ClientsNotAccessibleAnymore() throws Exception {
+        // TODO: NO
         //Add client
         OAuth2Client.Id id = new OAuth2Client.Id(OAuth2AbstractTest.addClient(token, username, "clientName", "callback").id);
 
@@ -100,12 +99,13 @@ public class UserRemoveTest extends AbstractTest {
     }
 
     @Test
-    public void wrongToken() throws Exception {
-        TokenId wrongToken = new TokenId(token + "wrongToken");
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+    public void invalidToken() throws Exception {
+        TokenId invalidToken = new TokenId(token + "invalidToken");
+
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        UserRemove.Request request = new UserRemove.Request(userInfo, wrongToken);
+        UserRemove.Request request = new UserRemove.Request(userInfo, invalidToken);
         HttpResponse response = request.rawResponse(BASE_URL);
+
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 

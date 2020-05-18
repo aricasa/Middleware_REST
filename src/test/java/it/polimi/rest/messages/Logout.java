@@ -18,11 +18,11 @@ public class Logout {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final RootLinks.Response rootLinks;
+        private final Root.Response rootLinks;
         private final TokenId token;
         private final String session;
 
-        public Request(RootLinks.Response rootLinks, TokenId token, String session) {
+        public Request(Root.Response rootLinks, TokenId token, String session) {
             this.rootLinks = rootLinks;
             this.token = token;
             this.session = session;

@@ -2,7 +2,7 @@ package it.polimi.rest.user;
 
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
-import it.polimi.rest.messages.RootLinks;
+import it.polimi.rest.messages.Root;
 import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
@@ -23,25 +23,34 @@ public class UserInfoTest extends AbstractTest {
     }
 
     @Test
-    public void response() throws Exception {
+    public void validIdRetrieved() throws Exception {
+        UserInfo.Response response = userInfo(token, username);
+
+        assertNotNull(response.id);
+        assertFalse(response.id.trim().isEmpty());
+    }
+
+    @Test
+    public void correctUsernameRetrieved() throws Exception {
         UserInfo.Response response = userInfo(token, username);
         assertEquals(username, response.username);
     }
 
     @Test
     public void missingToken() throws Exception {
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
-        UserInfo.Request request = new UserInfo.Request(rootLinks,null, username);
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
+        UserInfo.Request request = new UserInfo.Request(rootLinks, null, username);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
-    public void wrongToken() throws Exception {
-        TokenId wrongToken = new TokenId(token + "wrongToken");
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
-        UserInfo.Request request = new UserInfo.Request(rootLinks, wrongToken, username);
+    public void invalidToken() throws Exception {
+        TokenId invalidToken = new TokenId(token + "invalidToken");
+
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
+        UserInfo.Request request = new UserInfo.Request(rootLinks, invalidToken, username);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());

@@ -2,7 +2,7 @@ package it.polimi.rest.models;
 
 import java.util.*;
 
-public class Root implements Model{
+public class Root implements Model {
 
     @Override
     public Optional<String> self() {

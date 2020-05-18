@@ -2,7 +2,7 @@ package it.polimi.rest.user;
 
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
-import it.polimi.rest.messages.RootLinks;
+import it.polimi.rest.messages.Root;
 import it.polimi.rest.messages.UsersList;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
@@ -29,25 +29,28 @@ public class UsersListTest extends AbstractTest {
     }
 
     @Test
-    public void response() throws Exception {
+    public void usersCount() throws Exception {
         UsersList.Response response = usersList(token);
         assertEquals(count, Integer.valueOf(response.count).intValue());
     }
 
     @Test
     public void missingToken() throws Exception {
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UsersList.Request request = new UsersList.Request(rootLinks,null);
         HttpResponse response = request.rawResponse(BASE_URL);
+
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
-    public void wrongToken() throws Exception {
-        TokenId wrongToken = new TokenId(token + "wrongToken");
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
-        UsersList.Request request = new UsersList.Request(rootLinks, wrongToken);
+    public void invalidToken() throws Exception {
+        TokenId invalidToken = new TokenId(token + "invalidToken");
+
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
+        UsersList.Request request = new UsersList.Request(rootLinks, invalidToken);
         HttpResponse response = request.rawResponse(BASE_URL);
+
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 

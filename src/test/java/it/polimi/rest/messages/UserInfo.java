@@ -8,11 +8,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 public class UserInfo {
@@ -23,11 +20,11 @@ public class UserInfo {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final RootLinks.Response rootLinks;
+        private final Root.Response rootLinks;
         private final TokenId token;
         private final String username;
 
-        public Request(RootLinks.Response rootLinks, TokenId token, String username) {
+        public Request(Root.Response rootLinks, TokenId token, String username) {
             this.rootLinks = rootLinks;
             this.token = token;
             this.username = username;

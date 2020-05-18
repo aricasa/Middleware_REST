@@ -26,7 +26,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
     private File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
     private String accessToken;
     private Image.Id image;
-    private RootLinks.Response rootLinks;
+    private Root.Response rootLinks;
 
     @Before
     public void setUp() throws Exception {
@@ -35,7 +35,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         OAuth2ClientAdd.Response response = addClient(token, "user", "client", callback);
         clientId = new OAuth2Client.Id(response.id);
         clientSecret = new OAuth2Client.Secret(response.secret);
-        rootLinks = new RootLinks.Request().response(BASE_URL);
+        rootLinks = new Root.Request().response(BASE_URL);
     }
 
     @Test

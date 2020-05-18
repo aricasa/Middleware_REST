@@ -13,15 +13,16 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 import java.util.Map;
 
-public class RootLinks {
+public class Root {
 
-    private RootLinks() {
+    private Root() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
         public Request() {
+
         }
 
         @Override

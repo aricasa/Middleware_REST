@@ -17,7 +17,7 @@ public class UserAdd {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final RootLinks.Response rootLinks;
+        private final Root.Response rootLinks;
 
         @Expose
         public final String username;
@@ -25,7 +25,7 @@ public class UserAdd {
         @Expose
         public final String password;
 
-        public Request(RootLinks.Response rootLinks, String username, String password) {
+        public Request(Root.Response rootLinks, String username, String password) {
             this.rootLinks = rootLinks;
             this.username = username;
             this.password = password;

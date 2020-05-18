@@ -18,10 +18,10 @@ public class UsersList {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final RootLinks.Response rootLinks;
+        private final Root.Response rootLinks;
         private final TokenId token;
 
-        public Request(RootLinks.Response rootLinks, TokenId token) {
+        public Request(Root.Response rootLinks, TokenId token) {
             this.rootLinks = rootLinks;
             this.token = token;
         }

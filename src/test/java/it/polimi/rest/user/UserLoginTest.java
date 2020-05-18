@@ -2,10 +2,8 @@ package it.polimi.rest.user;
 
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
-import it.polimi.rest.messages.Request;
 import it.polimi.rest.messages.Login;
-import it.polimi.rest.messages.RootLinks;
-import it.polimi.rest.messages.UserInfo;
+import it.polimi.rest.messages.Root;
 import org.apache.http.HttpResponse;
 import org.junit.*;
 
@@ -22,7 +20,7 @@ public class UserLoginTest extends AbstractTest {
     }
 
     @Test
-    public void response() throws Exception {
+    public void validIdCreated() throws Exception {
         Login.Response response = login(username, password);
 
         assertNotNull(response.id);
@@ -31,17 +29,19 @@ public class UserLoginTest extends AbstractTest {
 
     @Test
     public void missingCredentials() throws Exception {
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
-        Request request = new Login.Request(rootLinks,null, null);
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
+        Login.Request request = new Login.Request(rootLinks,null, null);
         HttpResponse response = request.rawResponse(BASE_URL);
+
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
-    public void wrongPassword() throws Exception {
-        String wrongPassword = password + "wrongPassword";
-        RootLinks.Response rootLinks = new RootLinks.Request().response(BASE_URL);
-        Request request = new Login.Request(rootLinks, username, wrongPassword);
+    public void invalidToken() throws Exception {
+        String invalidToken = password + "invalidToken";
+
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
+        Login.Request request = new Login.Request(rootLinks, username, invalidToken);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());

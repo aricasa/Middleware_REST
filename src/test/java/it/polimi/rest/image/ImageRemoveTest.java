@@ -11,8 +11,6 @@ import org.junit.Test;
 import java.io.File;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 
 public class ImageRemoveTest extends AbstractTest {
 
@@ -20,7 +18,7 @@ public class ImageRemoveTest extends AbstractTest {
     private TokenId token;
     private String title = "title";
     private File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
-    RootLinks.Response rootLinks;
+    private Root.Response rootLinks;
     private Image.Id image;
 
     @Before
@@ -28,7 +26,7 @@ public class ImageRemoveTest extends AbstractTest {
         addUser(username, "pass");
         token = new TokenId(login(username, "pass").id);
         image = new Image.Id(addImage(token, username, title, file).id);
-        rootLinks = new RootLinks.Request().response(BASE_URL);
+        rootLinks = new Root.Request().response(BASE_URL);
     }
 
     @Test
@@ -36,12 +34,14 @@ public class ImageRemoveTest extends AbstractTest {
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageRemove.Request request = new ImageRemove.Request(userInfo, token, image);
         HttpResponse response = request.rawResponse(BASE_URL);
+
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusLine().getStatusCode());
     }
 
     @Test
-    public void info() throws Exception {
+    public void infoNotAccessibleAnymore() throws Exception {
         removeImage(token, username, image);
+
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageInfo.Request request = new ImageInfo.Request(userInfo, token, username, image);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -50,8 +50,9 @@ public class ImageRemoveTest extends AbstractTest {
     }
 
     @Test
-    public void raw() throws Exception {
+    public void rawDataNotAccessibleAnymore() throws Exception {
         removeImage(token, username, image);
+
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageRaw.Request request = new ImageRaw.Request(userInfo, token, image);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -60,11 +61,22 @@ public class ImageRemoveTest extends AbstractTest {
     }
 
     @Test
-    public void wrongToken() throws Exception {
-        TokenId wrongToken = new TokenId(token + "wrongToken");
+    public void missingToken() throws Exception {
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRemove.Request request = new ImageRemove.Request(userInfo, wrongToken, image);
+        ImageRemove.Request request = new ImageRemove.Request(userInfo, null, image);
         HttpResponse response = request.rawResponse(BASE_URL);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void invalidToken() throws Exception {
+        TokenId invalidToken = new TokenId(token + "invalidToken");
+
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
+        ImageRemove.Request request = new ImageRemove.Request(userInfo, invalidToken, image);
+        HttpResponse response = request.rawResponse(BASE_URL);
+
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
@@ -75,6 +87,7 @@ public class ImageRemoveTest extends AbstractTest {
 
         addUser(user2, pass2);
         TokenId token2 = new TokenId(login(user2, pass2).id);
+
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageRemove.Request request = new ImageRemove.Request(userInfo, token2, image);
         HttpResponse response = request.rawResponse(BASE_URL);

@@ -4,12 +4,10 @@ import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 
@@ -21,11 +19,11 @@ public class Login {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final RootLinks.Response rootLinks;
+        private final Root.Response rootLinks;
         private final String username;
         private final String password;
 
-        public Request(RootLinks.Response rootLinks, String username, String password) {
+        public Request(Root.Response rootLinks, String username, String password) {
             this.rootLinks = rootLinks;
             this.username = username;
             this.password = password;
