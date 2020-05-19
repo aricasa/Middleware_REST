@@ -21,14 +21,12 @@ public class OAuth2Deny {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final TokenId token;
         private final OAuth2Client.Id clientId;
         private final String callback;
         private final Collection<Scope> scopes;
         private final String state;
 
-        public Request(TokenId token, OAuth2Client.Id clientId, String callback, Collection<Scope> scopes, String state) {
-            this.token = token;
+        public Request(OAuth2Client.Id clientId, String callback, Collection<Scope> scopes, String state) {
             this.clientId = clientId;
             this.callback = callback;
             this.scopes = scopes;
@@ -39,10 +37,6 @@ public class OAuth2Deny {
         public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder builder = RequestBuilder.post(baseUrl + "/oauth2/deny");
             builder.addHeader("Content-Type", "application/x-www-form-urlencoded");
-
-            if (token != null) {
-                builder.addParameter("token", token.toString());
-            }
 
             if (clientId != null) {
                 builder.addParameter("client_id", clientId.toString());
@@ -75,7 +69,12 @@ public class OAuth2Deny {
 
     public static class Response implements it.polimi.rest.messages.Response {
 
-        public Response() {
+        public final String error;
+        public final String redirectionURI;
+
+        public Response(String redirectionURI, String error) {
+            this.redirectionURI = redirectionURI;
+            this.error = error;
         }
 
     }

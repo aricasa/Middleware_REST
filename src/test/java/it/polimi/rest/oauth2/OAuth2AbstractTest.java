@@ -45,6 +45,16 @@ public abstract class OAuth2AbstractTest extends AbstractTest {
         return new OAuth2Grant.Response(params.get("code"), params.get("state"));
     }
 
+    protected OAuth2Deny.Response deny(OAuth2Client.Id clientId, String callback, Collection<Scope> scopes, String state) throws IOException {
+        OAuth2Deny.Request request = new OAuth2Deny.Request(clientId, callback, scopes, state);
+        HttpResponse response = request.rawResponse(BASE_URL);
+
+        String url = response.getFirstHeader("Location").getValue();
+        Map<String, String> params = RequestUtils.bodyParams(url.substring(callback.length() + 1));
+
+        return new OAuth2Deny.Response(url, params.get("error"));
+    }
+
     protected OAuth2AccessToken.Response getAccessToken(OAuth2Client.Id clientId, OAuth2Client.Secret secret, String callback, String code, String grantType) throws IOException {
        OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, secret, callback, code, grantType);
        return request.response(BASE_URL);

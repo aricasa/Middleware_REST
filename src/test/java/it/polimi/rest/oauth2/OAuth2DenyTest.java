@@ -6,6 +6,7 @@ import it.polimi.rest.messages.OAuth2Deny;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
+import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class OAuth2DenyTest extends OAuth2AbstractTest {
 
@@ -32,33 +34,18 @@ public class OAuth2DenyTest extends OAuth2AbstractTest {
     @Test
     public void response() throws Exception {
         List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
-        OAuth2Deny.Request request = new OAuth2Deny.Request(token, clientId, callback, scopes, "state");
+        OAuth2Deny.Response response = deny(clientId, callback, scopes, "state");
 
-        assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
+        assertEquals(response.error, "access_denied");
+        assertEquals(response.redirectionURI.substring(0,callback.length()+1),callback+"?");
     }
 
-    @Test
-    public void missingToken() throws Exception {
-        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
-        OAuth2Deny.Request request = new OAuth2Deny.Request(null, clientId, callback, scopes, "state");
-
-        assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
-    }
-
-    @Test
-    public void invalidToken() throws Exception {
-        TokenId invalidToken = new TokenId(token + "invalidToken");
-        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
-        OAuth2Deny.Request request = new OAuth2Deny.Request(invalidToken, clientId, callback, scopes, "state");
-
-        assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
-    }
 
     @Test
     public void inexistentClient() throws Exception {
         OAuth2Client.Id inexistentId = new OAuth2Client.Id(clientId + "inexistentId");
         List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
-        OAuth2Deny.Request request = new OAuth2Deny.Request(token, inexistentId, callback, scopes, "state");
+        OAuth2Deny.Request request = new OAuth2Deny.Request(inexistentId, callback, scopes, "state");
 
         assertEquals(HttpStatus.NOT_FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
@@ -66,7 +53,7 @@ public class OAuth2DenyTest extends OAuth2AbstractTest {
     @Test
     public void mismatchingURL() throws Exception {
         List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
-        OAuth2Deny.Request request = new OAuth2Deny.Request(token, clientId, "differentURL",  scopes, "state");
+        OAuth2Deny.Request request = new OAuth2Deny.Request(clientId, "differentURL",  scopes, "state");
 
         assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
