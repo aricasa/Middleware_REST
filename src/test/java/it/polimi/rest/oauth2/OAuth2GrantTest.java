@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -27,7 +28,19 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
     }
 
     @Test
-    public void response() throws Exception {
+    public void redirectionToRightURI() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+        OAuth2Grant.Response response = authCode(token, clientId, callback,
+                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
+                "state");
+
+        assertEquals(callback, response.redirectionURI);
+    }
+
+    @Test
+    public void validAuthorizationCode() throws Exception {
         addUser("user", "pass");
         TokenId token = new TokenId(login("user", "pass").id);
 
@@ -37,30 +50,35 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
 
         assertNotNull(response.authorizationCode);
         assertFalse(response.authorizationCode.trim().isEmpty());
+    }
+
+    @Test
+    public void sameState() throws Exception {
+        addUser("user", "pass");
+        TokenId token = new TokenId(login("user", "pass").id);
+
+        OAuth2Grant.Response response = authCode(token, clientId, callback,
+                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
+                "state");
+
         assertEquals("state", response.state);
     }
 
     @Test
     public void missingToken() throws Exception {
-        addUser("user", "pass");
-        TokenId token = new TokenId(login("user", "pass").id);
-
-        OAuth2Grant.Request request = new OAuth2Grant.Request(null, clientId, callback,
-                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
-                "state");
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Grant.Request request = new OAuth2Grant.Request(null, clientId, callback, scopes, "state");
 
         assertEquals(HttpStatus.UNAUTHORIZED,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
-
     }
 
     @Test
-    public void wrongToken() throws Exception {
+    public void invalidToken() throws Exception {
         addUser("user", "pass");
-        TokenId token = new TokenId(login("user", "pass").id);
+        TokenId invalidToken = new TokenId(login("user", "pass").id + "invalidToken");
 
-        OAuth2Grant.Request request = new OAuth2Grant.Request(new TokenId("fakeToken"), clientId, callback,
-                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
-                "state");
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Grant.Request request = new OAuth2Grant.Request(invalidToken, clientId, callback, scopes, "state");
 
         assertEquals(HttpStatus.UNAUTHORIZED,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
 
@@ -80,13 +98,13 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
     }
 
     @Test
-    public void wrongClientID() throws Exception {
+    public void inexistentClientID() throws Exception {
         addUser("user", "pass");
         TokenId token = new TokenId(login("user", "pass").id);
+        OAuth2Client.Id inexistentId = new OAuth2Client.Id(clientId + "inexistentId");
 
-        OAuth2Grant.Request request = new OAuth2Grant.Request(token, new OAuth2Client.Id("fakeClientID"), callback,
-                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
-                "state");
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Grant.Request request = new OAuth2Grant.Request(token, inexistentId, callback, scopes, "state");
 
         assertEquals(HttpStatus.NOT_FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
@@ -105,13 +123,12 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
     }
 
     @Test
-    public void wrongCallback() throws Exception {
+    public void mismatchingCallback() throws Exception {
         addUser("user", "pass");
         TokenId token = new TokenId(login("user", "pass").id);
 
-        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, "fakeCallback",
-                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
-                "state");
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback + "mismatch", scopes, "state");
 
         assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
 
@@ -122,8 +139,7 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
         addUser("user", "pass");
         TokenId token = new TokenId(login("user", "pass").id);
 
-        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback,
-                null, "state");
+        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback, null, "state");
 
         assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
@@ -133,10 +149,10 @@ public class OAuth2GrantTest extends OAuth2AbstractTest {
         addUser("user", "pass");
         TokenId token = new TokenId(login("user", "pass").id);
 
-        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback,
-                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
-                null);
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback, scopes, null);
 
         assertEquals(HttpStatus.FOUND,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
+
 }

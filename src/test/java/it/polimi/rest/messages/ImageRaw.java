@@ -2,6 +2,7 @@ package it.polimi.rest.messages;
 
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -9,6 +10,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class ImageRaw {
@@ -45,16 +47,24 @@ public class ImageRaw {
         @Override
         public Response response(String baseUrl) throws IOException {
             HttpResponse response = rawResponse(baseUrl);
-            return parseJson(response, Response.class);
+
+            ByteArrayOutputStream downloadedImg = new ByteArrayOutputStream();
+            response.getEntity().writeTo(downloadedImg);
+            byte[] data = downloadedImg.toByteArray();
+
+            return new Response(data);
         }
 
     }
 
     public static class Response implements it.polimi.rest.messages.Response {
 
-        private Response() {
+        public final byte[] data;
 
+        public Response(byte[] data) {
+            this.data = data;
         }
+
     }
 
 }

@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 
 public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
 
-    private Root.Response rootLinks;
     private String username = "user";
     private TokenId token;
     private String name = "client";
@@ -31,8 +30,6 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
         OAuth2ClientAdd.Response info = addClient(token, username, name, callback);
         id = new OAuth2Client.Id(info.id);
         secret = new OAuth2Client.Secret(info.secret);
-
-        rootLinks = new Root.Request().response(BASE_URL);
     }
 
     @Test
@@ -61,6 +58,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo, null, id);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -72,6 +70,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo, invalidToken, id);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -83,6 +82,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
     public void inexistentClient() throws Exception {
         OAuth2Client.Id inexistentId = new OAuth2Client.Id(id + "inexistentId");
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo, token, inexistentId);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -98,6 +98,7 @@ public class OAuth2ClientInfoTest extends OAuth2AbstractTest {
         addUser(user2, pass2);
         TokenId token2 = new TokenId(login(user2, pass2).id);
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo, token2, id);
         HttpResponse response = request.rawResponse(BASE_URL);

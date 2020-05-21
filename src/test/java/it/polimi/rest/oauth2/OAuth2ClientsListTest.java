@@ -16,7 +16,6 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
     private String username = "user";
     private TokenId token;
     private int count = 10;
-    private Root.Response rootLinks;
 
     @Before
     public void setUp() throws Exception {
@@ -26,8 +25,6 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
         for (int i = 0; i < count; i++) {
             addClient(token, username, "client" + i, "http://localhost/callback");
         }
-
-       rootLinks = new Root.Request().response(BASE_URL);
     }
 
     @Test
@@ -38,6 +35,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, null);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -49,6 +47,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, invalidToken);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -64,6 +63,7 @@ public class OAuth2ClientsListTest extends OAuth2AbstractTest {
         addUser(user2, pass2);
         TokenId token2 = new TokenId(login(user2, pass2).id);
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, token2);
         HttpResponse response = request.rawResponse(BASE_URL);

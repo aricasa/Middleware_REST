@@ -21,30 +21,26 @@ public class ImageRawTest extends AbstractTest {
 
     private String username = "user";
     private TokenId token;
-    private File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
-    private String title = "title";
+    private byte[] data;
     private Image.Id image;
 
     @Before
     public void setUp() throws Exception {
         addUser(username, "pass");
         token = new TokenId(login(username, "pass").id);
-        image = new Image.Id(addImage(token, username, title, file).id);
+        File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
+        image = new Image.Id(addImage(token, username, "title", file).id);
+        data = FileUtils.readFileToByteArray(file);
     }
 
     @Test
-    public void valid() throws Exception {
+    public void sameDataRetrieved() throws Exception {
         Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImageRaw.Request request = new ImageRaw.Request(userInfo, token, image);
-        HttpResponse response = request.rawResponse(BASE_URL);
+        ImageRaw.Response response = request.response(BASE_URL);
 
-        ByteArrayOutputStream downloadedImg = new ByteArrayOutputStream();
-        response.getEntity().writeTo(downloadedImg);
-        byte[] bufferDownloadedImage = downloadedImg.toByteArray();
-        byte[] bufferImage = FileUtils.readFileToByteArray(file);
-
-        assertArrayEquals(bufferDownloadedImage, bufferImage);
+        assertArrayEquals(data, response.data);
     }
 
     @Test
@@ -67,6 +63,18 @@ public class ImageRawTest extends AbstractTest {
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void inexistentImage() throws Exception {
+        Image.Id inexistentId = new Image.Id(image + "inexistentId");
+
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
+        ImageRaw.Request request = new ImageRaw.Request(userInfo, token, inexistentId);
+        HttpResponse response = request.rawResponse(BASE_URL);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
     }
 
     @Test

@@ -4,6 +4,7 @@ import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
+import it.polimi.rest.utils.RequestUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -12,6 +13,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class OAuth2Grant {
@@ -69,17 +71,23 @@ public class OAuth2Grant {
         @Override
         public Response response(String baseUrl) throws IOException {
             HttpResponse response = rawResponse(baseUrl);
-            return parseJson(response, Response.class);
+
+            String url = response.getFirstHeader("Location").getValue();
+            Map<String, String> params = RequestUtils.bodyParams(url.substring(callback.length() + 1));
+
+            return new Response(url.split("\\?")[0], params.get("code"), params.get("state"));
         }
 
     }
 
     public static class Response implements it.polimi.rest.messages.Response {
 
+        public final String redirectionURI;
         public final String authorizationCode;
         public final String state;
 
-        public Response(String authorizationCode, String state) {
+        public Response(String redirectionURI, String authorizationCode, String state) {
+            this.redirectionURI = redirectionURI;
             this.authorizationCode = authorizationCode;
             this.state = state;
         }

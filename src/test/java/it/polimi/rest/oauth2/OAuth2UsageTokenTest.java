@@ -10,14 +10,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 
 
-public class OAuth2UsageTokenTest extends OAuth2AbstractTest
-{
+public class OAuth2UsageTokenTest extends OAuth2AbstractTest {
     private TokenId token;
     private OAuth2Client.Id clientId;
     private OAuth2Client.Secret clientSecret;
@@ -39,8 +37,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
     }
 
     @Test
-    public void getInfoUser() throws IOException, InterruptedException
-    {
+    public void getInfoUser() throws Exception {
         //Grant request
         OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
                 Arrays.asList(Scope.get(Scope.READ_USER)),
@@ -48,7 +45,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         authorizationCode = responseGrant.authorizationCode;
 
         //Get access token
-        OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
+        OAuth2AccessToken.Response responseAccessToken = accessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
 
         UserInfo.Request request = new UserInfo.Request(rootLinks, new TokenId(accessToken), "user");
@@ -56,8 +53,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
     }
 
     @Test
-    public void getListImages() throws IOException, InterruptedException
-    {
+    public void getListImages() throws Exception {
         //Grant request
         OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
                 Arrays.asList(Scope.get(Scope.READ_IMAGES)),
@@ -65,7 +61,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         authorizationCode = responseGrant.authorizationCode;
 
         //Get access token
-        OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
+        OAuth2AccessToken.Response responseAccessToken = accessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
 
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, "user").response(BASE_URL);
@@ -74,8 +70,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
     }
 
     @Test
-    public void wrongTokenInfoUser() throws IOException, InterruptedException
-    {
+    public void wrongTokenInfoUser() throws Exception {
         //Grant request
         OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
                 Arrays.asList(Scope.get(Scope.READ_USER)),
@@ -83,7 +78,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         authorizationCode = responseGrant.authorizationCode;
 
         //Get access token
-        OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
+        OAuth2AccessToken.Response responseAccessToken = accessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
 
         UserInfo.Request request = new UserInfo.Request(rootLinks, new TokenId("fakeToken"), "user");
@@ -91,8 +86,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
     }
 
     @Test
-    public void missingTokenInfoUser() throws IOException, InterruptedException
-    {
+    public void missingTokenInfoUser() throws Exception {
         //Grant request
         OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
                 Arrays.asList(Scope.get(Scope.READ_USER)),
@@ -100,7 +94,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         authorizationCode = responseGrant.authorizationCode;
 
         //Get access token
-        OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
+        OAuth2AccessToken.Response responseAccessToken = accessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
 
         UserInfo.Request request = new UserInfo.Request(rootLinks, null, "user");
@@ -108,8 +102,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
     }
 
     @Test
-    public void wrongTokenListImages() throws IOException, InterruptedException
-    {
+    public void wrongTokenListImages() throws Exception {
         //Grant request
         OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
                 Arrays.asList(Scope.get(Scope.READ_IMAGES), Scope.get(Scope.READ_USER)),
@@ -117,7 +110,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         authorizationCode = responseGrant.authorizationCode;
 
         //Get access token
-        OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
+        OAuth2AccessToken.Response responseAccessToken = accessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, "user").response(BASE_URL);
         ImagesList.Request request = new ImagesList.Request(userInfo, new TokenId("fakeToken"));
@@ -125,8 +118,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
     }
 
     @Test
-    public void missingTokenListImages() throws IOException, InterruptedException
-    {
+    public void missingTokenListImages() throws Exception {
         //Grant request
         OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
                 Arrays.asList(Scope.get(Scope.READ_IMAGES), Scope.get(Scope.READ_USER)),
@@ -134,7 +126,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         authorizationCode = responseGrant.authorizationCode;
 
         //Get access token
-        OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
+        OAuth2AccessToken.Response responseAccessToken = accessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, "user").response(BASE_URL);
         ImagesList.Request request = new ImagesList.Request(userInfo,null);
@@ -142,8 +134,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
     }
 
     @Test
-    public void missingScopeListImages() throws IOException, InterruptedException
-    {
+    public void missingScopeListImages() throws Exception {
         //Grant request
         OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
                 Arrays.asList(Scope.get(Scope.READ_USER)),
@@ -151,7 +142,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         authorizationCode = responseGrant.authorizationCode;
 
         //Get access token
-        OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
+        OAuth2AccessToken.Response responseAccessToken = accessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, "user").response(BASE_URL);
         ImagesList.Request request = new ImagesList.Request(userInfo, new TokenId(accessToken));
@@ -159,8 +150,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
     }
 
     @Test
-    public void missingScopeInfoUser() throws IOException, InterruptedException
-    {
+    public void missingScopeInfoUser() throws Exception {
         //Grant request
         OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
                 Arrays.asList(Scope.get(Scope.READ_IMAGES)),
@@ -168,7 +158,7 @@ public class OAuth2UsageTokenTest extends OAuth2AbstractTest
         authorizationCode = responseGrant.authorizationCode;
 
         //Get access token
-        OAuth2AccessToken.Response responseAccessToken = getAccessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
+        OAuth2AccessToken.Response responseAccessToken = accessToken(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         accessToken = responseAccessToken.access_token;
 
         UserInfo.Request request = new UserInfo.Request(rootLinks, new TokenId(accessToken), "user");

@@ -3,15 +3,10 @@ package it.polimi.rest.user;
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
 import it.polimi.rest.messages.*;
-import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.oauth2.OAuth2AbstractTest;
 import org.apache.http.HttpResponse;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.File;
 
 import static org.junit.Assert.assertEquals;
 
@@ -53,31 +48,21 @@ public class UserLogoutTest extends AbstractTest {
 
     @Test
     public void imagesNotAccessibleAnymore() throws Exception {
-        // TODO: NO
-
-        //Add image
-        File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
-        Image.Id image = new Image.Id(addImage(token, username, "title", file).id);
-
         logout(token, session);
 
-        //Check image no more accessible
-        ImageInfo.Request request = new ImageInfo.Request(userInfo, token, username, image);
-        assertEquals(HttpStatus.UNAUTHORIZED, request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
+        ImagesList.Request request = new ImagesList.Request(userInfo, token);
+        HttpResponse response = request.rawResponse(BASE_URL);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
     public void oAuth2ClientsNotAccessibleAnymore() throws Exception {
-        // TODO: NO
-
-        //Add client
-        OAuth2Client.Id id = new OAuth2Client.Id(OAuth2AbstractTest.addClient(token, username, "clientName", "callback").id);
-
         logout(token, session);
 
-        //Check clients no more visibles
-        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo,null, id);
+        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, token);
         HttpResponse response = request.rawResponse(BASE_URL);
+
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 

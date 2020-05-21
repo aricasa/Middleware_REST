@@ -12,12 +12,12 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
+public class OAuth2AccessTokenTest extends OAuth2AbstractTest {
 
-public class OAuth2AccessTokenTest extends OAuth2AbstractTest
-{
     private TokenId token;
     private OAuth2Client.Id clientId;
     private OAuth2Client.Secret clientSecret;
@@ -28,56 +28,49 @@ public class OAuth2AccessTokenTest extends OAuth2AbstractTest
     public void setUp() throws Exception {
         addUser("user", "pass");
         token = new TokenId(login("user", "pass").id);
-        OAuth2ClientAdd.Response response = addClient(token, "user", "client", callback);
-        clientId = new OAuth2Client.Id(response.id);
-        clientSecret = new OAuth2Client.Secret(response.secret);
 
-        //Grant request
-        OAuth2Grant.Response responseGrant = authCode(token, clientId, callback,
-                Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES)),
-                "state");
-        authorizationCode = responseGrant.authorizationCode;
+        OAuth2ClientAdd.Response clientAddResponse = addClient(token, "user", "client", callback);
+        clientId = new OAuth2Client.Id(clientAddResponse.id);
+        clientSecret = new OAuth2Client.Secret(clientAddResponse.secret);
+
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Grant.Response grantResponse = authCode(token, clientId, callback, scopes, "state");
+
+        authorizationCode = grantResponse.authorizationCode;
     }
 
     @Test
-    public void valid() throws IOException, InterruptedException
-    {
+    public void valid() throws Exception {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         assertEquals(HttpStatus.CREATED,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
-    public void incorrectAuthorizationCode() throws IOException, InterruptedException
-    {
+    public void incorrectAuthorizationCode() throws Exception {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, "fakeCode", "authorization_code");
         assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
-    public void incorrectClientId() throws IOException, InterruptedException
-    {
+    public void incorrectClientId() throws Exception {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(new OAuth2Client.Id("fakeClient"), clientSecret, callback, authorizationCode, "authorization_code");
         assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
-    public void mismatchingCallbackURL() throws IOException, InterruptedException
-    {
+    public void mismatchingCallbackURL() throws Exception {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, "wrongURL", authorizationCode, "authorization_code");
         assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
     @Test
-    public void incorrectClientSecret() throws IOException, InterruptedException
-    {
+    public void incorrectClientSecret() throws Exception {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, new OAuth2Client.Secret("wrongSecret"), callback, authorizationCode, "authorization_code");
         assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }
 
-
     @Test
-    public void unknownGrantType() throws IOException, InterruptedException
-    {
+    public void unknownGrantType() throws Exception {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "fakeGrantType");
         assertEquals(HttpStatus.BAD_REQUEST,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
     }

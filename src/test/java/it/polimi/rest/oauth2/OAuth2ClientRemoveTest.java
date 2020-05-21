@@ -17,18 +17,17 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
     private String username = "user";
     private TokenId token;
     private OAuth2Client.Id id;
-    private Root.Response rootLinks;
 
     @Before
     public void setUp() throws Exception {
         addUser(username, "pass");
         token = new TokenId(login(username, "pass").id);
         id = new OAuth2Client.Id(addClient(token, username, "client", "http://localhost/callback").id);
-        rootLinks = new Root.Request().response(BASE_URL);
     }
 
     @Test
     public void response() throws Exception {
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(userInfo, token, id);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -38,6 +37,7 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(userInfo, null, id);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -49,6 +49,7 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(userInfo, invalidToken, id);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -60,6 +61,7 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
     public void inexistentClient() throws Exception {
         OAuth2Client.Id inexistentId = new OAuth2Client.Id(id + "inexistentId");
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(userInfo, token, inexistentId);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -75,6 +77,7 @@ public class OAuth2ClientRemoveTest extends OAuth2AbstractTest {
         addUser(user2, pass2);
         TokenId token2 = new TokenId(login(user2, pass2).id);
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientRemove.Request request = new OAuth2ClientRemove.Request(userInfo, token2, id);
         HttpResponse response = request.rawResponse(BASE_URL);

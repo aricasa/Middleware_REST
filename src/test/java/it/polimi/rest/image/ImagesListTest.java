@@ -19,14 +19,12 @@ public class ImagesListTest extends AbstractTest {
     private String username = "user";
     private TokenId token;
     private int count = 10;
-    private Root.Response rootLinks;
 
     @Before
     public void setUp() throws Exception {
         addUser(username, "pass");
         token = new TokenId(login(username, "pass").id);
         File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
-        rootLinks = new Root.Request().response(BASE_URL);
 
         for (int i = 0; i < count; i++) {
             addImage(token, username, "title" + i, file);
@@ -41,6 +39,7 @@ public class ImagesListTest extends AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImagesList.Request request = new ImagesList.Request(userInfo, null);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -52,6 +51,7 @@ public class ImagesListTest extends AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImagesList.Request request = new ImagesList.Request(userInfo, invalidToken);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -67,6 +67,7 @@ public class ImagesListTest extends AbstractTest {
         addUser(user2, pass2);
         TokenId token2 = new TokenId(login(user2, pass2).id);
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         ImagesList.Request request = new ImagesList.Request(userInfo, token2);
         HttpResponse response = request.rawResponse(BASE_URL);

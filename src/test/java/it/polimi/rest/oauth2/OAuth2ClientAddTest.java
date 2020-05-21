@@ -18,13 +18,11 @@ public class OAuth2ClientAddTest extends OAuth2AbstractTest {
     private TokenId token;
     private String name = "client";
     private String callback = "http://localhost/callback";
-    private Root.Response rootLinks;
 
     @Before
     public void setUp() throws Exception {
         addUser(username, "pass");
         token = new TokenId(login(username, "pass").id);
-        rootLinks = new Root.Request().response(BASE_URL);
     }
 
     @Test
@@ -53,6 +51,7 @@ public class OAuth2ClientAddTest extends OAuth2AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(userInfo, null, name, callback);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -64,6 +63,7 @@ public class OAuth2ClientAddTest extends OAuth2AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(userInfo, invalidToken, name, callback);
         HttpResponse response = request.rawResponse(BASE_URL);
@@ -79,6 +79,7 @@ public class OAuth2ClientAddTest extends OAuth2AbstractTest {
         addUser(user2, pass2);
         TokenId token2 = new TokenId(login(user2, pass2).id);
 
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token2, user2).response(BASE_URL);
         OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(userInfo, token, name, callback);
         HttpResponse response = request.rawResponse(BASE_URL);

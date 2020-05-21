@@ -56,4 +56,15 @@ public class UserInfoTest extends AbstractTest {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
+    @Test
+    public void inexistentUser() throws Exception {
+        String inexistentUsername = username + "2";
+
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
+        UserInfo.Request request = new UserInfo.Request(rootLinks, token, inexistentUsername);
+        HttpResponse response = request.rawResponse(BASE_URL);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
+    }
+
 }
