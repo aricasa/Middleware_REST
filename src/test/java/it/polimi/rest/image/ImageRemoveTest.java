@@ -43,7 +43,7 @@ public class ImageRemoveTest extends AbstractTest {
         removeImage(token, username, image);
 
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageInfo.Request request = new ImageInfo.Request(userInfo, token, username, image);
+        ImageInfo.Request request = new ImageInfo.Request(userInfo, token,  image);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());

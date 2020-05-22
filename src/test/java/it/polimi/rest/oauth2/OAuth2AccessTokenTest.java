@@ -7,6 +7,8 @@ import it.polimi.rest.messages.OAuth2Grant;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
+import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class OAuth2AccessTokenTest extends OAuth2AbstractTest {
 
@@ -43,6 +46,15 @@ public class OAuth2AccessTokenTest extends OAuth2AbstractTest {
     public void valid() throws Exception {
         OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "authorization_code");
         assertEquals(HttpStatus.CREATED,request.rawResponse(BASE_URL).getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void response() throws Exception {
+        OAuth2AccessToken.Response response = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "authorization_code").response(BASE_URL);
+        assertTrue(response.refresh_token!=null);
+        assertTrue(response.expires_in!=null);
+        assertTrue(response.token_type.compareTo("bearer")==0);
+        assertTrue(response.access_token!=null);
     }
 
     @Test

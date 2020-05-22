@@ -1,8 +1,6 @@
 package it.polimi.rest.messages;
 
-import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.oauth2.OAuth2Client;
-import it.polimi.rest.models.oauth2.scope.Scope;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -10,29 +8,25 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.stream.Collectors;
 
-public class OAuth2AccessToken {
+public class OAuth2RefreshToken {
 
-    private OAuth2AccessToken() {
+    private OAuth2RefreshToken() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
         private final OAuth2Client.Id clientId;
-        private final String callback;
         private final OAuth2Client.Secret secret;
-        private final String code;
         private final String grantType;
+        private final String refreshToken;
 
-        public Request(OAuth2Client.Id clientId, OAuth2Client.Secret secret, String callback, String code, String grantType) {
+        public Request(OAuth2Client.Id clientId, OAuth2Client.Secret secret,  String grantType, String refreshToken) {
             this.clientId = clientId;
-            this.callback = callback;
             this.secret = secret;
-            this.code = code;
             this.grantType = grantType;
+            this.refreshToken = refreshToken;
         }
 
         @Override
@@ -48,19 +42,13 @@ public class OAuth2AccessToken {
                 builder.addParameter("client_secret", secret.toString());
             }
 
-            if (callback != null && !callback.isEmpty()) {
-                builder.addParameter("redirect_uri", callback);
-            }
-
-            if (code != null) {
-                builder.addParameter("code", code);
-            }
-
             if (grantType != null) {
                 builder.addParameter("grant_type", grantType);
             }
 
-            builder.addParameter("response_type", "code");
+            if (refreshToken != null) {
+                builder.addParameter("refresh_token", refreshToken);
+            }
 
             HttpUriRequest request = builder.build();
             HttpClient client = HttpClientBuilder.create().build();

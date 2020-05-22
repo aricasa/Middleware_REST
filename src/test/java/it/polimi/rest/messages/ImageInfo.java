@@ -21,13 +21,11 @@ public class ImageInfo {
 
         private final UserInfo.Response userInfo;
         private final TokenId token;
-        private final String username;
         private final Image.Id image;
 
-        public Request (UserInfo.Response userInfo, TokenId token, String username, Image.Id image) {
+        public Request (UserInfo.Response userInfo, TokenId token, Image.Id image) {
             this.userInfo = userInfo;
             this.token = token;
-            this.username = username;
             this.image = image;
         }
 
