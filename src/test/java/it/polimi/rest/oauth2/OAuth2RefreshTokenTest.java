@@ -13,8 +13,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class OAuth2RefreshTokenTest extends OAuth2AbstractTest {
 
@@ -51,12 +50,30 @@ public class OAuth2RefreshTokenTest extends OAuth2AbstractTest {
     }
 
     @Test
-    public void response() throws Exception {
+    public void validAccessToken() throws Exception {
         OAuth2RefreshToken.Response response = new OAuth2RefreshToken.Request(clientId, clientSecret,  "refresh_token", refreshToken).response(BASE_URL);
-        assertTrue(response.access_token!=null);
+        assertNotNull(response.access_token);
         assertTrue(response.expires_in!=null);
         assertTrue(response.refresh_token!=null);
         assertTrue(response.token_type.compareTo("bearer")==0);
+    }
+
+    @Test
+    public void validExpiresTime() throws Exception {
+        OAuth2RefreshToken.Response response = new OAuth2RefreshToken.Request(clientId, clientSecret,  "refresh_token", refreshToken).response(BASE_URL);
+        assertNotNull(response.expires_in);
+    }
+
+    @Test
+    public void validRefreshToken() throws Exception {
+        OAuth2RefreshToken.Response response = new OAuth2RefreshToken.Request(clientId, clientSecret,  "refresh_token", refreshToken).response(BASE_URL);
+        assertNotNull(response.refresh_token);
+    }
+
+    @Test
+    public void validTokenType() throws Exception {
+        OAuth2RefreshToken.Response response = new OAuth2RefreshToken.Request(clientId, clientSecret,  "refresh_token", refreshToken).response(BASE_URL);
+        assertEquals(response.token_type,"bearer");
     }
 
     @Test

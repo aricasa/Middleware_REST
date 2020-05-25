@@ -40,13 +40,22 @@ public class ImageInfoTest extends AbstractTest {
     }
 
     @Test
-    public void response() throws Exception {
+    public void correctIdRetrieved() throws Exception {
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         for (int i = 0; i < count; i++) {
             ImageInfo.Response response = new ImageInfo.Request(userInfo, token, image.get(i)).response(BASE_URL);
 
-            assertTrue(response.id.compareTo(image.get(i).toString())==0);
-            assertTrue(response.title.compareTo("title"+i)==0);
+            assertEquals(response.id,image.get(i).toString());
+        }
+    }
+
+    @Test
+    public void correctTitleRetrieved() throws Exception {
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
+        for (int i = 0; i < count; i++) {
+            ImageInfo.Response response = new ImageInfo.Request(userInfo, token, image.get(i)).response(BASE_URL);
+
+            assertEquals(response.title, "title"+i);
         }
     }
 

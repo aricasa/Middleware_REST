@@ -28,11 +28,18 @@ public class OAuth2DenyTest extends OAuth2AbstractTest {
     }
 
     @Test
-    public void response() throws Exception {
+    public void validResponseError() throws Exception {
         List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
         OAuth2Deny.Response response = deny(clientId, callback, scopes, "state");
 
         assertEquals("access_denied", response.error);
+    }
+
+    @Test
+    public void validRedirectionURI() throws Exception {
+        List<Scope> scopes = Arrays.asList(Scope.get(Scope.READ_USER), Scope.get(Scope.READ_IMAGES));
+        OAuth2Deny.Response response = deny(clientId, callback, scopes, "state");
+
         assertEquals(callback, response.redirectionURI);
     }
 

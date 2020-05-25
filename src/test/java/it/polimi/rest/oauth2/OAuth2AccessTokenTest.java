@@ -16,8 +16,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class OAuth2AccessTokenTest extends OAuth2AbstractTest {
 
@@ -49,12 +48,27 @@ public class OAuth2AccessTokenTest extends OAuth2AbstractTest {
     }
 
     @Test
-    public void response() throws Exception {
+    public void validRefreshTokenRetrieved() throws Exception {
         OAuth2AccessToken.Response response = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "authorization_code").response(BASE_URL);
-        assertTrue(response.refresh_token!=null);
-        assertTrue(response.expires_in!=null);
-        assertTrue(response.token_type.compareTo("bearer")==0);
-        assertTrue(response.access_token!=null);
+        assertNotNull(response.refresh_token);
+    }
+
+    @Test
+    public void validExpireTimeRetrieved() throws Exception {
+        OAuth2AccessToken.Response response = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "authorization_code").response(BASE_URL);
+        assertNotNull(response.expires_in);
+    }
+
+    @Test
+    public void validTokenTypeRetrieved() throws Exception {
+        OAuth2AccessToken.Response response = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "authorization_code").response(BASE_URL);
+        assertEquals(response.token_type, "bearer");
+    }
+
+    @Test
+    public void validAccessTokenRetrieved() throws Exception {
+        OAuth2AccessToken.Response response = new OAuth2AccessToken.Request(clientId, clientSecret, callback, authorizationCode, "authorization_code").response(BASE_URL);
+        assertNotNull(response.access_token);
     }
 
     @Test
