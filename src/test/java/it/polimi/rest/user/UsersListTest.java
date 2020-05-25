@@ -2,8 +2,8 @@ package it.polimi.rest.user;
 
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
-import it.polimi.rest.messages.Root;
-import it.polimi.rest.messages.UsersList;
+import it.polimi.rest.messages.RootMessage;
+import it.polimi.rest.messages.UsersListMessage;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
 import org.junit.Before;
@@ -30,14 +30,14 @@ public class UsersListTest extends AbstractTest {
 
     @Test
     public void usersCount() throws Exception {
-        UsersList.Response response = usersList(token);
+        UsersListMessage.Response response = usersList(token);
         assertEquals(count, Integer.valueOf(response.count).intValue());
     }
 
     @Test
     public void missingToken() throws Exception {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UsersList.Request request = new UsersList.Request(rootLinks,null);
+        RootMessage.Response rootLinks = rootLinks();
+        UsersListMessage.Request request = new UsersListMessage.Request(rootLinks,null);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -47,8 +47,8 @@ public class UsersListTest extends AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UsersList.Request request = new UsersList.Request(rootLinks, invalidToken);
+        RootMessage.Response rootLinks = rootLinks();
+        UsersListMessage.Request request = new UsersListMessage.Request(rootLinks, invalidToken);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());

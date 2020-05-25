@@ -40,72 +40,72 @@ public abstract class AbstractTest {
         Thread.sleep(500);
     }
 
-    protected Root.Response rootLinks() throws IOException {
-        return new Root.Request().response(BASE_URL);
+    protected RootMessage.Response rootLinks() throws IOException {
+        return new RootMessage.Request().response(BASE_URL);
     }
 
-    protected UsersList.Response usersList(TokenId token) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UsersList.Request request = new UsersList.Request(rootLinks, token);
+    protected UsersListMessage.Response usersList(TokenId token) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UsersListMessage.Request request = new UsersListMessage.Request(rootLinks, token);
         return request.response(BASE_URL);
     }
 
-    protected UserInfo.Response userInfo(TokenId token, String username) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Request request = new UserInfo.Request(rootLinks, token, username);
+    protected UserInfoMessage.Response userInfo(TokenId token, String username) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Request request = new UserInfoMessage.Request(rootLinks, token, username);
         return request.response(BASE_URL);
     }
 
-    protected UserAdd.Response addUser(String username, String password) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserAdd.Request request = new UserAdd.Request(rootLinks, username, password);
+    protected UserAddMessage.Response addUser(String username, String password) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserAddMessage.Request request = new UserAddMessage.Request(rootLinks, username, password);
         return request.response(BASE_URL);
     }
 
-    protected UserRemove.Response removeUser(TokenId token, String username) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        UserRemove.Request request = new UserRemove.Request(userInfo, token);
+    protected UserRemoveMessage.Response removeUser(TokenId token, String username) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        UserRemoveMessage.Request request = new UserRemoveMessage.Request(userInfo, token);
         return request.response(BASE_URL);
     }
 
-    protected Login.Response login(String username, String password) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        Login.Request request = new Login.Request(rootLinks, username, password);
+    protected LoginMessage.Response login(String username, String password) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        LoginMessage.Request request = new LoginMessage.Request(rootLinks, username, password);
         return request.response(BASE_URL);
     }
 
-    protected Logout.Response logout(TokenId token, String session) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        Logout.Request request = new Logout.Request(rootLinks, token, session);
+    protected LogoutMessage.Response logout(TokenId token, String session) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        LogoutMessage.Request request = new LogoutMessage.Request(rootLinks, token, session);
         return request.response(BASE_URL);
     }
 
-    protected ImagesList.Response imagesList(TokenId token, String username) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImagesList.Request request = new ImagesList.Request(userInfo, token);
+    protected ImagesListMessage.Response imagesList(TokenId token, String username) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImagesListMessage.Request request = new ImagesListMessage.Request(userInfo, token);
         return request.response(BASE_URL);
     }
 
-    protected ImageInfo.Response imageInfo(TokenId token, String username, Image.Id image) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageInfo.Request request = new ImageInfo.Request(userInfo, token, image);
+    protected ImageInfoMessage.Response imageInfo(TokenId token, String username, Image.Id image) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImageInfoMessage.Request request = new ImageInfoMessage.Request(userInfo, token, image);
         return request.response(BASE_URL);
     }
 
-    protected ImageAdd.Response addImage(TokenId token, String username, String title, File file) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageAdd.Request request = new ImageAdd.Request(userInfo, token, title, file);
+    protected ImageAddMessage.Response addImage(TokenId token, String username, String title, File file) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImageAddMessage.Request request = new ImageAddMessage.Request(userInfo, token, title, file);
         return request.response(BASE_URL);
     }
 
-    protected ImageRemove.Response removeImage(TokenId token, String username, Image.Id image) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRemove.Request request = new ImageRemove.Request(userInfo, token, image);
+    protected ImageRemoveMessage.Response removeImage(TokenId token, String username, Image.Id image) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(userInfo, token, image);
         return request.response(BASE_URL);
     }
 

@@ -10,25 +10,27 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 
-public class UserRemove {
+public class LogoutMessage {
 
-    private UserRemove() {
+    private LogoutMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final UserInfo.Response userInfo;
+        private final RootMessage.Response rootLinks;
         private final TokenId token;
+        private final String session;
 
-        public Request(UserInfo.Response userInfo, TokenId token) {
+        public Request(RootMessage.Response rootLinks, TokenId token, String session) {
+            this.rootLinks = rootLinks;
             this.token = token;
-            this.userInfo = userInfo;
+            this.session = session;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.delete(baseUrl + userInfo.selfLink().url);
+            RequestBuilder builder = RequestBuilder.delete(baseUrl + rootLinks.sessionLink().url +"/" + session);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
@@ -44,13 +46,9 @@ public class UserRemove {
             HttpResponse response = rawResponse(baseUrl);
             return parseJson(response, Response.class);
         }
-
     }
 
     public static class Response implements it.polimi.rest.messages.Response {
-
-        public String id;
-        public String username;
 
         private Response() {
 

@@ -2,9 +2,9 @@ package it.polimi.rest.image;
 
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
-import it.polimi.rest.messages.ImageRaw;
-import it.polimi.rest.messages.Root;
-import it.polimi.rest.messages.UserInfo;
+import it.polimi.rest.messages.ImageRawMessage;
+import it.polimi.rest.messages.RootMessage;
+import it.polimi.rest.messages.UserInfoMessage;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
 import org.apache.commons.io.FileUtils;
@@ -12,8 +12,8 @@ import org.apache.http.HttpResponse;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.Objects;
 
 import static org.junit.Assert.*;
 
@@ -28,26 +28,26 @@ public class ImageRawTest extends AbstractTest {
     public void setUp() throws Exception {
         addUser(username, "pass");
         token = new TokenId(login(username, "pass").id);
-        File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
+        File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("image.jpg")).getFile());
         image = new Image.Id(addImage(token, username, "title", file).id);
         data = FileUtils.readFileToByteArray(file);
     }
 
     @Test
-    public void sameDataRetrieved() throws Exception {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRaw.Request request = new ImageRaw.Request(userInfo, token, image);
-        ImageRaw.Response response = request.response(BASE_URL);
+    public void sameData() throws Exception {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, token, image);
+        ImageRawMessage.Response response = request.response(BASE_URL);
 
         assertArrayEquals(data, response.data);
     }
 
     @Test
     public void missingToken() throws Exception {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRaw.Request request = new ImageRaw.Request(userInfo, null, image);
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, null, image);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -57,9 +57,9 @@ public class ImageRawTest extends AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRaw.Request request = new ImageRaw.Request(userInfo, invalidToken, image);
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, invalidToken, image);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -69,9 +69,9 @@ public class ImageRawTest extends AbstractTest {
     public void inexistentImage() throws Exception {
         Image.Id inexistentId = new Image.Id(image + "inexistentId");
 
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRaw.Request request = new ImageRaw.Request(userInfo, token, inexistentId);
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, token, inexistentId);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
@@ -85,9 +85,9 @@ public class ImageRawTest extends AbstractTest {
         addUser(user2, pass2);
         TokenId token2 = new TokenId(login(user2, pass2).id);
 
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRaw.Request request = new ImageRaw.Request(userInfo, token2, image);
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, token2, image);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());

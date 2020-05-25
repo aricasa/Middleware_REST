@@ -1,6 +1,7 @@
 package it.polimi.rest.messages;
 
 import it.polimi.rest.models.TokenId;
+import it.polimi.rest.models.oauth2.OAuth2Client;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -10,34 +11,37 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 
-public class Logout {
+public class OAuth2ClientRemoveMessage {
 
-    private Logout() {
+    private OAuth2ClientRemoveMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final Root.Response rootLinks;
+        private final UserInfoMessage.Response userInfo;
         private final TokenId token;
-        private final String session;
+        private final OAuth2Client.Id client;
 
-        public Request(Root.Response rootLinks, TokenId token, String session) {
-            this.rootLinks = rootLinks;
+        public Request(UserInfoMessage.Response userInfo, TokenId token, OAuth2Client.Id client) {
+            this.userInfo = userInfo;
             this.token = token;
-            this.session = session;
+            this.client = client;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.delete(baseUrl + rootLinks.sessionLink().url +"/" + session);
+            RequestBuilder requestBuilder = RequestBuilder
+                    .delete(baseUrl + userInfo.oAuth2ClientsLink().url + "/" + client)
+                    .setEntity(jsonEntity());
 
             if (token != null) {
-                builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
+                requestBuilder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer" + token);
             }
 
-            HttpUriRequest request = builder.build();
+            HttpUriRequest request = requestBuilder.build();
             HttpClient client = HttpClientBuilder.create().build();
+
             return client.execute(request);
         }
 
@@ -46,6 +50,7 @@ public class Logout {
             HttpResponse response = rawResponse(baseUrl);
             return parseJson(response, Response.class);
         }
+
     }
 
     public static class Response implements it.polimi.rest.messages.Response {

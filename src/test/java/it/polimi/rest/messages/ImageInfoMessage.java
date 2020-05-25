@@ -1,5 +1,7 @@
 package it.polimi.rest.messages;
 
+import it.polimi.rest.models.Image;
+import it.polimi.rest.models.Link;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -9,26 +11,29 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
+import java.util.Map;
 
-public class OAuth2ClientsList {
+public class ImageInfoMessage {
 
-    private OAuth2ClientsList() {
+    private ImageInfoMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final UserInfo.Response userInfo;
+        private final UserInfoMessage.Response userInfo;
         private final TokenId token;
+        private final Image.Id image;
 
-        public Request(UserInfo.Response userInfo, TokenId token) {
-            this.token = token;
+        public Request (UserInfoMessage.Response userInfo, TokenId token, Image.Id image) {
             this.userInfo = userInfo;
+            this.token = token;
+            this.image = image;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.oAuth2ClientsLink().url);
+            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.imagesLink().url + "/" + image);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
@@ -49,10 +54,24 @@ public class OAuth2ClientsList {
 
     public static class Response implements it.polimi.rest.messages.Response {
 
-        public int count;
+        public String id;
+        public String title;
+        private Map<String, Link> _links;
 
         private Response() {
 
+        }
+
+        public Link selfLink() {
+            return _links.get("self");
+        }
+
+        public Link authorLink() {
+            return _links.get("author");
+        }
+
+        public Link rawLink() {
+            return _links.get("describes");
         }
 
     }

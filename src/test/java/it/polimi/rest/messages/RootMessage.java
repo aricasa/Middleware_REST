@@ -1,5 +1,6 @@
 package it.polimi.rest.messages;
 
+import it.polimi.rest.models.Link;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -7,54 +8,52 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.Map;
 
-public class ImagesList {
+public class RootMessage {
 
-    private ImagesList() {
+    private RootMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final UserInfo.Response userInfo;
-        private final TokenId token;
+        public Request() {
 
-        public Request(UserInfo.Response userInfo, TokenId token) {
-            this.token = token;
-            this.userInfo = userInfo;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.imagesLink().url);
+            RequestBuilder requestBuilder = RequestBuilder
+                    .get(baseUrl + "/");
 
-            if (token != null) {
-                builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
-            }
-
-            HttpUriRequest request = builder.build();
-            HttpClient client = HttpClientBuilder.create().build();
-            return client.execute(request);
+            HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+            HttpUriRequest request = requestBuilder.build();
+            return clientBuilder.build().execute(request);
         }
 
         @Override
         public Response response(String baseUrl) throws IOException {
-            HttpResponse response = rawResponse(baseUrl);
-            return parseJson(response, Response.class);
+            return parseJson(rawResponse(baseUrl), Response.class);
         }
 
     }
 
     public static class Response implements it.polimi.rest.messages.Response {
 
-        public int count;
+        public Map<String, Link> _links;
 
         private Response() {
-
         }
 
+        public Link sessionLink() { return _links.get("sessions"); }
+
+        public Link usersLink() { return _links.get("users"); }
+
+        public Link selfLink() { return  _links.get("self"); }
     }
 
 }

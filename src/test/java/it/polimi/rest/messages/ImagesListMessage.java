@@ -1,6 +1,5 @@
 package it.polimi.rest.messages;
 
-import com.google.gson.annotations.Expose;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -11,43 +10,32 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 
-public class OAuth2ClientAdd {
+public class ImagesListMessage {
 
-    private OAuth2ClientAdd() {
+    private ImagesListMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final UserInfo.Response userInfo;
+        private final UserInfoMessage.Response userInfo;
         private final TokenId token;
 
-        @Expose
-        private final String name;
-
-        @Expose
-        private final String callback;
-
-        public Request(UserInfo.Response userInfo, TokenId token, String name, String callback) {
+        public Request(UserInfoMessage.Response userInfo, TokenId token) {
             this.token = token;
             this.userInfo = userInfo;
-            this.name = name;
-            this.callback = callback;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder requestBuilder = RequestBuilder
-                    .post(baseUrl + userInfo.oAuth2ClientsLink().url)
-                    .setEntity(jsonEntity());
+            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.imagesLink().url);
 
             if (token != null) {
-                requestBuilder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer" + token);
+                builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
             }
 
-            HttpUriRequest request = requestBuilder.build();
+            HttpUriRequest request = builder.build();
             HttpClient client = HttpClientBuilder.create().build();
-
             return client.execute(request);
         }
 
@@ -61,10 +49,7 @@ public class OAuth2ClientAdd {
 
     public static class Response implements it.polimi.rest.messages.Response {
 
-        public String name;
-        public String callback;
-        public String id;
-        public String secret;
+        public int count;
 
         private Response() {
 

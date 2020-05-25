@@ -13,24 +13,20 @@ import static org.junit.Assert.assertEquals;
 public class UserLogoutTest extends AbstractTest {
 
     private String username = "user";
-    UserInfo.Response userInfo;
     private TokenId token;
     private String session;
-    private Root.Response rootLinks;
 
     @Before
     public void setUp() throws Exception {
         addUser(username, "pass");
         session = login(username, "pass").id;
         token = new TokenId(session);
-        rootLinks = new Root.Request().response(BASE_URL);
-        userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
     }
 
     @Test
     public void response() throws Exception {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        Logout.Request request = new Logout.Request(rootLinks, token, session);
+        RootMessage.Response rootLinks = rootLinks();
+        LogoutMessage.Request request = new LogoutMessage.Request(rootLinks, token, session);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusLine().getStatusCode());
@@ -40,7 +36,8 @@ public class UserLogoutTest extends AbstractTest {
     public void userInfoNotAccessibleAnymore() throws Exception {
         logout(token, session);
 
-        UserInfo.Request request = new UserInfo.Request(rootLinks, token, username);
+        RootMessage.Response rootLinks = rootLinks();
+        UserInfoMessage.Request request = new UserInfoMessage.Request(rootLinks, token, username);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -50,7 +47,8 @@ public class UserLogoutTest extends AbstractTest {
     public void imagesNotAccessibleAnymore() throws Exception {
         logout(token, session);
 
-        ImagesList.Request request = new ImagesList.Request(userInfo, token);
+        UserInfoMessage.Response userInfo = userInfo(token, username);
+        ImagesListMessage.Request request = new ImagesListMessage.Request(userInfo, token);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -60,7 +58,8 @@ public class UserLogoutTest extends AbstractTest {
     public void oAuth2ClientsNotAccessibleAnymore() throws Exception {
         logout(token, session);
 
-        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, token);
+        UserInfoMessage.Response userInfo = userInfo(token, username);
+        OAuth2ClientsListMessage.Request request = new OAuth2ClientsListMessage.Request(userInfo, token);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -70,8 +69,8 @@ public class UserLogoutTest extends AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        Logout.Request request = new Logout.Request(rootLinks, invalidToken, session);
+        RootMessage.Response rootLinks = rootLinks();
+        LogoutMessage.Request request = new LogoutMessage.Request(rootLinks, invalidToken, session);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -80,12 +79,11 @@ public class UserLogoutTest extends AbstractTest {
     @Test
     public void otherUserToken() throws Exception {
         String user2 = username + "2";
-        String pass2 = "pass";
+        addUser(user2, "pass");
+        LoginMessage.Response session = login(user2, "pass");
 
-        addUser(user2, pass2);
-        Login.Response session = login(user2, pass2);
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        Logout.Request request = new Logout.Request(rootLinks, token, session.id);
+        RootMessage.Response rootLinks = rootLinks();
+        LogoutMessage.Request request = new LogoutMessage.Request(rootLinks, token, session.id);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());

@@ -2,7 +2,7 @@ package it.polimi.rest.messages;
 
 import it.polimi.rest.models.oauth2.OAuth2Client;
 import it.polimi.rest.models.oauth2.scope.Scope;
-import org.apache.http.HttpHeaders;
+import it.polimi.rest.utils.RequestUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -11,20 +11,21 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-public class OAuth2Authorize {
+public class OAuth2DenyMessage {
 
-    private OAuth2Authorize() {
+    private OAuth2DenyMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        public final OAuth2Client.Id clientId;
-        public final String callback;
-        public final Collection<Scope> scopes;
-        public final String state;
+        private final OAuth2Client.Id clientId;
+        private final String callback;
+        private final Collection<Scope> scopes;
+        private final String state;
 
         public Request(OAuth2Client.Id clientId, String callback, Collection<Scope> scopes, String state) {
             this.clientId = clientId;
@@ -35,7 +36,7 @@ public class OAuth2Authorize {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + "/oauth2/authorize");
+            RequestBuilder builder = RequestBuilder.post(baseUrl + "/oauth2/deny");
             builder.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
             if (clientId != null) {
@@ -62,15 +63,23 @@ public class OAuth2Authorize {
         @Override
         public Response response(String baseUrl) throws IOException {
             HttpResponse response = rawResponse(baseUrl);
-            return parseJson(response, Response.class);
+
+            String url = response.getFirstHeader("Location").getValue();
+            Map<String, String> params = RequestUtils.bodyParams(url.substring(callback.length() + 1));
+
+            return new OAuth2DenyMessage.Response(url.split("\\?")[0], params.get("error"));
         }
 
     }
 
     public static class Response implements it.polimi.rest.messages.Response {
 
-        private Response() {
+        public final String redirectionURI;
+        public final String error;
 
+        public Response(String redirectionURI, String error) {
+            this.redirectionURI = redirectionURI;
+            this.error = error;
         }
 
     }

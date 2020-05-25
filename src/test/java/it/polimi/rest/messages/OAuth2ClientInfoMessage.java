@@ -1,51 +1,41 @@
 package it.polimi.rest.messages;
 
+import it.polimi.rest.models.Link;
 import it.polimi.rest.models.TokenId;
-import org.apache.http.HttpEntity;
+import it.polimi.rest.models.oauth2.OAuth2Client;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 
-import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
-public class ImageAdd {
+public class OAuth2ClientInfoMessage {
 
-    private ImageAdd() {
+    private OAuth2ClientInfoMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final UserInfo.Response userInfo;
+        private final UserInfoMessage.Response userInfo;
         private final TokenId token;
-        private final String title;
-        private final File file;
+        private final OAuth2Client.Id client;
 
-        public Request(UserInfo.Response userInfo, TokenId token, String title, File file) {
-            this.userInfo = userInfo;
+        public Request(UserInfoMessage.Response userInfo, TokenId token, OAuth2Client.Id client) {
             this.token = token;
-            this.title = title;
-            this.file = file;
+            this.userInfo = userInfo;
+            this.client = client;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            HttpEntity entity = MultipartEntityBuilder
-                    .create()
-                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                    .addBinaryBody("file", file)
-                    .addTextBody("title", title)
-                    .build();
-
             RequestBuilder requestBuilder = RequestBuilder
-                    .post(baseUrl + userInfo.imagesLink().url)
-                    .setEntity(entity);
+                    .get(baseUrl + userInfo.oAuth2ClientsLink().url + "/" + client)
+                    .setEntity(jsonEntity());
 
             if (token != null) {
                 requestBuilder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer" + token);
@@ -67,11 +57,18 @@ public class ImageAdd {
 
     public static class Response implements it.polimi.rest.messages.Response {
 
+        public String name;
         public String id;
-        public String title;
+        public String secret;
+        public String callback;
+        private Map<String, Link> _links;
 
         private Response() {
 
+        }
+
+        public Link selfLink() {
+            return _links.get("self");
         }
 
     }

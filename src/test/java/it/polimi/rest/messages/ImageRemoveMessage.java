@@ -1,7 +1,7 @@
 package it.polimi.rest.messages;
 
+import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.oauth2.OAuth2Client;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -11,37 +11,34 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 
-public class OAuth2ClientRemove {
+public class ImageRemoveMessage {
 
-    private OAuth2ClientRemove() {
+    private ImageRemoveMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final UserInfo.Response userInfo;
+        private final UserInfoMessage.Response userInfo;
         private final TokenId token;
-        private final OAuth2Client.Id client;
+        private final Image.Id image;
 
-        public Request(UserInfo.Response userInfo, TokenId token, OAuth2Client.Id client) {
-            this.userInfo = userInfo;
+        public Request(UserInfoMessage.Response userInfo, TokenId token, Image.Id image) {
             this.token = token;
-            this.client = client;
+            this.userInfo = userInfo;
+            this.image = image;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder requestBuilder = RequestBuilder
-                    .delete(baseUrl + userInfo.oAuth2ClientsLink().url + "/" + client)
-                    .setEntity(jsonEntity());
+            RequestBuilder builder = RequestBuilder.delete(baseUrl + userInfo.imagesLink().url + "/" + image);
 
             if (token != null) {
-                requestBuilder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer" + token);
+                builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
             }
 
-            HttpUriRequest request = requestBuilder.build();
+            HttpUriRequest request = builder.build();
             HttpClient client = HttpClientBuilder.create().build();
-
             return client.execute(request);
         }
 

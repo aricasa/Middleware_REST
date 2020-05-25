@@ -1,6 +1,5 @@
 package it.polimi.rest.messages;
 
-import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -11,27 +10,25 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 
-public class ImageRemove {
+public class UserRemoveMessage {
 
-    private ImageRemove() {
+    private UserRemoveMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final UserInfo.Response userInfo;
+        private final UserInfoMessage.Response userInfo;
         private final TokenId token;
-        private final Image.Id image;
 
-        public Request(UserInfo.Response userInfo, TokenId token, Image.Id image) {
+        public Request(UserInfoMessage.Response userInfo, TokenId token) {
             this.token = token;
             this.userInfo = userInfo;
-            this.image = image;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.delete(baseUrl + userInfo.imagesLink().url + "/" + image);
+            RequestBuilder builder = RequestBuilder.delete(baseUrl + userInfo.selfLink().url);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
@@ -51,6 +48,9 @@ public class ImageRemove {
     }
 
     public static class Response implements it.polimi.rest.messages.Response {
+
+        public String id;
+        public String username;
 
         private Response() {
 

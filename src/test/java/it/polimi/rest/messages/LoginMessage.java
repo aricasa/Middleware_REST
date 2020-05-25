@@ -11,19 +11,19 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 
-public class Login {
+public class LoginMessage {
 
-    private Login() {
+    private LoginMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final Root.Response rootLinks;
+        private final RootMessage.Response rootLinks;
         private final String username;
         private final String password;
 
-        public Request(Root.Response rootLinks, String username, String password) {
+        public Request(RootMessage.Response rootLinks, String username, String password) {
             this.rootLinks = rootLinks;
             this.username = username;
             this.password = password;

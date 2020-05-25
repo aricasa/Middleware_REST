@@ -2,15 +2,16 @@ package it.polimi.rest.image;
 
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
-import it.polimi.rest.messages.ImagesList;
-import it.polimi.rest.messages.Root;
-import it.polimi.rest.messages.UserInfo;
+import it.polimi.rest.messages.ImagesListMessage;
+import it.polimi.rest.messages.RootMessage;
+import it.polimi.rest.messages.UserInfoMessage;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 
@@ -24,7 +25,7 @@ public class ImagesListTest extends AbstractTest {
     public void setUp() throws Exception {
         addUser(username, "pass");
         token = new TokenId(login(username, "pass").id);
-        File file = new File(getClass().getClassLoader().getResource("image.jpg").getFile());
+        File file = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("image.jpg")).getFile());
 
         for (int i = 0; i < count; i++) {
             addImage(token, username, "title" + i, file);
@@ -33,15 +34,15 @@ public class ImagesListTest extends AbstractTest {
 
     @Test
     public void imagesCount() throws Exception {
-        ImagesList.Response response = imagesList(token, username);
+        ImagesListMessage.Response response = imagesList(token, username);
         assertEquals(count, Integer.valueOf(response.count).intValue());
     }
 
     @Test
     public void missingToken() throws Exception {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImagesList.Request request = new ImagesList.Request(userInfo, null);
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImagesListMessage.Request request = new ImagesListMessage.Request(userInfo, null);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -51,9 +52,9 @@ public class ImagesListTest extends AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImagesList.Request request = new ImagesList.Request(userInfo, invalidToken);
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImagesListMessage.Request request = new ImagesListMessage.Request(userInfo, invalidToken);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -62,14 +63,12 @@ public class ImagesListTest extends AbstractTest {
     @Test
     public void otherUser() throws Exception {
         String user2 = username + "2";
-        String pass2 = "pass";
+        addUser(user2, "pass");
+        TokenId token2 = new TokenId(login(user2, "pass").id);
 
-        addUser(user2, pass2);
-        TokenId token2 = new TokenId(login(user2, pass2).id);
-
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImagesList.Request request = new ImagesList.Request(userInfo, token2);
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        ImagesListMessage.Request request = new ImagesListMessage.Request(userInfo, token2);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());

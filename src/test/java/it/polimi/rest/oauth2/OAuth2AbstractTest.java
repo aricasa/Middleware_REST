@@ -3,51 +3,55 @@ package it.polimi.rest.oauth2;
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.messages.*;
 import it.polimi.rest.models.TokenId;
+import it.polimi.rest.models.oauth2.OAuth2AuthorizationCode;
 import it.polimi.rest.models.oauth2.OAuth2Client;
+import it.polimi.rest.models.oauth2.OAuth2RefreshToken;
 import it.polimi.rest.models.oauth2.scope.Scope;
-import it.polimi.rest.utils.RequestUtils;
-import org.apache.http.HttpResponse;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
 
 public abstract class OAuth2AbstractTest extends AbstractTest {
 
-    protected OAuth2ClientsList.Response clientsList(TokenId token, String username) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        OAuth2ClientsList.Request request = new OAuth2ClientsList.Request(userInfo, token);
+    protected OAuth2ClientsListMessage.Response clientsList(TokenId token, String username) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        OAuth2ClientsListMessage.Request request = new OAuth2ClientsListMessage.Request(userInfo, token);
         return request.response(BASE_URL);
     }
 
-    protected OAuth2ClientInfo.Response clientInfo(TokenId token, String username, OAuth2Client.Id client) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        OAuth2ClientInfo.Request request = new OAuth2ClientInfo.Request(userInfo, token, client);
+    protected OAuth2ClientInfoMessage.Response clientInfo(TokenId token, String username, OAuth2Client.Id client) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        OAuth2ClientInfoMessage.Request request = new OAuth2ClientInfoMessage.Request(userInfo, token, client);
         return request.response(BASE_URL);
     }
 
-    protected OAuth2ClientAdd.Response addClient(TokenId token, String username, String name, String callback) throws IOException {
-        Root.Response rootLinks = new Root.Request().response(BASE_URL);
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        OAuth2ClientAdd.Request request = new OAuth2ClientAdd.Request(userInfo, token, name, callback);
+    protected OAuth2ClientAddMessage.Response addClient(TokenId token, String username, String name, String callback) throws IOException {
+        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
+        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        OAuth2ClientAddMessage.Request request = new OAuth2ClientAddMessage.Request(userInfo, token, name, callback);
         return request.response(BASE_URL);
     }
 
-    protected OAuth2Grant.Response authCode(TokenId token, OAuth2Client.Id clientId, String callback, Collection<Scope> scopes, String state) throws IOException {
-        OAuth2Grant.Request request = new OAuth2Grant.Request(token, clientId, callback, scopes, state);
+    protected OAuth2GrantMessage.Response authCode(TokenId token, OAuth2Client.Id clientId, String callback, Collection<Scope> scopes, String state) throws IOException {
+        OAuth2GrantMessage.Request request = new OAuth2GrantMessage.Request(token, clientId, callback, scopes, state);
         return request.response(BASE_URL);
     }
 
-    protected OAuth2Deny.Response deny(OAuth2Client.Id clientId, String callback, Collection<Scope> scopes, String state) throws IOException {
-        OAuth2Deny.Request request = new OAuth2Deny.Request(clientId, callback, scopes, state);
+    protected OAuth2DenyMessage.Response deny(OAuth2Client.Id clientId, String callback, Collection<Scope> scopes, String state) throws IOException {
+        OAuth2DenyMessage.Request request = new OAuth2DenyMessage.Request(clientId, callback, scopes, state);
         return request.response(BASE_URL);
     }
 
-    protected OAuth2AccessToken.Response accessToken(OAuth2Client.Id clientId, OAuth2Client.Secret secret, String callback, String code, String grantType) throws IOException {
-       OAuth2AccessToken.Request request = new OAuth2AccessToken.Request(clientId, secret, callback, code, grantType);
+    protected OAuth2AccessTokenMessage.Response accessToken(OAuth2Client.Id clientId, OAuth2Client.Secret secret, String callback, OAuth2AuthorizationCode.Id authCode) throws IOException {
+       OAuth2AccessTokenMessage.Request request = new OAuth2AccessTokenMessage.Request(clientId, secret, callback, authCode, "authorization_code");
        return request.response(BASE_URL);
+   }
+
+   protected OAuth2RefreshTokenMessage.Response refreshToken(OAuth2Client.Id id, OAuth2Client.Secret secret, OAuth2RefreshToken.Id refreshToken) throws IOException {
+        OAuth2RefreshTokenMessage.Request request = new OAuth2RefreshTokenMessage.Request(id, secret, "refresh_token", refreshToken);
+        return request.response(BASE_URL);
    }
 
 }

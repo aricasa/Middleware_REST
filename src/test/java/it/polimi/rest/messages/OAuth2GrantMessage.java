@@ -16,9 +16,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class OAuth2Grant {
+public class OAuth2GrantMessage {
 
-    private OAuth2Grant() {
+    private OAuth2GrantMessage() {
 
     }
 

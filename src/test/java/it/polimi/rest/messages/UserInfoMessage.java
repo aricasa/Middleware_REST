@@ -12,19 +12,19 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import java.io.IOException;
 import java.util.Map;
 
-public class UserInfo {
+public class UserInfoMessage {
 
-    private UserInfo() {
+    private UserInfoMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final Root.Response rootLinks;
+        private final RootMessage.Response rootLinks;
         private final TokenId token;
         private final String username;
 
-        public Request(Root.Response rootLinks, TokenId token, String username) {
+        public Request(RootMessage.Response rootLinks, TokenId token, String username) {
             this.rootLinks = rootLinks;
             this.token = token;
             this.username = username;
@@ -54,18 +54,22 @@ public class UserInfo {
 
         public String id;
         public String username;
-        public Map<String, Link> _links;
+        private Map<String, Link> _links;
 
         private Response() {
 
         }
 
-        public Link imagesLink() { return _links.get("images"); }
-
-        public Link oAuth2ClientsLink() { return _links.get("oauth2_clients"); }
-
         public Link selfLink() {
-            return  _links.get("self");
+            return _links.get("self");
+        }
+
+        public Link imagesLink() {
+            return _links.get("images");
+        }
+
+        public Link oAuth2ClientsLink() {
+            return _links.get("oauth2_clients");
         }
 
     }

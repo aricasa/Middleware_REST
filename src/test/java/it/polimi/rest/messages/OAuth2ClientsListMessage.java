@@ -10,25 +10,25 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 
-public class UsersList {
+public class OAuth2ClientsListMessage {
 
-    private UsersList() {
+    private OAuth2ClientsListMessage() {
 
     }
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final Root.Response rootLinks;
+        private final UserInfoMessage.Response userInfo;
         private final TokenId token;
 
-        public Request(Root.Response rootLinks, TokenId token) {
-            this.rootLinks = rootLinks;
+        public Request(UserInfoMessage.Response userInfo, TokenId token) {
             this.token = token;
+            this.userInfo = userInfo;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + rootLinks.usersLink().url);
+            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.oAuth2ClientsLink().url);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
