@@ -1,6 +1,5 @@
 package it.polimi.rest.messages;
 
-import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -20,19 +19,17 @@ public class ImageRawMessage {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final UserInfoMessage.Response userInfo;
+        private final ImageInfoMessage.Response imageInfo;
         private final TokenId token;
-        private final Image.Id image;
 
-        public Request(UserInfoMessage.Response userInfo, TokenId token, Image.Id image) {
+        public Request(ImageInfoMessage.Response imageInfo, TokenId token) {
+            this.imageInfo = imageInfo;
             this.token = token;
-            this.userInfo = userInfo;
-            this.image = image;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.imagesLink().url + "/" + image + "/raw");
+            RequestBuilder builder = RequestBuilder.get(baseUrl + imageInfo.rawLink());
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

@@ -29,9 +29,8 @@ public class ImageRemoveTest extends AbstractTest {
 
     @Test
     public void response() throws Exception {
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(userInfo, token, image);
+        ImageInfoMessage.Response imageInfo = imageInfo(token, username, image);
+        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(imageInfo, token);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusLine().getStatusCode());
@@ -41,8 +40,7 @@ public class ImageRemoveTest extends AbstractTest {
     public void infoNotAccessibleAnymore() throws Exception {
         removeImage(token, username, image);
 
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        UserInfoMessage.Response userInfo = userInfo(token, username);
         ImageInfoMessage.Request request = new ImageInfoMessage.Request(userInfo, token,  image);
         HttpResponse response = request.rawResponse(BASE_URL);
 
@@ -50,22 +48,9 @@ public class ImageRemoveTest extends AbstractTest {
     }
 
     @Test
-    public void rawDataNotAccessibleAnymore() throws Exception {
-        removeImage(token, username, image);
-
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, token, image);
-        HttpResponse response = request.rawResponse(BASE_URL);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
-    }
-
-    @Test
     public void missingToken() throws Exception {
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(userInfo, null, image);
+        ImageInfoMessage.Response imageInfo = imageInfo(token, username, image);
+        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(imageInfo, null);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -75,9 +60,8 @@ public class ImageRemoveTest extends AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(userInfo, invalidToken, image);
+        ImageInfoMessage.Response imageInfo = imageInfo(token, username, image);
+        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(imageInfo, invalidToken);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -89,9 +73,8 @@ public class ImageRemoveTest extends AbstractTest {
         addUser(user2, "pass");
         TokenId token2 = new TokenId(login(user2, "pass").id);
 
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(userInfo, token2, image);
+        ImageInfoMessage.Response imageInfo = imageInfo(token, username, image);
+        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(imageInfo, token2);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());

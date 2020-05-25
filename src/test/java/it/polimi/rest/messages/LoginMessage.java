@@ -31,7 +31,6 @@ public class LoginMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-
             HttpUriRequest request = RequestBuilder
                     .post(baseUrl + rootLinks.sessionLink().url)
                     .build();

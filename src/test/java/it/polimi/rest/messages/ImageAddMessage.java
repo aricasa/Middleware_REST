@@ -46,7 +46,7 @@ public class ImageAddMessage {
                     .build();
 
             RequestBuilder requestBuilder = RequestBuilder
-                    .post(baseUrl + userInfo.imagesLink().url)
+                    .post(baseUrl + userInfo.imagesLink())
                     .setEntity(entity);
 
             if (token != null) {

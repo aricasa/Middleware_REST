@@ -22,13 +22,13 @@ public class ImagesListMessage {
         private final TokenId token;
 
         public Request(UserInfoMessage.Response userInfo, TokenId token) {
-            this.token = token;
             this.userInfo = userInfo;
+            this.token = token;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.imagesLink().url);
+            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.imagesLink());
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

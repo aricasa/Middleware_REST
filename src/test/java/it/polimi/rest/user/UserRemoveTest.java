@@ -65,28 +65,6 @@ public class UserRemoveTest extends AbstractTest {
     }
 
     @Test
-    public void imagesNotAccessibleAnymore() throws Exception {
-        removeUser(token, username);
-
-        UserInfoMessage.Response userInfo = userInfo(token, username);
-        ImagesListMessage.Request request = new ImagesListMessage.Request(userInfo, token);
-        HttpResponse response = request.rawResponse(BASE_URL);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
-    }
-
-    @Test
-    public void oAuth2ClientsNotAccessibleAnymore() throws Exception {
-        removeUser(token, username);
-
-        UserInfoMessage.Response userInfo = userInfo(token, username);
-        OAuth2ClientsListMessage.Request request = new OAuth2ClientsListMessage.Request(userInfo, token);
-        HttpResponse response = request.rawResponse(BASE_URL);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
-    }
-
-    @Test
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 

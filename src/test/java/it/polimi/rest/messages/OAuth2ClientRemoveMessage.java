@@ -1,7 +1,6 @@
 package it.polimi.rest.messages;
 
 import it.polimi.rest.models.TokenId;
-import it.polimi.rest.models.oauth2.OAuth2Client;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -19,20 +18,18 @@ public class OAuth2ClientRemoveMessage {
 
     public static class Request implements it.polimi.rest.messages.Request<Response> {
 
-        private final UserInfoMessage.Response userInfo;
+        private final OAuth2ClientInfoMessage.Response clientInfo;
         private final TokenId token;
-        private final OAuth2Client.Id client;
 
-        public Request(UserInfoMessage.Response userInfo, TokenId token, OAuth2Client.Id client) {
-            this.userInfo = userInfo;
+        public Request(OAuth2ClientInfoMessage.Response clientInfo, TokenId token) {
+            this.clientInfo = clientInfo;
             this.token = token;
-            this.client = client;
         }
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder requestBuilder = RequestBuilder
-                    .delete(baseUrl + userInfo.oAuth2ClientsLink().url + "/" + client)
+                    .delete(baseUrl + clientInfo.selfLink())
                     .setEntity(jsonEntity());
 
             if (token != null) {

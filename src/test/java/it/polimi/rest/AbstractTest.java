@@ -103,9 +103,8 @@ public abstract class AbstractTest {
     }
 
     protected ImageRemoveMessage.Response removeImage(TokenId token, String username, Image.Id image) throws IOException {
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(userInfo, token, image);
+        ImageInfoMessage.Response imageInfo = imageInfo(token, username, image);
+        ImageRemoveMessage.Request request = new ImageRemoveMessage.Request(imageInfo, token);
         return request.response(BASE_URL);
     }
 

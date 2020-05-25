@@ -28,7 +28,7 @@ public class OAuth2ClientsListMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.oAuth2ClientsLink().url);
+            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.oAuth2ClientsLink());
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

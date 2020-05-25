@@ -33,7 +33,7 @@ public class ImageInfoMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.imagesLink().url + "/" + image);
+            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.imagesLink() + "/" + image);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

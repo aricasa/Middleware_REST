@@ -2,9 +2,8 @@ package it.polimi.rest.image;
 
 import it.polimi.rest.AbstractTest;
 import it.polimi.rest.communication.HttpStatus;
+import it.polimi.rest.messages.ImageInfoMessage;
 import it.polimi.rest.messages.ImageRawMessage;
-import it.polimi.rest.messages.RootMessage;
-import it.polimi.rest.messages.UserInfoMessage;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
 import org.apache.commons.io.FileUtils;
@@ -35,9 +34,8 @@ public class ImageRawTest extends AbstractTest {
 
     @Test
     public void sameData() throws Exception {
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, token, image);
+        ImageInfoMessage.Response imageInfo = imageInfo(token, username, image);
+        ImageRawMessage.Request request = new ImageRawMessage.Request(imageInfo, token);
         ImageRawMessage.Response response = request.response(BASE_URL);
 
         assertArrayEquals(data, response.data);
@@ -45,9 +43,8 @@ public class ImageRawTest extends AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, null, image);
+        ImageInfoMessage.Response imageInfo = imageInfo(token, username, image);
+        ImageRawMessage.Request request = new ImageRawMessage.Request(imageInfo, null);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -57,37 +54,21 @@ public class ImageRawTest extends AbstractTest {
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId(token + "invalidToken");
 
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, invalidToken, image);
+        ImageInfoMessage.Response imageInfo = imageInfo(token, username, image);
+        ImageRawMessage.Request request = new ImageRawMessage.Request(imageInfo, invalidToken);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
-    public void inexistentImage() throws Exception {
-        Image.Id inexistentId = new Image.Id(image + "inexistentId");
-
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, token, inexistentId);
-        HttpResponse response = request.rawResponse(BASE_URL);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusLine().getStatusCode());
-    }
-
-    @Test
     public void otherUserImage() throws Exception {
         String user2 = username + "2";
-        String pass2 = "pass";
+        addUser(user2, "pass");
+        TokenId token2 = new TokenId(login(user2, "pass").id);
 
-        addUser(user2, pass2);
-        TokenId token2 = new TokenId(login(user2, pass2).id);
-
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
-        ImageRawMessage.Request request = new ImageRawMessage.Request(userInfo, token2, image);
+        ImageInfoMessage.Response imageInfo = imageInfo(token, username, image);
+        ImageRawMessage.Request request = new ImageRawMessage.Request(imageInfo, token2);
         HttpResponse response = request.rawResponse(BASE_URL);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());

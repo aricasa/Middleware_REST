@@ -28,7 +28,7 @@ public class UsersListMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + rootLinks.usersLink().url);
+            RequestBuilder builder = RequestBuilder.get(baseUrl + rootLinks.usersLink());
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());
