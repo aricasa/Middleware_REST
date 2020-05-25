@@ -1,6 +1,7 @@
 package it.polimi.rest.messages;
 
 import it.polimi.rest.models.Image;
+import it.polimi.rest.models.Link;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -10,6 +11,7 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class ImageInfo {
 
@@ -54,10 +56,17 @@ public class ImageInfo {
 
         public String id;
         public String title;
+        public Map<String, Link> _links;
 
         private Response() {
 
         }
+
+        public Link authorLink() { return _links.get("author"); }
+
+        public Link describesLink() { return _links.get("describes"); }
+
+        public Link selfLink() { return  _links.get("self"); }
 
     }
 

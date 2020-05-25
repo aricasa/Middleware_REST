@@ -10,6 +10,7 @@ import it.polimi.rest.messages.UserInfo;
 import it.polimi.rest.models.Image;
 import it.polimi.rest.models.TokenId;
 import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,10 +41,17 @@ public class ImageInfoTest extends AbstractTest {
     }
 
     @Test
-    public void correctIdRetrieved() throws Exception {
+    public void dsf() throws Exception {
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
+        ImageInfo.Request request = new ImageInfo.Request(userInfo, token, image.get(0));
+
+        System.out.println(EntityUtils.toString(request.rawResponse(BASE_URL).getEntity()));
+    }
+
+    @Test
+    public void correctIdRetrieved() throws Exception {
         for (int i = 0; i < count; i++) {
-            ImageInfo.Response response = new ImageInfo.Request(userInfo, token, image.get(i)).response(BASE_URL);
+            ImageInfo.Response response = imageInfo(token, username, image.get(i));
 
             assertEquals(response.id,image.get(i).toString());
         }
@@ -51,11 +59,40 @@ public class ImageInfoTest extends AbstractTest {
 
     @Test
     public void correctTitleRetrieved() throws Exception {
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
         for (int i = 0; i < count; i++) {
-            ImageInfo.Response response = new ImageInfo.Request(userInfo, token, image.get(i)).response(BASE_URL);
+            ImageInfo.Response response = imageInfo(token, username, image.get(i));
 
             assertEquals(response.title, "title"+i);
+        }
+    }
+
+    @Test
+    public void correctOwnerRetrieved() throws Exception {
+        for (int i = 0; i < count; i++) {
+            ImageInfo.Response response = imageInfo(token, username, image.get(i));
+            Root.Response rootLinks = new Root.Request().response(BASE_URL);
+
+            assertEquals(response.authorLink().url , rootLinks.usersLink().url+"/"+username);
+        }
+    }
+
+    @Test
+    public void correctSelfLinkRetrieved() throws Exception {
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
+        for (int i = 0; i < count; i++) {
+            ImageInfo.Response response = imageInfo(token, username, image.get(i));
+
+            assertEquals(response.selfLink().url , userInfo.imagesLink().url+"/"+image.get(i));
+        }
+    }
+
+    @Test
+    public void correctDescribesLinkRetrieved() throws Exception {
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
+        for (int i = 0; i < count; i++) {
+            ImageInfo.Response response = imageInfo(token, username, image.get(i));
+
+            assertEquals(response.describesLink().url , userInfo.imagesLink().url+"/"+image.get(i)+"/raw");
         }
     }
 

@@ -88,6 +88,13 @@ public abstract class AbstractTest {
         return request.response(BASE_URL);
     }
 
+    protected ImageInfo.Response imageInfo(TokenId token, String username, Image.Id image) throws IOException {
+        Root.Response rootLinks = new Root.Request().response(BASE_URL);
+        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
+        ImageInfo.Request request = new ImageInfo.Request(userInfo, token, image);
+        return request.response(BASE_URL);
+    }
+
     protected ImageAdd.Response addImage(TokenId token, String username, String title, File file) throws IOException {
         Root.Response rootLinks = new Root.Request().response(BASE_URL);
         UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
