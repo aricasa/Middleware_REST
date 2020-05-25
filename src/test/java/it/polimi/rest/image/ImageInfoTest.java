@@ -39,14 +39,7 @@ public class ImageInfoTest extends AbstractTest {
             image.add(new Image.Id(addImage(token, username, "title" + i, file).id));
         }
     }
-
-    @Test
-    public void dsf() throws Exception {
-        UserInfo.Response userInfo = new UserInfo.Request(rootLinks, token, username).response(BASE_URL);
-        ImageInfo.Request request = new ImageInfo.Request(userInfo, token, image.get(0));
-
-        System.out.println(EntityUtils.toString(request.rawResponse(BASE_URL).getEntity()));
-    }
+    
 
     @Test
     public void correctIdRetrieved() throws Exception {
