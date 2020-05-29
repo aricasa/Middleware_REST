@@ -30,7 +30,7 @@ public class LogoutMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.delete(baseUrl + rootLinks.sessionLink().url +"/" + session);
+            RequestBuilder builder = RequestBuilder.delete(rootLinks.sessionLink().url +"/" + session);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

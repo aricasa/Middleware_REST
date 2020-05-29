@@ -29,7 +29,7 @@ public class ImageRawMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + imageInfo.rawLink());
+            RequestBuilder builder = RequestBuilder.get(imageInfo.rawLink().toString());
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

@@ -28,7 +28,7 @@ public class ImagesListMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + userInfo.imagesLink());
+            RequestBuilder builder = RequestBuilder.get(userInfo.imagesLink().toString());
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

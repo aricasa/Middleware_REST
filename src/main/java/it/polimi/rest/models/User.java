@@ -31,7 +31,7 @@ public class User implements Model {
 
     @Override
     public Optional<String> self() {
-        return Optional.of("/users/" + username);
+        return Optional.of(baseUrl() + "/users/" + username);
     }
 
     @Override

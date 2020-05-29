@@ -34,7 +34,7 @@ public class OAuth2ClientInfoMessage {
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder requestBuilder = RequestBuilder
-                    .get(baseUrl + userInfo.oAuth2ClientsLink() + "/" + client)
+                    .get(userInfo.oAuth2ClientsLink() + "/" + client)
                     .setEntity(jsonEntity());
 
             if (token != null) {

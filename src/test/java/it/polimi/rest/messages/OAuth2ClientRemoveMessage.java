@@ -29,7 +29,7 @@ public class OAuth2ClientRemoveMessage {
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder requestBuilder = RequestBuilder
-                    .delete(baseUrl + clientInfo.selfLink())
+                    .delete(clientInfo.selfLink().toString())
                     .setEntity(jsonEntity());
 
             if (token != null) {

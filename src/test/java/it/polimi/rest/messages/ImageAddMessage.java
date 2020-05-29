@@ -38,16 +38,21 @@ public class ImageAddMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            HttpEntity entity = MultipartEntityBuilder
+            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder
                     .create()
-                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                    .addBinaryBody("file", file)
-                    .addTextBody("title", title)
-                    .build();
+                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+
+            if (title != null) {
+                entityBuilder.addTextBody("title", title);
+            }
+
+            if (file != null) {
+                entityBuilder.addBinaryBody("file", file);
+            }
 
             RequestBuilder requestBuilder = RequestBuilder
-                    .post(baseUrl + userInfo.imagesLink())
-                    .setEntity(entity);
+                    .post(userInfo.imagesLink().toString())
+                    .setEntity(entityBuilder.build());
 
             if (token != null) {
                 requestBuilder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer" + token);

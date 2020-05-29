@@ -28,7 +28,7 @@ public class ImageRemoveMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.delete(baseUrl + imageInfo.selfLink());
+            RequestBuilder builder = RequestBuilder.delete(imageInfo.selfLink().toString());
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

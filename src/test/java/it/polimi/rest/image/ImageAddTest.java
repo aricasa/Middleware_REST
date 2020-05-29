@@ -57,24 +57,22 @@ public class ImageAddTest extends AbstractTest {
 
     @Test
     public void missingToken() throws Exception {
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        UserInfoMessage.Response userInfo = userInfo(token, username);
         ImageAddMessage.Request request = new ImageAddMessage.Request(userInfo, null, title, file);
         HttpResponse response = request.rawResponse(BASE_URL);
 
-        assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
     public void invalidToken() throws Exception {
         TokenId invalidToken = new TokenId("invalidToken");
 
-        RootMessage.Response rootLinks = new RootMessage.Request().response(BASE_URL);
-        UserInfoMessage.Response userInfo = new UserInfoMessage.Request(rootLinks, token, username).response(BASE_URL);
+        UserInfoMessage.Response userInfo = userInfo(token, username);
         ImageAddMessage.Request request = new ImageAddMessage.Request(userInfo, invalidToken, title, file);
         HttpResponse response = request.rawResponse(BASE_URL);
 
-        assertEquals(HttpStatus.UNAUTHORIZED,response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusLine().getStatusCode());
     }
 
     @Test
@@ -88,7 +86,25 @@ public class ImageAddTest extends AbstractTest {
         ImageAddMessage.Request request = new ImageAddMessage.Request(userInfo, token2, title, file);
         HttpResponse response = request.rawResponse(BASE_URL);
 
-        assertEquals(HttpStatus.FORBIDDEN,response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void missingTitle() throws Exception {
+        UserInfoMessage.Response userInfo = userInfo(token, username);
+        ImageAddMessage.Request request = new ImageAddMessage.Request(userInfo, token, null, file);
+        HttpResponse response = request.rawResponse(BASE_URL);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void missingFile() throws Exception {
+        UserInfoMessage.Response userInfo = userInfo(token, username);
+        ImageAddMessage.Request request = new ImageAddMessage.Request(userInfo, token, title, null);
+        HttpResponse response = request.rawResponse(BASE_URL);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusLine().getStatusCode());
     }
 
 }

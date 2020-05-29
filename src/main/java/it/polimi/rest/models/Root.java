@@ -6,14 +6,14 @@ public class Root implements Model {
 
     @Override
     public Optional<String> self() {
-        return Optional.of("/");
+        return Optional.of(baseUrl() + "/");
     }
 
     @Override
     public Map<String, Link> links() {
         Map<String, Link> links = new HashMap<>();
-        links.put("users", new Link("/users"));
-        links.put("sessions", new Link("/sessions"));
+        links.put("users", new Link(baseUrl() + "/users"));
+        links.put("sessions", new Link(baseUrl() + "/sessions"));
         return links;
     }
 

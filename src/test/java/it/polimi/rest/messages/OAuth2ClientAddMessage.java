@@ -40,7 +40,7 @@ public class OAuth2ClientAddMessage {
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
             RequestBuilder requestBuilder = RequestBuilder
-                    .post(baseUrl + userInfo.oAuth2ClientsLink())
+                    .post(userInfo.oAuth2ClientsLink().toString())
                     .setEntity(jsonEntity());
 
             if (token != null) {

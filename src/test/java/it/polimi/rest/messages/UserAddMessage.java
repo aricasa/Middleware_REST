@@ -36,7 +36,7 @@ public class UserAddMessage {
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
             HttpUriRequest request = RequestBuilder
-                    .post(baseUrl + rootLinks.usersLink())
+                    .post(rootLinks.usersLink().toString())
                     .setEntity(jsonEntity())
                     .build();
 

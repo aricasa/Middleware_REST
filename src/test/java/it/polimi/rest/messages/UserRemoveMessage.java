@@ -28,7 +28,7 @@ public class UserRemoveMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.delete(baseUrl + userInfo.selfLink());
+            RequestBuilder builder = RequestBuilder.delete(userInfo.selfLink().toString());
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

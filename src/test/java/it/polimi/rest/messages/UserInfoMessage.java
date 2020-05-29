@@ -32,7 +32,7 @@ public class UserInfoMessage {
 
         @Override
         public HttpResponse rawResponse(String baseUrl) throws IOException {
-            RequestBuilder builder = RequestBuilder.get(baseUrl + rootLinks.usersLink() + "/" + username);
+            RequestBuilder builder = RequestBuilder.get(rootLinks.usersLink() + "/" + username);
 
             if (token != null) {
                 builder.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token.toString());

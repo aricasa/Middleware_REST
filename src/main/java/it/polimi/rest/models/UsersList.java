@@ -20,7 +20,7 @@ public class UsersList implements Model, Iterable<User> {
 
     @Override
     public Optional<String> self() {
-        return Optional.of("/users");
+        return Optional.of(baseUrl() + "/users");
     }
 
     @Override
