@@ -2,7 +2,7 @@ package it.polimi.rest;
 
 import it.polimi.rest.api.main.ResourcesServer;
 import it.polimi.rest.api.oauth2.OAuth2Server;
-import it.polimi.rest.authorization.ACL;
+import it.polimi.rest.authorization.PermissionsManager;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.data.Storage;
@@ -23,7 +23,7 @@ public abstract class AbstractTest {
 
     @Before
     public void start() throws InterruptedException {
-        Authorizer authorizer = new ACL();
+        Authorizer authorizer = new PermissionsManager();
         Storage storage = new VolatileStorage();
         SessionManager sessionManager = new SessionManager(authorizer, storage);
         ResourcesServer resourcesServer = new ResourcesServer(storage, sessionManager);
