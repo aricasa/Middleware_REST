@@ -45,12 +45,6 @@ public final class BaseDataProvider implements DataProvider {
     }
 
     public void add(User user) {
-        if (user.username == null) {
-            throw new BadRequestException("Username not specified");
-        } else if (user.password == null) {
-            throw new BadRequestException("Password not specified");
-        }
-
         // Username must be unique
         if (storage.userByUsername(user.username) != null) {
             throw new ForbiddenException("Username '" + user.username + "' already in use");
@@ -113,10 +107,6 @@ public final class BaseDataProvider implements DataProvider {
     }
 
     public void add(Image image) {
-        if (image.info.title == null) {
-            throw new BadRequestException("Title not specified");
-        }
-
         storage.add(image);
     }
 
@@ -136,12 +126,6 @@ public final class BaseDataProvider implements DataProvider {
     }
 
     public void add(OAuth2Client client) {
-        if (client.name == null) {
-            throw new BadRequestException("Name not specified");
-        } else if (client.callback == null) {
-            throw new BadRequestException("Callback URL not specified");
-        }
-
         storage.add(client);
     }
 

@@ -7,6 +7,7 @@ import it.polimi.rest.communication.TokenExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.user.UserMessage;
 import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
@@ -32,7 +33,16 @@ class UserAdd extends Responder<TokenId, User> {
 
     @Override
     protected User deserialize(Request request) {
-        return new GsonDeserializer<>(User.class).parse(request);
+        User user = new GsonDeserializer<>(User.class).parse(request);
+
+        if (user.username == null || user.username.trim().isEmpty()) {
+            throw new BadRequestException("Username not specified");
+
+        } else if (user.password == null || user.password.trim().isEmpty()) {
+            throw new BadRequestException("Password not specified");
+        }
+
+        return user;
     }
 
     @Override

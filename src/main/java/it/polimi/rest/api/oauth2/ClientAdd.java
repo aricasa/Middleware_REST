@@ -8,6 +8,7 @@ import it.polimi.rest.communication.TokenHeaderExtractor;
 import it.polimi.rest.communication.messages.Message;
 import it.polimi.rest.communication.messages.oauth2.client.OAuth2ClientMessage;
 import it.polimi.rest.data.DataProvider;
+import it.polimi.rest.exceptions.BadRequestException;
 import it.polimi.rest.models.Id;
 import it.polimi.rest.models.TokenId;
 import it.polimi.rest.models.User;
@@ -36,8 +37,17 @@ class ClientAdd extends Responder<TokenId, ClientAdd.Data> {
 
     @Override
     protected ClientAdd.Data deserialize(Request request) {
+        OAuth2Client client = new GsonDeserializer<>(OAuth2Client.class).parse(request);
+
+        if (client.name == null || client.name.trim().isEmpty()) {
+            throw new BadRequestException("Name not specified");
+
+        } else if (client.callback == null || client.callback.trim().isEmpty()) {
+            throw new BadRequestException("Callback URI not specified");
+        }
+
         return new Data(
-                new GsonDeserializer<>(OAuth2Client.class).parse(request),
+                client,
                 request.params("username")
         );
     }

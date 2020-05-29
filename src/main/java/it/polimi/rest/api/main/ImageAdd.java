@@ -40,13 +40,17 @@ class ImageAdd extends Responder<TokenId, ImageAdd.Data> {
         String username = request.params("username");
 
         try {
-            Part titlePart = request.raw().getPart("title");
-            String title = IOUtils.toString(titlePart.getInputStream(), Charset.defaultCharset()).trim();
+            String title = Optional.ofNullable(request.raw().getPart("title"))
+                    .map(this::partToStream)
+                    .map(this::streamToString)
+                    .map(String::trim)
+                    .orElseThrow(() -> new BadRequestException("Title not specified"));
 
-            Part filePart = request.raw().getPart("file");
-            InputStream stream = filePart.getInputStream();
-
-            byte[] data = IOUtils.toByteArray(stream);
+            byte[] data = Optional.ofNullable(request.raw().getPart("file"))
+                    .map(this::partToStream)
+                    .map(this::streamToByteArray)
+                    .filter(b -> b.length != 0)
+                    .orElseThrow(() -> new BadRequestException("File not specified"));
 
             return new Data(username, title, data);
 
@@ -72,6 +76,30 @@ class ImageAdd extends Responder<TokenId, ImageAdd.Data> {
 
         logger.d("Image " + image.info.id + " added");
         return ImageMessage.creation(image.info);
+    }
+
+    private InputStream partToStream(Part part) {
+        try {
+            return part.getInputStream();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private String streamToString(InputStream stream) {
+        try {
+            return IOUtils.toString(stream, Charset.defaultCharset());
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private byte[] streamToByteArray(InputStream stream) {
+        try {
+            return IOUtils.toByteArray(stream);
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     protected static class Data {
