@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import it.polimi.rest.api.main.ResourcesServer;
 import it.polimi.rest.api.oauth2.OAuth2Server;
-import it.polimi.rest.authorization.PermissionsManager;
+import it.polimi.rest.authorization.AuthorizationTable;
 import it.polimi.rest.authorization.Authorizer;
 import it.polimi.rest.authorization.SessionManager;
 import it.polimi.rest.communication.HttpStatus;
@@ -113,7 +113,7 @@ public class App {
     }
 
     public static void main(String[] args) {
-        Authorizer authorizer = new PermissionsManager();
+        Authorizer authorizer = new AuthorizationTable();
         Storage storage = new VolatileStorage();
         SessionManager sessionManager = new SessionManager(authorizer, storage);
 

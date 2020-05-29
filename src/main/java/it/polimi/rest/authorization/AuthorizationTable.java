@@ -3,7 +3,7 @@ package it.polimi.rest.authorization;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class PermissionsManager implements Authorizer {
+public class AuthorizationTable implements Authorizer {
 
     private final Collection<Authorization> authorizations = new HashSet<>();
 
