@@ -56,7 +56,7 @@ public class BasicToken implements Token, Model {
 
     @Override
     public Optional<String> self() {
-        return Optional.of("/sessions/" + id);
+        return Optional.of(baseUrl() + "/sessions/" + id);
     }
 
     @Override
